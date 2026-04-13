@@ -70,7 +70,6 @@ export default function PDAScanScreen() {
   const [inputValue, setInputValue] = useState('');
   const processingRef = useRef(false);
   const autoSubmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastInputRef = useRef('');
 
   // 仓库
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -412,38 +411,48 @@ export default function PDAScanScreen() {
   }, [orderNo, loadOrderMaterials]);
 
   // 处理扫描（入口函数，清理换行符后调用）
+  // 修复：防止 onChangeText 和 onSubmitEditing 重复触发
   const handleScan = useCallback(async () => {
+    // 如果正在处理中，直接返回
+    if (processingRef.current) return;
+    
     // PDA扫码可能带有多余的字符，需要全面清理
     let code = inputValue.trim()
       .replace(/[\r\n\t\s]+/g, '')  // 清理所有空白字符（换行、回车、制表符、空格）
       .replace(/^[^A-Za-z0-9]+/, '')  // 清理开头非字母数字字符
       .replace(/[^A-Za-z0-9]+$/, ''); // 清理结尾非字母数字字符
 
-    console.log('[扫码出库] 原始内容:', inputValue);
-    console.log('[扫码出库] 清理后:', code);
+    // 如果没有有效内容，不处理
+    if (!code) {
+      console.log('[扫码出库] handleScan: 无有效内容，跳过');
+      return;
+    }
 
+    console.log('[扫码出库] handleScan 触发:', code);
+    
     setInputValue(''); // 清空输入框
     await processScan(code);
-    setTimeout(() => inputRef.current?.focus(), 100); // 增加重新聚焦延迟到 100ms
+    setTimeout(() => inputRef.current?.focus(), 100);
   }, [inputValue, processScan]);
 
   // 输入变化时自动检测并触发
+  // 修复：简化逻辑，避免与 onSubmitEditing 冲突
   const handleInputChange = useCallback((text: string) => {
-    setInputValue(text);
-
     // 清除之前的定时器
     if (autoSubmitTimerRef.current) {
       clearTimeout(autoSubmitTimerRef.current);
+      autoSubmitTimerRef.current = null;
     }
 
-    // 如果输入包含换行符，立即触发
+    // 如果输入包含换行符，立即触发（扫码器通常会自动发送换行符）
     if (text.includes('\n') || text.includes('\r')) {
       let code = text.trim()
         .replace(/[\r\n\t\s]+/g, '')
         .replace(/^[^A-Za-z0-9]+/, '')
         .replace(/[^A-Za-z0-9]+$/, '');
 
-      if (code) {
+      if (code && !processingRef.current) {
+        console.log('[扫码出库] handleInputChange 检测到换行符，立即处理:', code);
         setInputValue(''); // 清空输入框
         processScan(code).then(() => {
           setTimeout(() => inputRef.current?.focus(), 100);
@@ -452,25 +461,27 @@ export default function PDAScanScreen() {
       return;
     }
 
-    // 如果PDA扫码后直接追加换行符，检测到输入停止时自动触发
-    if (text.length > 0 && text.length > lastInputRef.current.length) {
-      // 有新输入，设置定时器检测输入完成（延迟从 300ms 增加到 500ms）
+    // 兜底：如果输入内容较长（可能是扫码器输入），300ms 后自动触发
+    // 这个定时器主要用于处理不发送换行符的扫码器
+    if (text.length >= 8) {
       autoSubmitTimerRef.current = setTimeout(() => {
-        let code = text.trim()
-          .replace(/[\r\n\t\s]+/g, '')
-          .replace(/^[^A-Za-z0-9]+/, '')
-          .replace(/[^A-Za-z0-9]+$/, '');
+        // 再次检查 inputValue 是否还是这个内容（防止被清空后又触发）
+        if (inputValue === text) {
+          let code = text.trim()
+            .replace(/[\r\n\t\s]+/g, '')
+            .replace(/^[^A-Za-z0-9]+/, '')
+            .replace(/[^A-Za-z0-9]+$/, '');
 
-        if (code) {
-          setInputValue(''); // 清空输入框
-          processScan(code).then(() => {
-            setTimeout(() => inputRef.current?.focus(), 100);
-          });
+          if (code && !processingRef.current) {
+            console.log('[扫码出库] handleInputChange 定时器触发:', code);
+            setInputValue(''); // 清空输入框
+            processScan(code).then(() => {
+              setTimeout(() => inputRef.current?.focus(), 100);
+            });
+          }
         }
-      }, 500); // 500ms 后自动触发
+      }, 300);
     }
-
-    lastInputRef.current = text;
   }, [processScan]);
 
   // 选择仓库
