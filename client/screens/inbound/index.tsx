@@ -356,7 +356,7 @@ export default function InboundScreen() {
   }, [inputValue, processScan]);
 
   // 输入变化时自动检测并触发
-  // 修复：简化逻辑，避免与 onSubmitEditing 冲突
+  // 扫码器通常会自动发送换行符（\n 或 \r），我们检测换行符来判定扫码完成
   const handleInputChange = useCallback((text: string) => {
     // 清除之前的定时器
     if (autoSubmitTimerRef.current) {
@@ -364,28 +364,29 @@ export default function InboundScreen() {
       autoSubmitTimerRef.current = null;
     }
 
-    // 如果输入包含换行符，立即触发（扫码器通常会自动发送换行符）
-    if (text.includes('\n') || text.includes('\r')) {
-      let code = text.trim()
-        .replace(/[\r\n\t\s]+/g, '')
-        .replace(/^[^A-Za-z0-9]+/, '')
-        .replace(/[^A-Za-z0-9]+$/, '');
+    // 如果输入包含换行符（扫码器结束符），立即触发
+    // 兼容多种换行符格式：\n、\r、\r\n、\n\r
+    const hasNewline = text.includes('\n') || text.includes('\r');
+    
+    if (hasNewline) {
+      let code = text
+        .replace(/[\r\n]+$/, '')  // 只去掉末尾的换行符
+        .replace(/[\r\n\t\s]+/g, '')  // 清理所有空白字符
+        .replace(/^[^A-Za-z0-9]+/, '')  // 清理开头非字母数字
+        .replace(/[^A-Za-z0-9]+$/, ''); // 清理结尾非字母数字
 
       if (code && !processingRef.current) {
-        console.log('[扫码入库] handleInputChange 检测到换行符，立即处理:', code);
+        console.log('[扫码入库] 检测到换行符，处理:', code);
         setInputValue(''); // 清空输入框
-        processScan(code).then(() => {
-          setTimeout(() => inputRef.current?.focus(), 100);
-        });
+        processScan(code);
       }
       return;
     }
 
     // 兜底：如果输入内容较长（可能是扫码器输入），300ms 后自动触发
-    // 这个定时器主要用于处理不发送换行符的扫码器
     if (text.length >= 8) {
       autoSubmitTimerRef.current = setTimeout(() => {
-        // 再次检查 inputValue 是否还是这个内容（防止被清空后又触发）
+        // 再次检查 inputValue 是否还是这个内容
         if (inputValue === text) {
           let code = text.trim()
             .replace(/[\r\n\t\s]+/g, '')
@@ -393,16 +394,31 @@ export default function InboundScreen() {
             .replace(/[^A-Za-z0-9]+$/, '');
 
           if (code && !processingRef.current) {
-            console.log('[扫码入库] handleInputChange 定时器触发:', code);
-            setInputValue(''); // 清空输入框
-            processScan(code).then(() => {
-              setTimeout(() => inputRef.current?.focus(), 100);
-            });
+            console.log('[扫码入库] 兜底定时器触发:', code);
+            setInputValue('');
+            processScan(code);
           }
         }
       }, 300);
     }
   }, [processScan]);
+
+  // onSubmitEditing 作为备用（有些设备可能只触发这个）
+  const handleSubmitEditing = useCallback(() => {
+    if (processingRef.current) return;
+    
+    let code = inputValue
+      .replace(/[\r\n]+$/, '')
+      .replace(/[\r\n\t\s]+/g, '')
+      .replace(/^[^A-Za-z0-9]+/, '')
+      .replace(/[^A-Za-z0-9]+$/, '');
+
+    if (code && !processingRef.current) {
+      console.log('[扫码入库] onSubmitEditing 处理:', code);
+      setInputValue('');
+      processScan(code);
+    }
+  }, [inputValue, processScan]);
 
   // 选择仓库
   const selectWarehouse = (wh: Warehouse) => {
@@ -628,6 +644,7 @@ export default function InboundScreen() {
             style={styles.scanInput}
             value={inputValue}
             onChangeText={handleInputChange}
+            onSubmitEditing={handleSubmitEditing}
             autoCapitalize="characters"
             autoCorrect={false}
             autoFocus={false}
