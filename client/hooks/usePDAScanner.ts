@@ -92,17 +92,10 @@ export function usePDAScanner({
       const subscription = eventEmitterRef.current.addListener(
         'onBarcodeScan',
         (event: Record<string, unknown>) => {
-          // 兼容不同的字段名
-          // 斯维尔: scan_result
-          // 其他: data, barcode, content, barCode
-          const code = (event[key] as string) ||
-                       (event.data as string) ||
-                       (event.barcode as string) ||
-                       (event.content as string) ||
-                       (event.barCode as string) ||
-                       (event.value as string) ||
-                       (event.barcode_string as string) ||
-                       (event.scannerdata as string) || '';
+          // 原生模块发送的事件格式：
+          // { data: string, action: string, timestamp: number }
+          // 斯维尔扫码器通过 scan_result 字段传递数据
+          const code = (event.data as string) || '';
 
           if (!code || typeof code !== 'string') {
             return;

@@ -11,7 +11,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
  * PDA 扫码器广播接收器
  * 接收斯维尔扫码器的广播数据
  * 
- * 配置：
+ * 广播配置：
  * - 广播名称: com.tlsj.scan.result
  * - 广播键值: scan_result
  */
@@ -19,12 +19,13 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
 
     private var broadcastReceiver: BroadcastReceiver? = null
     private var isRegistered = false
+    private var lastScanTime = 0L
+    private var lastScanData = ""
 
     override fun getName(): String = "PDAService"
 
     /**
      * 启动扫码监听
-     * @param action 广播 action
      */
     @ReactMethod
     fun startScan(action: String, promise: Promise) {
@@ -53,10 +54,19 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
                             ?: ""
 
                         if (data.isNotEmpty()) {
+                            // 防止重复扫码（500ms内相同数据忽略）
+                            val currentTime = System.currentTimeMillis()
+                            if (data == lastScanData && currentTime - lastScanTime < 500) {
+                                return
+                            }
+                            lastScanData = data
+                            lastScanTime = currentTime
+
                             // 发送事件到 JS
                             sendEvent("onBarcodeScan", Arguments.createMap().apply {
                                 putString("data", data)
                                 putString("action", action)
+                                putDouble("timestamp", currentTime.toDouble())
                             })
                         }
                     }
@@ -67,7 +77,6 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
             isRegistered = true
             
             promise.resolve(true)
-            android.util.Log.d("PDAService", "扫码监听已启动, action: $action")
         } catch (e: Exception) {
             promise.reject("START_SCAN_ERROR", "启动扫码监听失败: ${e.message}")
         }
@@ -91,7 +100,7 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
             try {
                 reactApplicationContext.unregisterReceiver(it)
             } catch (e: Exception) {
-                // 可能已经取消注册，忽略异常
+                // 已取消注册，忽略
             }
         }
         broadcastReceiver = null
@@ -108,7 +117,7 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
     }
 
     /**
-     * 支持的广播配置列表
+     * 获取支持的扫码器配置列表
      */
     @ReactMethod
     fun getSupportedConfigs(promise: Promise) {
@@ -133,13 +142,6 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
             putString("name", "新大陆")
             putString("action", "nlscan.action.SCANNER_RESULT")
             putString("key", "SCAN_BARCODE1")
-        })
-        
-        // Android 标准
-        configs.pushMap(Arguments.createMap().apply {
-            putString("name", "Android标准")
-            putString("action", "android.intent.action.SCANRESULT")
-            putString("key", "value")
         })
 
         promise.resolve(configs)

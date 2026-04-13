@@ -19,6 +19,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
+import { usePDAScanner } from '@/hooks/usePDAScanner';
 import {
   Warehouse,
   getAllWarehouses,
@@ -70,6 +71,8 @@ export default function InventoryScreen() {
   const [inputValue, setInputValue] = useState('');
   const processingRef = useRef(false);
   const autoSubmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 保存 processScan 的引用，供广播回调使用
+  const processScanRef = useRef<(code: string) => Promise<void>>(() => Promise.resolve());
 
   // 仓库
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -383,6 +386,18 @@ export default function InventoryScreen() {
       processingRef.current = false;
     }
   }, [currentWarehouse, scanRecords, checkType]);
+
+  // 更新 processScan 引用
+  processScanRef.current = processScan;
+
+  // PDA 广播扫码监听（斯维尔：com.tlsj.scan.result）
+  usePDAScanner({
+    onScan: (code) => {
+      console.log('[盘点] 广播扫码收到:', code);
+      // 通过 ref 调用 processScan
+      processScanRef.current(code);
+    },
+  });
 
   // 处理扫描（入口函数，清理换行符后调用）
   // 修复：防止 onChangeText 和 onSubmitEditing 重复触发
