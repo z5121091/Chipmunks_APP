@@ -16,7 +16,6 @@ import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
-import { usePDAScanner } from '@/hooks/usePDAScanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Warehouse,
@@ -66,8 +65,9 @@ export default function InboundScreen() {
   const [inputValue, setInputValue] = useState('');
   const processingRef = useRef(false);
   const autoSubmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // 保存 processScan 的引用，供广播回调使用
-  const processScanRef = useRef<(code: string) => Promise<void>>(() => Promise.resolve());
+  // 防抖相关
+  const lastScanRef = useRef<string>('');
+  const lastScanTimeRef = useRef<number>(0);
 
   // 仓库
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -333,18 +333,6 @@ export default function InboundScreen() {
     }
   }, [currentWarehouse, currentSupplier, scanRecords]);
 
-  // 更新 processScan 引用
-  processScanRef.current = processScan;
-
-  // PDA 广播扫码监听（斯维尔：com.tlsj.scan.result）
-  usePDAScanner({
-    onScan: (code) => {
-      console.log('[扫码入库] 广播扫码收到:', code);
-      // 通过 ref 调用 processScan
-      processScanRef.current(code);
-    },
-  });
-
   // 处理扫描（入口函数，清理换行符后调用）
   // 修复：防止 onChangeText 和 onSubmitEditing 重复触发
   const handleScan = useCallback(async () => {
@@ -405,7 +393,7 @@ export default function InboundScreen() {
     // 正常更新输入值
     setInputValue(text);
 
-    // 兜底定时器（用于焦点录入模式，长时间无变化时触发）
+    // 兜底定时器（用于焦点录入模式，输入停止后自动触发）
     if (text.length >= 8) {
       autoSubmitTimerRef.current = setTimeout(() => {
         // 检查是否还在处理中，或者值已被清空
@@ -416,12 +404,12 @@ export default function InboundScreen() {
             .replace(/[^A-Za-z0-9]+$/, '');
 
           if (code) {
-            console.log('[扫码入库] 兜底定时器处理:', code);
+            console.log('[扫码入库] 自动触发处理:', code);
             setInputValue('');
             processScan(code);
           }
         }
-      }, 2000); // 2秒无变化才触发
+      }, 1000); // 1秒无变化自动触发
     }
   }, [processScan]);
 

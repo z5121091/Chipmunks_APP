@@ -1,162 +1,115 @@
 /**
- * PDA 扫码器广播监听 Hook
- * 支持斯维尔等扫码器广播模式
- * 
- * 斯维尔扫码器配置：
- * - 广播名称: com.tlsj.scan.result
- * - 广播键值: scan_result
+ * PDA 扫码器 Hook - 焦点录入模式
  * 
  * 使用方式：
  * import { usePDAScanner } from '@/hooks/usePDAScanner';
  * 
- * const { clearLastScan } = usePDAScanner({
+ * const { handleScan } = usePDAScanner({
  *   onScan: (code) => {
  *     console.log('收到扫码:', code);
  *   }
  * });
+ * 
+ * // 在输入框 onChangeText 中调用
+ * <TextInput onChangeText={handleScan} />
  */
 
-import { useEffect, useRef, useCallback } from 'react';
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import { useRef, useCallback } from 'react';
 
 interface UsePDAScannerOptions {
-  /** 扫码器广播 action */
-  action?: string;
-  /** 扫码结果字段名 */
-  key?: string;
   /** 收到扫码数据时的回调 */
-  onScan?: (data: string) => void;
-  /** 是否启用广播监听 */
-  enabled?: boolean;
+  onScan?: (code: string) => void;
+  /** 防抖延迟（毫秒），默认 1500ms */
+  debounceMs?: number;
+  /** 最小码长度，默认 8 */
+  minLength?: number;
 }
 
-// 斯维尔扫码器配置（默认）
-const SWA_ACTIONS = {
-  // 斯维尔扫码器
-  siweier: {
-    action: 'com.tlsj.scan.result',
-    key: 'scan_result',
-  },
-  // 销邦扫码器
-  xiaobang: {
-    action: 'com.supoin.PDASERVICE',
-    key: 'data',
-  },
-  // 新大陆扫码器
-  xindalu: {
-    action: 'nlscan.action.SCANNER_RESULT',
-    key: 'SCAN_BARCODE1',
-  },
-  // 通用 Android 扫码
-  android: {
-    action: 'android.intent.action.SCANRESULT',
-    key: 'value',
-  },
-};
-
-// 斯维尔扫码器默认配置
-const DEFAULT_SIWEI_ACTION = 'com.tlsj.scan.result';
-const DEFAULT_SIWEI_KEY = 'scan_result';
+/**
+ * 清理字符串中的特殊字符
+ */
+function cleanCode(input: string): string {
+  return input
+    .trim()
+    .replace(/[\r\n\t\s]+/g, '')  // 清理所有空白字符
+    .replace(/^[^A-Za-z0-9]+/, '')  // 清理开头非字母数字
+    .replace(/[^A-Za-z0-9]+$/, ''); // 清理结尾非字母数字
+}
 
 export function usePDAScanner({
-  action = DEFAULT_SIWEI_ACTION,
-  key = DEFAULT_SIWEI_KEY,
   onScan,
-  enabled = true,
+  debounceMs = 1500,
+  minLength = 8,
 }: UsePDAScannerOptions = {}) {
-  const lastScanRef = useRef<string>('');
+  const lastCodeRef = useRef<string>('');
   const lastScanTimeRef = useRef<number>(0);
-  const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
-  const subscriptionRef = useRef<{ remove?: () => void } | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (!enabled || Platform.OS !== 'android') {
-      console.log('[PDA Scanner] 广播模式不可用（非 Android 设备）');
+  /**
+   * 处理扫码输入
+   * 每次输入变化时调用，自动检测扫码完成并触发回调
+   */
+  const handleScan = useCallback((input: string) => {
+    // 清除之前的定时器
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // 清理输入
+    const code = cleanCode(input);
+
+    // 如果输入包含换行符（模拟按键模式），立即触发
+    if (input.includes('\n') || input.includes('\r')) {
+      const cleanInput = cleanCode(input.replace(/[\r\n]+$/, ''));
+      if (cleanInput && cleanInput.length >= minLength) {
+        // 防抖：200ms 内的重复扫码忽略
+        const now = Date.now();
+        if (cleanInput === lastCodeRef.current && now - lastScanTimeRef.current < 200) {
+          return;
+        }
+        lastCodeRef.current = cleanInput;
+        lastScanTimeRef.current = now;
+
+        console.log('[PDA Scanner] 模拟按键扫码:', cleanInput);
+        onScan?.(cleanInput);
+      }
       return;
     }
 
-    // 尝试获取扫码服务模块
-    const PDAService = NativeModules.PDAService;
-
-    if (!PDAService) {
-      console.log('[PDA Scanner] PDAService 模块未找到，请确认是否已配置原生模块');
-      console.log('[PDA Scanner] 提示：需要创建本地原生模块来接收广播');
-      return;
-    }
-
-    try {
-      // 创建事件发射器
-      eventEmitterRef.current = new NativeEventEmitter(PDAService);
-
-      // 监听扫码事件
-      const subscription = eventEmitterRef.current.addListener(
-        'onBarcodeScan',
-        (event: Record<string, unknown>) => {
-          // 原生模块发送的事件格式：
-          // { data: string, action: string, timestamp: number }
-          // 斯维尔扫码器通过 scan_result 字段传递数据
-          const code = (event.data as string) || '';
-
-          if (!code || typeof code !== 'string') {
-            return;
-          }
-
-          // 防抖处理：200ms 内的重复扫码忽略
+    // 焦点录入模式：设置定时器，输入停止后自动触发
+    if (code.length >= minLength) {
+      timerRef.current = setTimeout(() => {
+        // 检查是否是最新的输入
+        if (code === cleanCode(input)) {
           const now = Date.now();
-          if (code === lastScanRef.current && now - lastScanTimeRef.current < 200) {
-            console.log('[PDA Scanner] 忽略重复扫码:', code);
+          if (code === lastCodeRef.current && now - lastScanTimeRef.current < 200) {
             return;
           }
-
-          lastScanRef.current = code;
+          lastCodeRef.current = code;
           lastScanTimeRef.current = now;
 
-          console.log('[PDA Scanner] 收到广播扫码:', code, 'action:', action, 'key:', key);
-
-          if (onScan) {
-            onScan(code);
-          }
+          console.log('[PDA Scanner] 焦点录入扫码:', code);
+          onScan?.(code);
         }
-      );
-
-      subscriptionRef.current = subscription;
-
-      // 尝试启动扫码服务
-      if (typeof PDAService.startScan === 'function') {
-        PDAService.startScan(action).catch((err: Error) => {
-          console.log('[PDA Scanner] 启动扫码服务失败:', err.message);
-        });
-      }
-    } catch (error) {
-      console.error('[PDA Scanner] 初始化失败:', error);
+      }, debounceMs);
     }
+  }, [onScan, debounceMs, minLength]);
 
-    return () => {
-      try {
-        subscriptionRef.current?.remove?.();
-        if (typeof PDAService?.stopScan === 'function') {
-          PDAService.stopScan();
-        }
-      } catch (error) {
-        console.error('[PDA Scanner] 清理失败:', error);
-      }
-    };
-  }, [enabled, action, key, onScan]);
-
-  // 清除最后扫码数据
-  const clearLastScan = useCallback(() => {
-    lastScanRef.current = '';
+  /**
+   * 清除状态
+   */
+  const clear = useCallback(() => {
+    lastCodeRef.current = '';
     lastScanTimeRef.current = 0;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
   return {
-    clearLastScan,
-    config: {
-      action,
-      key,
-    },
+    handleScan,
+    clear,
   };
 }
-
-// 导出预置配置
-export { SWA_ACTIONS };
