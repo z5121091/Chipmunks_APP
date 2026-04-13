@@ -33,7 +33,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     "android": {
       "package": "com.chipmunks.traceability",
       "versionCode": versionConfig.versionCode,
-      "minSdkVersion": 33, // Android 13
       // Android 深色模式启动画面
       "splash": {
         "image": "./assets/images/splash.png",
@@ -56,6 +55,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "expo-build-properties",
         {
           "android": {
+            // 最低 Android 版本
+            "minSdkVersion": 33, // Android 13
             // 允许 HTTP 明文流量（电脑同步功能需要）
             "usesCleartextTraffic": true,
             // 网络权限配置

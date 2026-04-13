@@ -10,6 +10,7 @@ import {
   Platform,
   Keyboard,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
@@ -735,7 +736,7 @@ export default function InventoryScreen() {
                         <Text style={styles.itemModel}>
                           {isExpanded ? '▼' : '▶'} {item.model}
                         </Text>
-                        <Text style={styles.itemBatch}>
+                        <Text style={styles.itemBatchTag}>
                           版本: {item.version || '-'}
                         </Text>
                       </TouchableOpacity>
