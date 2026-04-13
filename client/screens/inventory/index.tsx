@@ -460,7 +460,7 @@ export default function InventoryScreen() {
             processScan(code);
           }
         }
-      }, 1000); // 1秒无变化自动触发
+      }, 500); // 500ms 无变化自动触发
     }
   }, [processScan]);
 
