@@ -91,13 +91,13 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   scanInput: {
-    height: rf(42),
+    height: rf(56),
     backgroundColor: theme.backgroundDefault,
     borderWidth: 2,
     borderColor: theme.primary,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.lg,
-    fontSize: rf(14),
+    fontSize: rf(18),
     fontWeight: '500',
     color: theme.textPrimary,
     textAlign: 'center',

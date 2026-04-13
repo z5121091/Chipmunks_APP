@@ -628,13 +628,10 @@ export default function InboundScreen() {
             style={styles.scanInput}
             value={inputValue}
             onChangeText={handleInputChange}
-            onSubmitEditing={handleScan}
             autoCapitalize="characters"
             autoCorrect={false}
             autoFocus={false}
             showSoftInputOnFocus={true}
-            returnKeyType="done"
-            blurOnSubmit={false}
           />
         </View>
 
