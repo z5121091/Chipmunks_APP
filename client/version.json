@@ -1,0 +1,12 @@
+{
+  "version": "3.2.10",
+  "versionCode": 68,
+  "buildNumber": 68,
+  "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
+  "changelog": "【新增】\n1. 盘点管理：添加数据暂存机制（切换页面后数据不丢失）\n   - 自动保存盘点记录\n   - 自动保存盘点类型（整包/拆包）\n   - 自动保存仓库信息\n   - 页面加载时自动恢复数据\n\n【优化】\n1. 扫码入库：优化扫码成功提示，只显示型号\n2. 盘点管理：优化扫码成功提示，只显示型号\n3. 盘点管理：数据暂存机制与扫码入库保持一致\n\n【修复】\n1. 盘点管理：修复初始化时未加载已保存记录的问题",
+  "forceUpdate": false,
+  "appName": "掌上仓库",
+  "companyName": "上海花栗鼠科技有限公司",
+  "companyWebsite": "http://www.chipmunks.com.cn/",
+  "author": "zx5121091"
+}
