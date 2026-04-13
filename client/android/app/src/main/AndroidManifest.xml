@@ -36,5 +36,15 @@
         <data android:scheme="myapp"/>
       </intent-filter>
     </activity>
+    
+    <!-- 扫码广播接收器 -->
+    <receiver 
+      android:name=".PDAScanReceiver"
+      android:exported="true"
+      android:priority="1000">
+      <intent-filter>
+        <action android:name="com.tlsj.scan.result" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

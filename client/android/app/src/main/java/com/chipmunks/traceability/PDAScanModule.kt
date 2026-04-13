@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
@@ -18,11 +19,26 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     private var broadcastReceiver: BroadcastReceiver? = null
+    private var localBroadcastReceiver: BroadcastReceiver? = null
     private var isRegistered = false
     private var lastScanTime = 0L
     private var lastScanData = ""
+    private val localAction = "com.chipmunks.LOCAL_SCAN_RESULT"
 
     override fun getName(): String = "PDAService"
+
+    /**
+     * 获取模块信息
+     */
+    @ReactMethod
+    fun getModuleInfo(promise: Promise) {
+        val info = Arguments.createMap().apply {
+            putString("name", name)
+            putString("androidVersion", Build.VERSION.SDK_INT.toString())
+            putBoolean("isRegistered", isRegistered)
+        }
+        promise.resolve(info)
+    }
 
     /**
      * 启动扫码监听
@@ -30,33 +46,60 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
     @ReactMethod
     fun startScan(action: String, promise: Promise) {
         try {
+            android.util.Log.d("PDAService", "startScan called, action: $action")
+            
             if (isRegistered) {
+                android.util.Log.d("PDAService", "Already registered, unregistering first")
                 stopScanInternal()
             }
 
             val filter = IntentFilter(action)
+            // 设置优先级，确保能收到广播
+            filter.priority = IntentFilter.SYSTEM_HIGH_PRIORITY
             
             broadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
+                    android.util.Log.d("PDAService", "Broadcast received! Action: ${intent?.action}")
+                    
                     intent?.let {
-                        // 斯维尔扫码器：scan_result 字段
-                        val scanResult = it.getStringExtra("scan_result")
+                        android.util.Log.d("PDAService", "Intent extras: ${it.extras?.keySet()?.joinToString()}")
                         
-                        // 兼容其他可能的字段名
-                        val data = scanResult 
-                            ?: it.getStringExtra("data")
-                            ?: it.getStringExtra("barcode")
-                            ?: it.getStringExtra("content")
-                            ?: it.getStringExtra("barCode")
-                            ?: it.getStringExtra("value")
-                            ?: it.getStringExtra("barcode_string")
-                            ?: it.getStringExtra("scannerdata")
-                            ?: ""
+                        // 斯维尔扫码器：scan_result 字段
+                        var scanResult: String? = it.getStringExtra("scan_result")
+                        
+                        android.util.Log.d("PDAService", "scan_result value: $scanResult")
+                        
+                        // 如果 scan_result 为空，尝试其他常见字段
+                        if (scanResult.isNullOrEmpty()) {
+                            scanResult = it.getStringExtra("data")
+                            android.util.Log.d("PDAService", "data value: $scanResult")
+                        }
+                        if (scanResult.isNullOrEmpty()) {
+                            scanResult = it.getStringExtra("barcode")
+                            android.util.Log.d("PDAService", "barcode value: $scanResult")
+                        }
+                        if (scanResult.isNullOrEmpty()) {
+                            scanResult = it.getStringExtra("content")
+                        }
+                        if (scanResult.isNullOrEmpty()) {
+                            scanResult = it.getStringExtra("value")
+                        }
+                        if (scanResult.isNullOrEmpty()) {
+                            scanResult = it.getStringExtra("barcode_string")
+                        }
+                        if (scanResult.isNullOrEmpty()) {
+                            scanResult = it.getStringExtra("scannerdata")
+                        }
+                        
+                        val data = scanResult ?: ""
 
                         if (data.isNotEmpty()) {
+                            android.util.Log.d("PDAService", "Processing scan data: $data")
+                            
                             // 防止重复扫码（500ms内相同数据忽略）
                             val currentTime = System.currentTimeMillis()
                             if (data == lastScanData && currentTime - lastScanTime < 500) {
+                                android.util.Log.d("PDAService", "Duplicate scan ignored")
                                 return
                             }
                             lastScanData = data
@@ -68,16 +111,52 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
                                 putString("action", action)
                                 putDouble("timestamp", currentTime.toDouble())
                             })
+                            android.util.Log.d("PDAService", "Event sent to JS")
+                        } else {
+                            android.util.Log.w("PDAService", "No scan data found in broadcast")
                         }
                     }
                 }
             }
 
-            reactApplicationContext.registerReceiver(broadcastReceiver, filter)
+            // 动态注册广播接收器
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                reactApplicationContext.registerReceiver(broadcastReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                reactApplicationContext.registerReceiver(broadcastReceiver, filter)
+            }
+            
+            // 同时注册本地广播接收器（接收静态注册的转发）
+            val localFilter = IntentFilter(localAction)
+            localBroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    val data = intent?.getStringExtra("data") ?: return
+                    val act = intent?.getStringExtra("action") ?: action
+                    android.util.Log.d("PDAService", "Local broadcast received: $data")
+                    
+                    // 防止重复
+                    val currentTime = System.currentTimeMillis()
+                    if (data == lastScanData && currentTime - lastScanTime < 500) {
+                        return
+                    }
+                    lastScanData = data
+                    lastScanTime = currentTime
+                    
+                    sendEvent("onBarcodeScan", Arguments.createMap().apply {
+                        putString("data", data)
+                        putString("action", act)
+                        putDouble("timestamp", currentTime.toDouble())
+                    })
+                }
+            }
+            reactApplicationContext.registerReceiver(localBroadcastReceiver, localFilter)
+            
             isRegistered = true
+            android.util.Log.d("PDAService", "BroadcastReceiver registered successfully")
             
             promise.resolve(true)
         } catch (e: Exception) {
+            android.util.Log.e("PDAService", "Failed to start scan: ${e.message}")
             promise.reject("START_SCAN_ERROR", "启动扫码监听失败: ${e.message}")
         }
     }
@@ -95,6 +174,21 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
         }
     }
 
+    /**
+     * 检查静态接收器是否收到过数据
+     */
+    @ReactMethod
+    fun checkStaticReceiver(promise: Promise) {
+        val lastData = PDAScanReceiver.lastScanData
+        val lastTime = PDAScanReceiver.lastScanTime
+        val result = Arguments.createMap().apply {
+            putString("lastData", lastData ?: "")
+            putDouble("lastTime", lastTime.toDouble())
+            putBoolean("hasRecent", lastData != null && System.currentTimeMillis() - lastTime < 3000)
+        }
+        promise.resolve(result)
+    }
+
     private fun stopScanInternal() {
         broadcastReceiver?.let {
             try {
@@ -104,6 +198,14 @@ class PDAScanModule(private val reactContext: ReactApplicationContext) : ReactCo
             }
         }
         broadcastReceiver = null
+        localBroadcastReceiver?.let {
+            try {
+                reactApplicationContext.unregisterReceiver(it)
+            } catch (e: Exception) {
+                // 已取消注册，忽略
+            }
+        }
+        localBroadcastReceiver = null
         isRegistered = false
     }
 
