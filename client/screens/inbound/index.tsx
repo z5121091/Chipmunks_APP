@@ -682,7 +682,7 @@ export default function InboundScreen() {
           <View style={styles.listHeader}>
             <Text style={styles.listTitle}>扫描记录</Text>
             <Text style={styles.listCount}>
-              {aggregatedRecords.length} 型号 / {totalQuantity} 件
+              {aggregatedRecords.length} 型号 / {totalQuantity} PCS
               {confirmedCount > 0 && ` / 已确认 ${confirmedCount}`}
             </Text>
           </View>
