@@ -707,7 +707,7 @@ export default function InventoryScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 扫码输入 + Toast */}
+        {/* 扫码输入 */}
         <View style={styles.scanBox}>
           <TextInput
             ref={inputRef}
@@ -720,22 +720,22 @@ export default function InventoryScreen() {
             autoFocus={false}
             showSoftInputOnFocus={true}
           />
-          
-          {/* Toast */}
-          {toastText ? (
-            <Animated.View
-              style={[
-                styles.toast,
-                toastType === 'success' && styles.toastSuccess,
-                toastType === 'warning' && styles.toastWarning,
-                toastType === 'error' && styles.toastError,
-                { opacity: toastAnim },
-              ]}
-            >
-              <Text style={styles.toastText}>{toastText}</Text>
-            </Animated.View>
-          ) : null}
         </View>
+
+        {/* Toast */}
+        {toastText ? (
+          <Animated.View
+            style={[
+              styles.toast,
+              toastType === 'success' && styles.toastSuccess,
+              toastType === 'warning' && styles.toastWarning,
+              toastType === 'error' && styles.toastError,
+              { opacity: toastAnim },
+            ]}
+          >
+            <Text style={styles.toastText}>{toastText}</Text>
+          </Animated.View>
+        ) : null}
 
         {/* 物料列表 */}
         <View style={styles.listSection}>
