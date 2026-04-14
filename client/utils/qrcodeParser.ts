@@ -1,7 +1,7 @@
 // 二维码内容解析器
 
 // 支持的普通分隔符
-const SEPARATORS = ['/', '|', ',', '*', '#', ' ', ';', '\t'];
+const SEPARATORS = ['/', '|', ',', '*', '#', ';', '\t'];
 
 // 支持的括号分隔符格式（左括号 -> 右括号）
 const BRACKET_PAIRS: Record<string, string> = {
