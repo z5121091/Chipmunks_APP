@@ -566,7 +566,7 @@ export default function PDAScanScreen() {
           </View>
         </View>
 
-        {/* 扫码输入 */}
+        {/* 扫码输入 + Toast */}
         <View style={styles.scanBox}>
           <TextInput
             ref={inputRef}
@@ -579,14 +579,14 @@ export default function PDAScanScreen() {
             autoFocus={false}
             showSoftInputOnFocus={true}
           />
+          
+          {/* Toast */}
+          {toastText ? (
+            <Animated.View style={[styles.toast, toastType === 'success' && styles.toastSuccess, toastType === 'warning' && styles.toastWarning, toastType === 'error' && styles.toastError, { opacity: toastAnim }]}>
+              <Text style={styles.toastText}>{toastText}</Text>
+            </Animated.View>
+          ) : null}
         </View>
-
-        {/* Toast */}
-        {toastText ? (
-          <Animated.View style={[styles.toast, toastType === 'success' && styles.toastSuccess, toastType === 'warning' && styles.toastWarning, toastType === 'error' && styles.toastError, { opacity: toastAnim }]}>
-            <Text style={styles.toastText}>{toastText}</Text>
-          </Animated.View>
-        ) : null}
 
         {/* 物料列表 */}
         <View style={styles.listSection}>

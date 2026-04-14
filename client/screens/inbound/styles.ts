@@ -105,15 +105,12 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
 
   // Toast
   toast: {
-    position: 'absolute',
-    top: 200,
-    left: Spacing.md,
-    right: Spacing.md,
+    marginTop: Spacing.sm,
+    marginHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
-    zIndex: 999,
     shadowColor: theme.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
