@@ -62,7 +62,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   typeBtnText: {
-    fontSize: rf(12),
+    fontSize: rf(16),
     fontWeight: '600',
     color: theme.textPrimary,
   },
@@ -83,7 +83,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   savedBtnText: {
-    fontSize: rf(12),
+    fontSize: rf(16),
     fontWeight: '600',
     color: theme.textPrimary,
   },

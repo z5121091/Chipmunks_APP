@@ -70,7 +70,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   orderText: {
-    fontSize: rf(13),
+    fontSize: rf(16),
     fontWeight: '600',
     color: theme.textPrimary,
     textAlign: 'center',
