@@ -65,6 +65,8 @@ export default function InboundScreen() {
   const [inputValue, setInputValue] = useState('');
   const processingRef = useRef(false);
   const autoSubmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 扫码队列 - 暂存处理中的新扫码
+  const scanQueueRef = useRef<string[]>([]);
   // 防抖相关
   const lastScanRef = useRef<string>('');
   const lastScanTimeRef = useRef<number>(0);
@@ -330,6 +332,17 @@ export default function InboundScreen() {
       feedbackError();
     } finally {
       processingRef.current = false;
+      // 处理完成后，检查队列是否有待处理的扫码
+      if (scanQueueRef.current.length > 0) {
+        const nextCode = scanQueueRef.current.shift();
+        if (nextCode) {
+          console.log('[扫码入库] 处理队列中的扫码:', nextCode);
+          setTimeout(() => processScan(nextCode), 0);
+        }
+      } else {
+        // 队列空了，重新聚焦输入框
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
     }
   }, [currentWarehouse, currentSupplier, scanRecords]);
 
@@ -358,7 +371,7 @@ export default function InboundScreen() {
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [inputValue, processScan]);
 
-  // 输入变化时自动检测并触发
+  // 输入变化时自动检测并触发（扫码器一次性输入）
   const handleInputChange = useCallback((text: string) => {
     // 清除之前的定时器
     if (autoSubmitTimerRef.current) {
@@ -366,15 +379,23 @@ export default function InboundScreen() {
       autoSubmitTimerRef.current = null;
     }
 
-    // 检测到输入（扫码器一次性输入），立即自动触发
-    if (text.length >= 8 && !processingRef.current) {
+    // 检测到输入（扫码器一次性输入）
+    if (text.length >= 8) {
       const code = text.trim();
-      console.log('[扫码入库] 扫码触发:', code);
-      setInputValue(''); // 清空输入框
-      processScan(code).finally(() => {
-        // 处理完成后立即重新聚焦输入框，准备下一次扫码
-        setTimeout(() => inputRef.current?.focus(), 50);
-      });
+      console.log('[扫码入库] 扫码加入队列:', code);
+      
+      // 加入队列
+      scanQueueRef.current.push(code);
+      
+      // 如果不在处理中，立即开始处理队列
+      if (!processingRef.current) {
+        const nextCode = scanQueueRef.current.shift();
+        if (nextCode) {
+          console.log('[扫码入库] 从队列取出处理:', nextCode);
+          setInputValue(''); // 清空输入框
+          processScan(nextCode);
+        }
+      }
       return;
     }
 
