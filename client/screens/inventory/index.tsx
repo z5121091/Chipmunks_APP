@@ -397,11 +397,12 @@ export default function InventoryScreen() {
     } finally {
       processingRef.current = false;
       // 处理完成后，检查队列是否有待处理的扫码
+      // 注意：不在 setTimeout 中处理，避免状态更新延迟导致重复检测失败
       if (scanQueueRef.current.length > 0) {
         const nextCode = scanQueueRef.current.shift();
         if (nextCode) {
           console.log('[盘点] 处理队列中的扫码:', nextCode);
-          setTimeout(() => processScan(nextCode), 0);
+          processScan(nextCode);
         }
       } else {
         // 队列空了，重新聚焦输入框
