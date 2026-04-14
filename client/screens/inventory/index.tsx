@@ -316,32 +316,45 @@ export default function InventoryScreen() {
       // 查找存货编码
       const inventoryCode = await getInventoryCodeByModel(model);
 
-      // 以追溯码为准检查重复（双重检测：traceCode + 清理后的原始内容）
+      // 检查重复（三重检测：traceCode + 追溯码字段 + 队列暂存）
       let isDuplicate = false;
+      const cleanedCode = code.trim().replace(/[\r\n\t\s]+/g, '');
 
-      // 1. 根据追溯码（原始内容）判断
+      // 1. 根据追溯码（原始内容）判断（已保存的记录）
       const existingByCode = scanRecords.find(r => {
         const cleanedExisting = r.traceCode.trim().replace(/[\r\n\t\s]+/g, '');
-        const cleanedCurrent = code.trim().replace(/[\r\n\t\s]+/g, '');
-        return cleanedExisting === cleanedCurrent;
+        return cleanedExisting === cleanedCode;
       });
 
       if (existingByCode) {
         isDuplicate = true;
-        console.warn('[盘点] 重复检测（原始内容）');
+        console.warn('[盘点] 重复检测（已保存原始内容）');
       }
 
-      // 2. 根据解析后的追溯码字段判断
+      // 2. 根据解析后的追溯码字段判断（已保存的记录）
       if (!isDuplicate && standardFields.traceNo) {
         const existingByTraceNo = scanRecords.find(r => r.traceNo === standardFields.traceNo);
         if (existingByTraceNo) {
           isDuplicate = true;
-          console.warn('[盘点] 重复检测（追溯码字段）:', standardFields.traceNo);
+          console.warn('[盘点] 重复检测（已保存追溯码字段）:', standardFields.traceNo);
+        }
+      }
+
+      // 3. 根据原始二维码内容判断（队列中暂存的记录）
+      if (!isDuplicate) {
+        const queueCodes = scanQueueRef.current;
+        const existingInQueue = queueCodes.find(q => {
+          const cleanedQueue = q.trim().replace(/[\r\n\t\s]+/g, '');
+          return cleanedQueue === cleanedCode;
+        });
+        if (existingInQueue) {
+          isDuplicate = true;
+          console.warn('[盘点] 重复检测（队列暂存）:', cleanedCode);
         }
       }
 
       if (isDuplicate) {
-        showToast('该追溯码已扫描', 'warning');
+        showToast('该物料已扫码，请勿重复', 'warning');
         feedbackWarning();
         return;
       }

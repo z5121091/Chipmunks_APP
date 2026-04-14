@@ -271,33 +271,46 @@ export default function InboundScreen() {
         console.log('[扫码入库] 设置供应商:', supplier);
       }
 
-      // 检查是否重复扫描（双重检测：追溯码 + 原始二维码内容）
+      // 检查是否重复扫描（三重检测：追溯码 + 原始内容 + 队列暂存）
       let isDuplicate = false;
+      const cleanedCode = code.trim().replace(/[\r\n\t\s]+/g, '');
 
-      // 1. 根据追溯码判断
+      // 1. 根据追溯码判断（已保存的记录）
       if (parsed.traceNo) {
         const existing = scanRecords.find(r => r.traceNo === parsed.traceNo);
         if (existing) {
           isDuplicate = true;
-          console.warn('[扫码入库] 重复检测（追溯码）:', parsed.traceNo);
+          console.warn('[扫码入库] 重复检测（已保存追溯码）:', parsed.traceNo);
         }
       }
 
-      // 2. 根据原始二维码内容判断（处理扫码器输入的细微差异）
+      // 2. 根据原始二维码内容判断（已保存的记录）
       if (!isDuplicate) {
-        const cleanedCode = code.trim().replace(/[\r\n\t\s]+/g, '');
         const existingByCode = scanRecords.find(r => {
           const cleanedRaw = r.rawContent.trim().replace(/[\r\n\t\s]+/g, '');
           return cleanedRaw === cleanedCode;
         });
         if (existingByCode) {
           isDuplicate = true;
-          console.warn('[扫码入库] 重复检测（原始内容）:', cleanedCode);
+          console.warn('[扫码入库] 重复检测（已保存原始内容）:', cleanedCode);
+        }
+      }
+
+      // 3. 根据原始二维码内容判断（队列中暂存的记录）
+      if (!isDuplicate) {
+        const queueCodes = scanQueueRef.current;
+        const existingInQueue = queueCodes.find(q => {
+          const cleanedQueue = q.trim().replace(/[\r\n\t\s]+/g, '');
+          return cleanedQueue === cleanedCode;
+        });
+        if (existingInQueue) {
+          isDuplicate = true;
+          console.warn('[扫码入库] 重复检测（队列暂存）:', cleanedCode);
         }
       }
 
       if (isDuplicate) {
-        showToast('⚠️ 该物料追溯码已扫描，请勿重复', 'warning');
+        showToast('⚠️ 该物料已扫码，请勿重复', 'warning');
         startErrorVibration();
         return;
       }
