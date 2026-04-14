@@ -271,41 +271,15 @@ export default function InboundScreen() {
         console.log('[扫码入库] 设置供应商:', supplier);
       }
 
-      // 检查是否重复扫描（三重检测：追溯码 + 原始内容 + 队列暂存）
+      // 检查是否重复扫描（只检测追溯码，因为箱号可能重复）
       let isDuplicate = false;
-      const cleanedCode = code.trim().replace(/[\r\n\t\s]+/g, '');
 
-      // 1. 根据追溯码判断（已保存的记录）
+      // 根据追溯码判断（已保存的记录）
       if (parsed.traceNo) {
         const existing = scanRecords.find(r => r.traceNo === parsed.traceNo);
         if (existing) {
           isDuplicate = true;
           console.warn('[扫码入库] 重复检测（已保存追溯码）:', parsed.traceNo);
-        }
-      }
-
-      // 2. 根据原始二维码内容判断（已保存的记录）
-      if (!isDuplicate) {
-        const existingByCode = scanRecords.find(r => {
-          const cleanedRaw = r.rawContent.trim().replace(/[\r\n\t\s]+/g, '');
-          return cleanedRaw === cleanedCode;
-        });
-        if (existingByCode) {
-          isDuplicate = true;
-          console.warn('[扫码入库] 重复检测（已保存原始内容）:', cleanedCode);
-        }
-      }
-
-      // 3. 根据原始二维码内容判断（队列中暂存的记录）
-      if (!isDuplicate) {
-        const queueCodes = scanQueueRef.current;
-        const existingInQueue = queueCodes.find(q => {
-          const cleanedQueue = q.trim().replace(/[\r\n\t\s]+/g, '');
-          return cleanedQueue === cleanedCode;
-        });
-        if (existingInQueue) {
-          isDuplicate = true;
-          console.warn('[扫码入库] 重复检测（队列暂存）:', cleanedCode);
         }
       }
 
@@ -754,7 +728,7 @@ export default function InboundScreen() {
                         <TouchableOpacity
                           key={record.id}
                           style={styles.detailItem}
-                          onLongPress={() => handleDeleteRecord(record.id)}
+                          onLongPress={() => handleDeleteGroup(item)}
                           delayLongPress={500}
                         >
                           <Text style={styles.detailText}>

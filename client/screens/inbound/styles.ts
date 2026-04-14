@@ -257,8 +257,9 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 明细项
   detailItem: {
     paddingVertical: Spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
+    paddingHorizontal: Spacing.xs,
+    marginVertical: 2,
+    borderRadius: BorderRadius.sm,
   },
 
   // 明细文本

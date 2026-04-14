@@ -213,14 +213,10 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textPrimary,
   },
 
-  itemBatchTag: {
-    fontSize: rf(10),
-    fontWeight: '500',
-    color: theme.primary,
-    backgroundColor: withAlpha(theme.primary, 0.08),
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 3,
+  itemBatch: {
+    fontSize: rf(12),
+    color: theme.textSecondary,
+    marginTop: 1,
   },
 
   itemCode: {
@@ -307,8 +303,9 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 明细项
   detailItem: {
     paddingVertical: Spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
+    paddingHorizontal: Spacing.xs,
+    marginVertical: 2,
+    borderRadius: BorderRadius.sm,
   },
 
   // 明细文本
