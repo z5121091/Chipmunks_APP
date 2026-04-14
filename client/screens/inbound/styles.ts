@@ -84,7 +84,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.white,
   },
 
-  // 扫码框
+  // 扫码框（包含输入框和 Toast）
   scanBox: {
     marginHorizontal: Spacing.sm,
     marginTop: Spacing.md,
@@ -103,17 +103,20 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Toast
+  // Toast 容器（预留固定高度，避免列表跳动）
+  toastContainer: {
+    height: rf(50), // 预留高度
+    marginTop: Spacing.sm,
+    justifyContent: 'center',
+  },
+
+  // Toast（比输入框稍微小一点，左右留边距）
   toast: {
-    position: 'absolute',
-    top: 170,
-    left: Spacing.md,
-    right: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
+    marginHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
-    zIndex: 999,
     shadowColor: theme.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,

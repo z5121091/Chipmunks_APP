@@ -647,7 +647,7 @@ export default function InboundScreen() {
           </View>
         </View>
 
-        {/* 扫码输入 */}
+        {/* 扫码输入 + Toast（在同一个容器里） */}
         <View style={styles.scanBox}>
           <TextInput
             ref={inputRef}
@@ -660,22 +660,24 @@ export default function InboundScreen() {
             autoFocus={false}
             showSoftInputOnFocus={true}
           />
+          
+          {/* Toast 容器（预留固定高度） */}
+          <View style={styles.toastContainer}>
+            {toastText ? (
+              <Animated.View
+                style={[
+                  styles.toast,
+                  toastType === 'success' && styles.toastSuccess,
+                  toastType === 'warning' && styles.toastWarning,
+                  toastType === 'error' && styles.toastError,
+                  { opacity: toastAnim },
+                ]}
+              >
+                <Text style={styles.toastText}>{toastText}</Text>
+              </Animated.View>
+            ) : null}
+          </View>
         </View>
-
-        {/* Toast */}
-        {toastText ? (
-          <Animated.View
-            style={[
-              styles.toast,
-              toastType === 'success' && styles.toastSuccess,
-              toastType === 'warning' && styles.toastWarning,
-              toastType === 'error' && styles.toastError,
-              { opacity: toastAnim },
-            ]}
-          >
-            <Text style={styles.toastText}>{toastText}</Text>
-          </Animated.View>
-        ) : null}
 
         {/* 物料列表 */}
         <View style={styles.listSection}>
