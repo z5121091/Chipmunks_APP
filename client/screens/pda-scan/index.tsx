@@ -517,7 +517,7 @@ export default function PDAScanScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Feather name="arrow-left" size={24} color={theme.textPrimary} />
+            <Feather name="arrow-left" size={28} color={theme.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>扫码出库</Text>
         </View>

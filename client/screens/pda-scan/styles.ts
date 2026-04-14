@@ -20,7 +20,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   backButton: {
-    padding: Spacing.xs,
+    padding: Spacing.sm,
     marginRight: Spacing.sm,
   },
 
