@@ -11,6 +11,22 @@ import { Spacing } from '@/constants/theme';
 // 更新日志数据
 const CHANGELOG_DATA = [
   {
+    version: 'V3.3.0',
+    date: '2026-04-17',
+    changes: [
+      // 优化
+      { type: 'improve', text: '扫码出库/入库/盘点：Toast 完全覆盖在输入框上面，视觉效果更协调' },
+      { type: 'improve', text: '扫码出库/入库/盘点：统一输入框样式，使用 lg 圆角' },
+      { type: 'improve', text: '扫码出库/入库/盘点：按钮字体统一为 rf(16)' },
+      { type: 'improve', text: '扫码出库/入库/盘点：绿色标签字体统一为 rf(16)' },
+      { type: 'improve', text: '扫码出库/入库/盘点：空状态文字统一为 rf(16)' },
+      { type: 'improve', text: '扫码出库/入库/盘点：Toast 文字统一为 rf(16)' },
+      // 修复
+      { type: 'fix', text: '二维码检测：移除空格作为分隔符，避免普通文本被误判为二维码' },
+      { type: 'fix', text: 'Toast 布局：去掉输入框下面的黑色区域（移除预留高度容器）' },
+    ],
+  },
+  {
     version: 'V3.2.8',
     date: '2026-04-17',
     changes: [
