@@ -320,7 +320,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   emptyText: {
-    fontSize: rf(13),
+    fontSize: rf(16),
     color: theme.textMuted,
   },
 
