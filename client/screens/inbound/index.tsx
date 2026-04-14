@@ -366,22 +366,20 @@ export default function InboundScreen() {
       autoSubmitTimerRef.current = null;
     }
 
-    // 正常更新输入值
-    setInputValue(text);
-
-    // 输入停止 300ms 后自动触发
-    if (text.length >= 8) {
-      autoSubmitTimerRef.current = setTimeout(() => {
-        if (inputValue === text && !processingRef.current) {
-          const code = text.trim();
-          if (code) {
-            console.log('[扫码入库] 自动触发:', code);
-            setInputValue('');
-            processScan(code);
-          }
-        }
-      }, 300);
+    // 检测到输入（扫码器一次性输入），立即自动触发
+    if (text.length >= 8 && !processingRef.current) {
+      const code = text.trim();
+      console.log('[扫码入库] 扫码触发:', code);
+      setInputValue(''); // 清空输入框
+      processScan(code).finally(() => {
+        // 处理完成后立即重新聚焦输入框，准备下一次扫码
+        setTimeout(() => inputRef.current?.focus(), 50);
+      });
+      return;
     }
+
+    // 正常更新输入值（小于8个字符时，如手动输入）
+    setInputValue(text);
   }, [processScan]);
 
   // 扫码完成确认（焦点录入模式：用户手动按回车）
