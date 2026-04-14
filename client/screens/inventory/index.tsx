@@ -270,10 +270,10 @@ export default function InventoryScreen() {
   const showToast = (text: string, type: 'success' | 'warning' | 'error' = 'success') => {
     setToastText(text);
     setToastType(type);
-    Animated.timing(toastAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+    Animated.timing(toastAnim, { toValue: 1, duration: 100, useNativeDriver: true }).start();
     setTimeout(() => {
-      Animated.timing(toastAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setToastText(''));
-    }, 1000);
+      Animated.timing(toastAnim, { toValue: 0, duration: 100, useNativeDriver: true }).start(() => setToastText(''));
+    }, 500);
   };
 
   // 处理扫描（带参数版本）
