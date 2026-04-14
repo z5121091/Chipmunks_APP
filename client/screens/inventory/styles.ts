@@ -342,7 +342,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   clearBtnText: {
-    fontSize: rf(13),
+    fontSize: rf(16),
     fontWeight: '600',
     color: theme.textSecondary,
   },
@@ -356,7 +356,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   submitBtnText: {
-    fontSize: rf(13),
+    fontSize: rf(16),
     fontWeight: '600',
     color: theme.buttonPrimaryText,
   },
