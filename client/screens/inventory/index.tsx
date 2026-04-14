@@ -33,7 +33,7 @@ import {
 } from '@/utils/database';
 import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
-import { feedbackSuccess, feedbackWarning, feedbackError } from '@/utils/feedback';
+import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, stopErrorVibration, startErrorSound, stopErrorSound } from '@/utils/feedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 盘点类型
@@ -330,8 +330,9 @@ export default function InventoryScreen() {
       }
 
       if (isDuplicate) {
-        showToast('该物料已扫码，请勿重复', 'warning');
-        feedbackWarning();
+        showToast('⚠️ 该物料已扫码，请勿重复', 'warning');
+        startErrorVibration();
+        startErrorSound();
         return;
       }
 

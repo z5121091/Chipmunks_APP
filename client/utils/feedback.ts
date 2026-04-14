@@ -11,7 +11,9 @@ let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
 
 // 音效实例缓存
 let successSoundInstance: Audio.Sound | null = null;
+let errorSoundInstance: Audio.Sound | null = null;
 let soundLoading = false;
+let errorSoundInterval: ReturnType<typeof setInterval> | null = null;
 
 // 成功提示音资源（静态导入）
 const SUCCESS_SOUND = require('@/assets/sounds/success.wav');
@@ -67,13 +69,66 @@ async function playSuccessSound() {
 }
 
 /**
+ * 加载错误提示音
+ */
+async function loadErrorSound(): Promise<Audio.Sound | null> {
+  if (errorSoundInstance) {
+    return errorSoundInstance;
+  }
+  
+  if (soundLoading) {
+    // 等待加载完成
+    while (soundLoading) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    return errorSoundInstance;
+  }
+  
+  soundLoading = true;
+  try {
+    // 错误提示音复用成功提示音
+    const { sound } = await Audio.Sound.createAsync(
+      SUCCESS_SOUND,
+      { shouldPlay: false, isLooping: false, volume: 0.8 },
+      null,
+      true // 预加载到内存
+    );
+    errorSoundInstance = sound;
+    return sound;
+  } catch (error) {
+    console.error('加载错误提示音失败:', error);
+    return null;
+  } finally {
+    soundLoading = false;
+  }
+}
+
+/**
+ * 播放错误提示音（单次）
+ */
+async function playErrorSound() {
+  try {
+    const sound = await loadErrorSound();
+    if (sound) {
+      // 重置位置到开头
+      await sound.setPositionAsync(0);
+      await sound.playAsync();
+    }
+  } catch (error) {
+    console.error('播放错误提示音失败:', error);
+  }
+}
+
+/**
  * 扫码成功反馈
  * - 震动 + 提示音
  * - 清脆提示感
+ * - 停止所有错误持续提醒
  */
 export async function feedbackSuccess() {
-  // 成功时停止错误震动
+  // 成功时停止所有错误持续提醒
   stopErrorVibration();
+  stopErrorSound();
   
   // 同时触发震动和提示音
   await Promise.all([
@@ -98,6 +153,34 @@ export async function feedbackWarning() {
  */
 export async function feedbackError() {
   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+}
+
+/**
+ * 开始错误持续提示音
+ * - 持续的提示音提醒，直到调用 stopErrorSound
+ * - 用于扫描重复等需要用户注意的情况
+ */
+export function startErrorSound() {
+  // 如果已经在播放，先停止
+  stopErrorSound();
+  
+  // 立即播放一次
+  playErrorSound();
+  
+  // 每500ms播放一次，持续提醒
+  errorSoundInterval = setInterval(() => {
+    playErrorSound();
+  }, 500);
+}
+
+/**
+ * 停止错误持续提示音
+ */
+export function stopErrorSound() {
+  if (errorSoundInterval) {
+    clearInterval(errorSoundInterval);
+    errorSoundInterval = null;
+  }
 }
 
 /**
@@ -161,8 +244,16 @@ export async function feedbackSelection() {
  * 清理音效资源（应用退出时调用）
  */
 export async function cleanupSounds() {
+  // 停止所有持续提醒
+  stopErrorVibration();
+  stopErrorSound();
+  
   if (successSoundInstance) {
     await successSoundInstance.unloadAsync();
     successSoundInstance = null;
+  }
+  if (errorSoundInstance) {
+    await errorSoundInstance.unloadAsync();
+    errorSoundInstance = null;
   }
 }

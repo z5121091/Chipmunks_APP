@@ -11,6 +11,19 @@ import { Spacing } from '@/constants/theme';
 // 更新日志数据
 const CHANGELOG_DATA = [
   {
+    version: 'V3.3.1',
+    date: '2026-04-17',
+    changes: [
+      // 优化
+      { type: 'improve', text: '扫码出库/入库/盘点：重复提醒统一使用长震动+长提示音' },
+      { type: 'improve', text: '扫码入库/盘点：重复提醒文案统一为「⚠️ 该物料已扫码，请勿重复」' },
+      { type: 'improve', text: '扫码入库：成功反馈时自动停止长震动和长提示音' },
+      // 修复
+      { type: 'fix', text: '扫码入库：修复 Toast 显示时间（0.5秒）' },
+      { type: 'fix', text: '扫码入库：修复 Toast 动画时间（100ms）' },
+    ],
+  },
+  {
     version: 'V3.3.0',
     date: '2026-04-17',
     changes: [
