@@ -1,22 +1,85 @@
 /**
  * 扫码反馈工具
- * 提供震动反馈（音效可后续扩展）
+ * 提供震动反馈和成功提示音
  */
 
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 
 // 持续震动的定时器ID
 let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
 
+// 音效实例缓存
+let successSoundInstance: Audio.Sound | null = null;
+let soundLoading = false;
+
+// 成功提示音资源（静态导入）
+const SUCCESS_SOUND = require('@/assets/sounds/success.wav');
+
+/**
+ * 加载成功提示音
+ */
+async function loadSuccessSound(): Promise<Audio.Sound | null> {
+  if (successSoundInstance) {
+    return successSoundInstance;
+  }
+  
+  if (soundLoading) {
+    // 等待加载完成
+    while (soundLoading) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    return successSoundInstance;
+  }
+  
+  soundLoading = true;
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      SUCCESS_SOUND,
+      { shouldPlay: false, isLooping: false, volume: 0.8 },
+      null,
+      true // 预加载到内存
+    );
+    successSoundInstance = sound;
+    return sound;
+  } catch (error) {
+    console.error('加载成功提示音失败:', error);
+    return null;
+  } finally {
+    soundLoading = false;
+  }
+}
+
+/**
+ * 播放成功提示音
+ */
+async function playSuccessSound() {
+  try {
+    const sound = await loadSuccessSound();
+    if (sound) {
+      // 重置位置到开头
+      await sound.setPositionAsync(0);
+      await sound.playAsync();
+    }
+  } catch (error) {
+    console.error('播放成功提示音失败:', error);
+  }
+}
+
 /**
  * 扫码成功反馈
- * - 轻快震动
+ * - 震动 + 提示音
  * - 清脆提示感
  */
 export async function feedbackSuccess() {
   // 成功时停止错误震动
   stopErrorVibration();
-  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  
+  // 同时触发震动和提示音
+  await Promise.all([
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
+    playSuccessSound(),
+  ]);
 }
 
 /**
@@ -92,4 +155,14 @@ export async function feedbackHeavy() {
  */
 export async function feedbackSelection() {
   await Haptics.selectionAsync();
+}
+
+/**
+ * 清理音效资源（应用退出时调用）
+ */
+export async function cleanupSounds() {
+  if (successSoundInstance) {
+    await successSoundInstance.unloadAsync();
+    successSoundInstance = null;
+  }
 }
