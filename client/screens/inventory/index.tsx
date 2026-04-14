@@ -721,22 +721,20 @@ export default function InventoryScreen() {
             showSoftInputOnFocus={true}
           />
           
-          {/* Toast 容器（预留固定高度） */}
-          <View style={styles.toastContainer}>
-            {toastText ? (
-              <Animated.View
-                style={[
-                  styles.toast,
-                  toastType === 'success' && styles.toastSuccess,
-                  toastType === 'warning' && styles.toastWarning,
-                  toastType === 'error' && styles.toastError,
-                  { opacity: toastAnim },
-                ]}
-              >
-                <Text style={styles.toastText}>{toastText}</Text>
-              </Animated.View>
-            ) : null}
-          </View>
+          {/* Toast（相对于 scanBox 定位） */}
+          {toastText ? (
+            <Animated.View
+              style={[
+                styles.toast,
+                toastType === 'success' && styles.toastSuccess,
+                toastType === 'warning' && styles.toastWarning,
+                toastType === 'error' && styles.toastError,
+                { opacity: toastAnim },
+              ]}
+            >
+              <Text style={styles.toastText}>{toastText}</Text>
+            </Animated.View>
+          ) : null}
         </View>
 
         {/* 物料列表 */}

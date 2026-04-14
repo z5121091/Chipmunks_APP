@@ -88,6 +88,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   scanBox: {
     marginHorizontal: Spacing.sm,
     marginTop: Spacing.md,
+    position: 'relative', // 让 Toast 相对于此容器定位
   },
 
   scanInput: {
@@ -103,20 +104,17 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Toast 容器（预留固定高度，避免列表跳动）
-  toastContainer: {
-    height: rf(50), // 预留高度
-    marginTop: Spacing.sm,
-    justifyContent: 'center',
-  },
-
-  // Toast（比输入框稍微小一点，左右留边距）
+  // Toast（相对于 scanBox 定位，在输入框下方）
   toast: {
-    marginHorizontal: Spacing.sm,
+    position: 'absolute',
+    top: rf(64), // 输入框高度(56) + 间距(8)
+    left: Spacing.sm,
+    right: Spacing.sm,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
+    zIndex: 10,
     shadowColor: theme.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
