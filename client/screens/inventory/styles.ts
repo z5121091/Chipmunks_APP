@@ -149,7 +149,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
 
   toastText: {
     color: theme.white,
-    fontSize: rf(13),
+    fontSize: rf(16),
     fontWeight: '600',
     textAlign: 'center',
   },
