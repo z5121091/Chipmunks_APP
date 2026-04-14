@@ -110,15 +110,18 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   scanBox: {
     marginHorizontal: Spacing.sm,
     marginTop: Spacing.md,
-    position: 'relative', // 让 Toast 相对于此容器定位
-  },
-
-  scanInput: {
     height: rf(56),
     backgroundColor: theme.backgroundDefault,
     borderWidth: 2,
     borderColor: theme.primary,
     borderRadius: BorderRadius.lg,
+    overflow: 'hidden', // 隐藏超出的内容
+  },
+
+  scanInput: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'transparent', // 透明，让容器背景显示
     paddingHorizontal: Spacing.lg,
     fontSize: rf(18),
     fontWeight: '500',
@@ -126,22 +129,12 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Toast（相对于 scanBox 定位，在输入框下方）
+  // Toast（完全覆盖在输入框上面）
   toast: {
-    position: 'absolute',
-    top: rf(64), // 输入框高度(56) + 间距(8)
-    left: Spacing.sm,
-    right: Spacing.sm,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+    ...StyleSheet.absoluteFillObject, // top:0, left:0, right:0, bottom:0
+    justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10,
-    shadowColor: theme.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 10,
+    zIndex: 10, // 在输入框上面
   },
 
   toastSuccess: { backgroundColor: theme.success },
