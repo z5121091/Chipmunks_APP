@@ -585,7 +585,7 @@ export default function PDAScanScreen() {
                         <TouchableOpacity
                           key={item.id}
                           style={styles.detailItem}
-                          onLongPress={() => handleDeleteMaterial(item.id, group.key)}
+                          onLongPress={() => handleDeleteGroup(group)}
                           delayLongPress={500}
                         >
                           <Text style={styles.detailText}>

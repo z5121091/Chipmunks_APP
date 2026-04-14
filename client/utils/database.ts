@@ -840,7 +840,7 @@ export const getMaterialsByOrder = async (orderNo: string): Promise<MaterialReco
   }
 };
 
-// 检查物料是否已存在（优先检测追踪码，其次箱号，最后型号+批次）
+// 检查物料是否已存在（只检测追踪码，箱号可能重复不检测）
 // 返回值：{ material: 物料记录, isUnpacked: 是否已拆包, canRescan: 是否可重复扫描 }
 export const checkMaterialExists = async (
   orderNo: string, 
@@ -854,7 +854,7 @@ export const checkMaterialExists = async (
     const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
-    // 1. 优先检测追踪码（T/C）
+    // 只检测追踪码（T/C），箱号可能重复不检测
     if (traceNo && traceNo.trim()) {
       // 1.1 检查同一订单下是否有相同追踪码
       const existingInSameOrder = materials.find(m => 
@@ -893,56 +893,8 @@ export const checkMaterialExists = async (
       }
     }
     
-    // 2. 其次检测箱号（BOX ID）
-    if (sourceNo && sourceNo.trim()) {
-      // 2.1 检查同一订单下是否有相同箱号
-      const existingInSameOrder = materials.find(m => 
-        m.order_no === orderNo &&
-        m.sourceNo && m.sourceNo.trim() === sourceNo.trim()
-      );
-      if (existingInSameOrder) {
-        if (existingInSameOrder.isUnpacked) {
-          console.log('物料已拆包，允许重复扫描:', sourceNo, '订单:', orderNo);
-          return { material: existingInSameOrder, isUnpacked: true, canRescan: true };
-        }
-        console.log('物料重复（同一订单，箱号相同）:', sourceNo, '订单:', orderNo);
-        return { material: existingInSameOrder, isUnpacked: false, canRescan: false };
-      }
-      
-      // 2.2 检查不同订单下是否有相同箱号
-      const existingInOtherOrder = materials.find(m => 
-        m.order_no !== orderNo &&  // 不同订单
-        m.sourceNo && m.sourceNo.trim() === sourceNo.trim()
-      );
-      if (existingInOtherOrder) {
-        const scanQty = quantity || '';
-        const remainingQty = existingInOtherOrder.remaining_quantity || existingInOtherOrder.quantity;
-        
-        // 如果原物料已拆包，且扫描数量等于剩余数量 → 允许
-        if (existingInOtherOrder.isUnpacked && scanQty === remainingQty) {
-          console.log('拆包后的剩余标签，允许录入:', sourceNo, '数量:', scanQty, '原订单:', existingInOtherOrder.order_no);
-        } else if (scanQty === existingInOtherOrder.quantity) {
-          console.log('物料重复（不同订单，箱号+数量相同）:', sourceNo, '数量:', scanQty);
-          return { material: existingInOtherOrder, isUnpacked: false, canRescan: false };
-        }
-      }
-    }
-    
-    // 3. 如果没有追踪码和箱号，才用型号+批次检测
-    if (!traceNo && !sourceNo) {
-      const existing = materials.find(m => 
-        m.order_no === orderNo && 
-        m.model === model && 
-        m.batch === batch
-      );
-      if (existing) {
-        if (existing.isUnpacked) {
-          return { material: existing, isUnpacked: true, canRescan: true };
-        }
-        console.log('物料重复（型号+批次相同，无追踪码和箱号）:', model, batch);
-        return { material: existing, isUnpacked: false, canRescan: false };
-      }
-    }
+    // 注意：不再检测箱号，因为箱号可能重复
+    // 原箱号检测逻辑已移除
     
     return { material: null, isUnpacked: false, canRescan: false };
   } catch (error) {
