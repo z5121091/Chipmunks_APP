@@ -59,6 +59,46 @@ const detectSeparator = (content: string): string | null => {
   return null;
 };
 
+/**
+ * 检测是否为二维码内容
+ * 二维码包含分隔符，一维码不包含分隔符
+ * @param content 扫码内容
+ * @returns true=二维码（需要震动处理），false=一维码（静默忽略）
+ */
+export const isQRCode = (content: string): boolean => {
+  if (!content || content.trim().length === 0) {
+    return false;
+  }
+
+  const trimmed = content.trim();
+
+  // 1. 检测括号格式分隔符（如 {字段}{字段}）
+  if (detectBracketFormat(trimmed)) {
+    return true;
+  }
+
+  // 2. 检测普通分隔符（/、|、,、*、#、;、制表符）
+  for (const sep of SEPARATORS) {
+    if (trimmed.includes(sep)) {
+      return true;
+    }
+  }
+
+  // 3. 检测自定义特殊分隔符（长度为2的非括号符号，如 +-、+= 等）
+  // 遍历可能的左右符号组合
+  const customSymbols = ['+', '-', '=', ':', '@', '!', '%', '&'];
+  for (const left of customSymbols) {
+    for (const right of customSymbols) {
+      if (left !== right && trimmed.includes(left + right)) {
+        return true;
+      }
+    }
+  }
+
+  // 不包含任何分隔符，判定为一维码
+  return false;
+};
+
 // 检查是否为括号分隔符并返回左括号
 const isBracketSeparator = (separator: string): string | null => {
   for (const leftBracket of Object.keys(BRACKET_PAIRS)) {

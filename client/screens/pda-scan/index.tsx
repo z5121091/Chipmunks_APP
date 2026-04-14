@@ -14,7 +14,7 @@ import { useFocusEffect } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
-import { parseQRCode } from '@/utils/qrcodeParser';
+import { parseQRCode, isQRCode } from '@/utils/qrcodeParser';
 import {
   initDatabase,
   upsertOrder,
@@ -474,6 +474,13 @@ export default function PDAScanScreen() {
         // 检测到输入完成（输入停止超过阈值，认为扫码完成）
         if (code.length >= 1) {
           console.log('[扫码出库] 扫码输入完成:', code);
+          // 一维码过滤：不含分隔符的扫码静默忽略
+          if (!isQRCode(code)) {
+            console.log('[扫码出库] 检测为一维码，静默忽略:', code);
+            setInputValue(''); // 清空输入框
+            inputRef.current?.focus(); // 重新聚焦
+            return;
+          }
           setInputValue(''); // 清空输入框
           processScan(code);
         }
@@ -497,6 +504,14 @@ export default function PDAScanScreen() {
       .replace(/[^A-Za-z0-9]+$/, '');
 
     if (!code) return;
+
+    // 一维码过滤：不含分隔符的扫码静默忽略
+    if (!isQRCode(code)) {
+      console.log('[扫码出库] 检测为一维码，静默忽略:', code);
+      setInputValue('');
+      inputRef.current?.focus();
+      return;
+    }
 
     console.log('[扫码出库] 手动回车处理:', code);
     setInputValue('');
