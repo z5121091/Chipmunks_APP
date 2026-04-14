@@ -299,6 +299,19 @@ export default function PDAScanScreen() {
       feedbackError();
     } finally {
       processingRef.current = false;
+      // 处理完成后，检查队列是否有待处理的扫码
+      setTimeout(() => {
+        if (scanQueueRef.current.length > 0) {
+          const nextCode = scanQueueRef.current.shift();
+          if (nextCode) {
+            console.log('[扫码出库] 处理队列中的扫码:', nextCode);
+            processScan(nextCode);
+          }
+        } else {
+          // 队列空了，重新聚焦输入框
+          inputRef.current?.focus();
+        }
+      }, 0);
     }
   }, [orderNo, currentWarehouse]);
 
@@ -434,7 +447,7 @@ export default function PDAScanScreen() {
     
     setInputValue(''); // 清空输入框
     await processScan(code);
-    setTimeout(() => inputRef.current?.focus(), 100);
+    // 注意：processScan 的 finally 块会处理重新聚焦
   }, [inputValue, processScan]);
 
   // 输入变化时自动检测并触发（扫码器逐字符输入，需要防抖检测完成）

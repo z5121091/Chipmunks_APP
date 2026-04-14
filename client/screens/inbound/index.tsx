@@ -320,17 +320,19 @@ export default function InboundScreen() {
     } finally {
       processingRef.current = false;
       // 处理完成后，检查队列是否有待处理的扫码
-      // 注意：不在 setTimeout 中处理，避免状态更新延迟导致重复检测失败
-      if (scanQueueRef.current.length > 0) {
-        const nextCode = scanQueueRef.current.shift();
-        if (nextCode) {
-          console.log('[扫码入库] 处理队列中的扫码:', nextCode);
-          processScan(nextCode);
+      // 注意：使用 setTimeout 让 React 有机会更新状态，避免重复检测失败
+      setTimeout(() => {
+        if (scanQueueRef.current.length > 0) {
+          const nextCode = scanQueueRef.current.shift();
+          if (nextCode) {
+            console.log('[扫码入库] 处理队列中的扫码:', nextCode);
+            processScan(nextCode);
+          }
+        } else {
+          // 队列空了，重新聚焦输入框
+          inputRef.current?.focus();
         }
-      } else {
-        // 队列空了，重新聚焦输入框
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
+      }, 0);
     }
   }, [currentWarehouse, currentSupplier, scanRecords]);
 
@@ -356,7 +358,7 @@ export default function InboundScreen() {
     
     setInputValue(''); // 清空输入框
     await processScan(code);
-    setTimeout(() => inputRef.current?.focus(), 100);
+    // 注意：processScan 的 finally 块会处理重新聚焦
   }, [inputValue, processScan]);
 
   // 输入变化时自动检测并触发（扫码器逐字符输入，需要防抖检测完成）
