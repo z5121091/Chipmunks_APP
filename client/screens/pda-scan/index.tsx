@@ -70,6 +70,8 @@ export default function PDAScanScreen() {
   const [inputValue, setInputValue] = useState('');
   const processingRef = useRef(false);
   const autoSubmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 扫码队列 - 暂存处理中的新扫码
+  const scanQueueRef = useRef<string[]>([]);
 
   // 仓库
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -435,59 +437,39 @@ export default function PDAScanScreen() {
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [inputValue, processScan]);
 
-  // 输入变化时自动检测并触发
-  // 模拟按键输出模式：扫码器发送换行符时触发
+  // 输入变化时自动检测并触发（扫码器逐字符输入，需要防抖检测完成）
   const handleInputChange = useCallback((text: string) => {
-    // 清除之前的定时器
+    // 清除之前的定时器（每次输入都重置）
     if (autoSubmitTimerRef.current) {
       clearTimeout(autoSubmitTimerRef.current);
       autoSubmitTimerRef.current = null;
     }
 
-    // 如果输入包含换行符（模拟按键模式），立即触发
-    if (text.includes('\n') || text.includes('\r')) {
-      // 只有在换行符前面的实际内容才处理
-      const code = text
-        .replace(/[\r\n]+$/, '')  // 去掉末尾换行符
-        .replace(/[\r\n\t\s]+/g, '')
-        .replace(/^[^A-Za-z0-9]+/, '')
-        .replace(/[^A-Za-z0-9]+$/, '');
-
-      if (code && !processingRef.current) {
-        console.log('[扫码出库] 模拟按键处理:', code);
-        setInputValue(''); // 清空输入框
-        processScan(code);
-      } else {
-        // 有换行符但没有有效内容，说明是误触发，恢复输入
-        const cleanText = text.replace(/[\r\n]+$/, '');
-        if (cleanText) {
-          setInputValue(cleanText);
-        }
+    // 如果正在处理中，先缓存当前输入
+    if (processingRef.current) {
+      // 暂存到队列
+      if (text.trim()) {
+        scanQueueRef.current.push(text.trim());
       }
       return;
     }
 
-    // 正常更新输入值
-    setInputValue(text);
-
-    // 兜底定时器（用于焦点录入模式，长时间无变化时触发）
-    if (text.length >= 8) {
+    // 如果当前有输入内容，启动定时器检测扫码完成
+    if (text.length > 0) {
       autoSubmitTimerRef.current = setTimeout(() => {
-        // 检查是否还在处理中，或者值已被清空
-        if (inputValue === text && !processingRef.current) {
-          const code = text
-            .replace(/[\r\n\t\s]+/g, '')
-            .replace(/^[^A-Za-z0-9]+/, '')
-            .replace(/[^A-Za-z0-9]+$/, '');
-
-          if (code) {
-            console.log('[扫码出库] 兜底定时器处理:', code);
-            setInputValue('');
-            processScan(code);
-          }
+        const code = text.trim();
+        // 检测到输入完成（输入停止超过阈值，认为扫码完成）
+        if (code.length >= 1) {
+          console.log('[扫码出库] 扫码输入完成:', code);
+          setInputValue(''); // 清空输入框
+          processScan(code);
         }
-      }, 2000); // 2秒无变化才触发
+      }, 150); // 150ms 防抖，等待扫码器输入完成
+      return;
     }
+
+    // 输入框被清空时，更新状态
+    setInputValue(text);
   }, [processScan]);
 
   // 扫码完成确认（焦点录入模式：用户手动按回车）
