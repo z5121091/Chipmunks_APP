@@ -385,35 +385,38 @@ export default function InboundScreen() {
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [inputValue, processScan]);
 
-  // 输入变化时自动检测并触发（扫码器一次性输入）
+  // 输入变化时自动检测并触发（扫码器逐字符输入，需要防抖检测完成）
   const handleInputChange = useCallback((text: string) => {
-    // 清除之前的定时器
+    // 清除之前的定时器（每次输入都重置）
     if (autoSubmitTimerRef.current) {
       clearTimeout(autoSubmitTimerRef.current);
       autoSubmitTimerRef.current = null;
     }
 
-    // 检测到输入（扫码器一次性输入）
-    if (text.length >= 8) {
-      const code = text.trim();
-      console.log('[扫码入库] 扫码加入队列:', code);
-      
-      // 加入队列
-      scanQueueRef.current.push(code);
-      
-      // 如果不在处理中，立即开始处理队列
-      if (!processingRef.current) {
-        const nextCode = scanQueueRef.current.shift();
-        if (nextCode) {
-          console.log('[扫码入库] 从队列取出处理:', nextCode);
-          setInputValue(''); // 清空输入框
-          processScan(nextCode);
-        }
+    // 如果正在处理中，先缓存当前输入
+    if (processingRef.current) {
+      // 暂存到队列
+      if (text.trim()) {
+        scanQueueRef.current.push(text.trim());
       }
       return;
     }
 
-    // 正常更新输入值（小于8个字符时，如手动输入）
+    // 如果当前有输入内容，启动定时器检测扫码完成
+    if (text.length > 0) {
+      autoSubmitTimerRef.current = setTimeout(() => {
+        const code = text.trim();
+        // 检测到输入完成（输入停止超过阈值，认为扫码完成）
+        if (code.length >= 1) {
+          console.log('[扫码入库] 扫码输入完成:', code);
+          setInputValue(''); // 清空输入框
+          processScan(code);
+        }
+      }, 150); // 150ms 防抖，等待扫码器输入完成
+      return;
+    }
+
+    // 输入框被清空时，更新状态
     setInputValue(text);
   }, [processScan]);
 
