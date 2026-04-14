@@ -106,7 +106,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // Toast
   toast: {
     position: 'absolute',
-    top: 210,
+    top: 170,
     left: Spacing.md,
     right: Spacing.md,
     paddingVertical: Spacing.sm + 2,
