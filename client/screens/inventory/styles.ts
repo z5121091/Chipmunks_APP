@@ -109,7 +109,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 扫码框
   scanBox: {
     marginHorizontal: Spacing.sm,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
   },
 
   scanInput: {
@@ -117,7 +117,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.backgroundDefault,
     borderWidth: 2,
     borderColor: theme.primary,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing.lg,
     fontSize: rf(18),
     fontWeight: '500',
@@ -128,19 +128,19 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // Toast
   toast: {
     position: 'absolute',
-    top: 140,
+    top: 240,
     left: Spacing.md,
     right: Spacing.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
     zIndex: 999,
     shadowColor: theme.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
   },
 
   toastSuccess: { backgroundColor: theme.success },
@@ -157,7 +157,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 列表
   listSection: {
     flex: 1,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
     backgroundColor: theme.backgroundDefault,
   },
 

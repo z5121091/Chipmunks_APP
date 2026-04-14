@@ -87,7 +87,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 扫码框
   scanBox: {
     marginHorizontal: Spacing.sm,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
   },
 
   scanInput: {
@@ -95,7 +95,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.backgroundDefault,
     borderWidth: 2,
     borderColor: theme.primary,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing.lg,
     fontSize: rf(18),
     fontWeight: '500',
@@ -106,19 +106,19 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // Toast
   toast: {
     position: 'absolute',
-    top: 100,
+    top: 200,
     left: Spacing.md,
     right: Spacing.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
     zIndex: 999,
     shadowColor: theme.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
   },
 
   toastSuccess: { backgroundColor: theme.success },
@@ -128,14 +128,14 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   toastText: {
     color: theme.white,
     fontSize: rf(16),
-    fontWeight: '700',
+    fontWeight: '600',
     textAlign: 'center',
   },
 
   // 列表
   listSection: {
     flex: 1,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
     backgroundColor: theme.backgroundDefault,
   },
 
