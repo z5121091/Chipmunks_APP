@@ -124,10 +124,10 @@ export default function PDAScanScreen() {
   const showToast = (text: string, type: 'success' | 'warning' | 'error' = 'success') => {
     setToastText(text);
     setToastType(type);
-    Animated.timing(toastAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(toastAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
     setTimeout(() => {
-      Animated.timing(toastAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => setToastText(''));
-    }, 2000);
+      Animated.timing(toastAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setToastText(''));
+    }, 1000);
   };
 
   // 加载订单物料
