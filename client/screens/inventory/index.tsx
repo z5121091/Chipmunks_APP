@@ -191,26 +191,6 @@ export default function InventoryScreen() {
     }
   }, [scanRecords, checkType, currentWarehouse]);
 
-  // 删除单条记录
-  const handleDeleteRecord = useCallback((recordId: string) => {
-    Alert.alert(
-      '确认删除',
-      '确定要删除这条记录吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: () => {
-            const updated = scanRecords.filter(r => r.id !== recordId);
-            setScanRecords(updated);
-            showToast('删除成功', 'success');
-          },
-        },
-      ]
-    );
-  }, [scanRecords]);
-
   // 删除聚合组（所有同型号+版本号的记录）
   const handleDeleteGroup = useCallback((item: any) => {
     Alert.alert(

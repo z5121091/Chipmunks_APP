@@ -489,15 +489,6 @@ export default function InboundScreen() {
     feedbackWarning();
   };
 
-  // 切换确认状态
-  const toggleConfirmed = (id: string) => {
-    const newRecords = scanRecords.map(r => 
-      r.id === id ? { ...r, confirmed: !r.confirmed } : r
-    );
-    setScanRecords(newRecords);
-    saveScanRecords(newRecords);
-  };
-
   // 切换展开/折叠
   const toggleExpand = useCallback((key: string) => {
     setExpandedGroups(prev => {
@@ -523,27 +514,6 @@ export default function InboundScreen() {
       return next;
     });
   }, []);
-
-  // 删除单条记录
-  const handleDeleteRecord = useCallback((recordId: string) => {
-    Alert.alert(
-      '确认删除',
-      '确定要删除这条记录吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: () => {
-            const updated = scanRecords.filter(r => r.id !== recordId);
-            setScanRecords(updated);
-            saveScanRecords(updated);
-            showToast('删除成功', 'success');
-          },
-        },
-      ]
-    );
-  }, [scanRecords]);
 
   // 删除聚合组（所有同型号+版本号的记录）
   const handleDeleteGroup = useCallback((item: any) => {

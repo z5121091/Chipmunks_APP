@@ -343,46 +343,6 @@ export default function PDAScanScreen() {
     });
   };
 
-  // 删除物料
-  const handleDeleteMaterial = useCallback((materialId: string, groupName?: string) => {
-    Alert.alert(
-      '确认删除',
-      '确定要删除这条物料记录吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteMaterial(materialId);
-              // 刷新列表
-              if (orderNo) {
-                await loadOrderMaterials(orderNo);
-              }
-              showToast('删除成功', 'success');
-              
-              // 如果只剩1箱，自动折叠
-              if (groupName) {
-                const group = aggregateMaterials.find(g => g.key === groupName);
-                if (group && group.boxCount === 1) {
-                  setExpandedGroups(prev => {
-                    const next = new Set(prev);
-                    next.delete(groupName);
-                    return next;
-                  });
-                }
-              }
-            } catch (error) {
-              console.error('删除失败:', error);
-              showToast('删除失败', 'error');
-            }
-          },
-        },
-      ]
-    );
-  }, [orderNo, loadOrderMaterials, aggregateMaterials]);
-
   // 删除聚合组（所有箱）
   const handleDeleteGroup = useCallback((group: AggregatedGroup) => {
     Alert.alert(
