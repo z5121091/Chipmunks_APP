@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Animated,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -32,6 +31,7 @@ import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
+import { useToast } from '@/utils/toast';
 import { Str } from '@/resources/strings';
 
 // 扫描记录类型
@@ -92,9 +92,7 @@ export default function InboundScreen() {
   const [saving, setSaving] = useState(false);
 
   // Toast
-  const [toastText, setToastText] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'warning' | 'error'>('success');
-  const toastAnim = useRef(new Animated.Value(0)).current;
+  const { showToast, ToastContainer } = useToast();
 
   // 展开状态管理
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -184,16 +182,6 @@ export default function InboundScreen() {
   const generateNo = async () => {
     const no = await generateInboundNo();
     setInboundNo(no);
-  };
-
-  // Toast
-  const showToast = (text: string, type: 'success' | 'warning' | 'error' = 'success') => {
-    setToastText(text);
-    setToastType(type);
-    Animated.timing(toastAnim, { toValue: 1, duration: 100, useNativeDriver: false }).start();
-    setTimeout(() => {
-      Animated.timing(toastAnim, { toValue: 0, duration: 100, useNativeDriver: false }).start(() => setToastText(''));
-    }, 500);
   };
 
   // 处理扫描（带参数版本，供自动触发调用）
@@ -657,20 +645,8 @@ export default function InboundScreen() {
             showSoftInputOnFocus={true}
           />
           
-          {/* Toast（相对于 scanBox 定位） */}
-          {toastText ? (
-            <Animated.View
-              style={[
-                styles.toast,
-                toastType === 'success' && styles.toastSuccess,
-                toastType === 'warning' && styles.toastWarning,
-                toastType === 'error' && styles.toastError,
-                { opacity: toastAnim },
-              ]}
-            >
-              <Text style={styles.toastText}>{toastText}</Text>
-            </Animated.View>
-          ) : null}
+          {/* Toast */}
+          <ToastContainer />
         </View>
 
         {/* 物料列表 */}

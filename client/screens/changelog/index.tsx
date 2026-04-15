@@ -11,18 +11,18 @@ import { Spacing } from '@/constants/theme';
 // 更新日志数据
 const CHANGELOG_DATA = [
   {
-    version: 'V3.3.2',
+    version: 'V3.3.3',
     date: '2026-04-15',
     changes: [
+      // 重构
+      { type: 'improve', text: '新增 useToast Hook，统一 Toast 提示组件' },
+      { type: 'improve', text: '新增 feedbackDuplicate()，统一重复扫码反馈（震动+提示音）' },
+      { type: 'improve', text: '新增 useFeedbackCleanup Hook，自动清理震动和提示音' },
+      { type: 'improve', text: '扫码出库/入库/盘点：移除重复的震动/提示音逻辑' },
+      { type: 'improve', text: '扫码出库/入库/盘点：页面只调用 API，不实现细节' },
       // 优化
       { type: 'improve', text: '提示音升级：成功提示音改为「滴」（800Hz，短促）' },
       { type: 'improve', text: '提示音升级：错误提示音改为「滴滴滴」（600Hz，三声）' },
-      { type: 'improve', text: '扫码出库/入库/盘点：重复提醒统一使用长震动+长提示音' },
-      { type: 'improve', text: '扫码入库/盘点：重复提醒文案统一为「⚠️ 该物料已扫码，请勿重复」' },
-      { type: 'improve', text: '扫码入库：成功反馈时自动停止长震动和长提示音' },
-      // 修复
-      { type: 'fix', text: '扫码入库：修复 Toast 显示时间（0.5秒）' },
-      { type: 'fix', text: '扫码入库：修复 Toast 动画时间（100ms）' },
     ],
   },
   {

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Animated,
   Alert,
   Platform,
 } from 'react-native';
@@ -34,6 +33,7 @@ import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
+import { useToast } from '@/utils/toast';
 
 // 订单号格式：IO-年-月-日-序号（序号2-3位）
 const ORDER_NO_REGEX = /^IO-\d{4}-\d{2}-\d{2}-\d{2,3}$/;
@@ -89,9 +89,7 @@ export default function PDAScanScreen() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Toast
-  const [toastText, setToastText] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'warning' | 'error'>('success');
-  const toastAnim = useRef(new Animated.Value(0)).current;
+  const { showToast, ToastContainer } = useToast();
 
   // 初始化
   useEffect(() => {
@@ -118,16 +116,6 @@ export default function PDAScanScreen() {
     setWarehouses(list);
     const def = await getDefaultWarehouse();
     setCurrentWarehouse(def || list[0] || null);
-  };
-
-  // Toast
-  const showToast = (text: string, type: 'success' | 'warning' | 'error' = 'success') => {
-    setToastText(text);
-    setToastType(type);
-    Animated.timing(toastAnim, { toValue: 1, duration: 100, useNativeDriver: false }).start();
-    setTimeout(() => {
-      Animated.timing(toastAnim, { toValue: 0, duration: 100, useNativeDriver: false }).start(() => setToastText(''));
-    }, 500);
   };
 
   // 加载订单物料
@@ -579,12 +567,8 @@ export default function PDAScanScreen() {
             showSoftInputOnFocus={true}
           />
           
-          {/* Toast（相对于 scanBox 定位） */}
-          {toastText ? (
-            <Animated.View style={[styles.toast, toastType === 'success' && styles.toastSuccess, toastType === 'warning' && styles.toastWarning, toastType === 'error' && styles.toastError, { opacity: toastAnim }]}>
-              <Text style={styles.toastText}>{toastText}</Text>
-            </Animated.View>
-          ) : null}
+          {/* Toast */}
+          <ToastContainer />
         </View>
 
         {/* 物料列表 */}
