@@ -64,8 +64,11 @@ async function playSuccessSound() {
   try {
     const sound = await loadSuccessSound();
     if (sound) {
+      // 先停止当前播放
+      await sound.stopAsync();
       // 重置位置到开头
       await sound.setPositionAsync(0);
+      // 播放
       await sound.playAsync();
     }
   } catch (error) {
@@ -115,8 +118,11 @@ async function playErrorSound() {
   try {
     const sound = await loadErrorSound();
     if (sound) {
+      // 先停止当前播放
+      await sound.stopAsync();
       // 重置位置到开头
       await sound.setPositionAsync(0);
+      // 播放
       await sound.playAsync();
     }
   } catch (error) {
@@ -145,6 +151,10 @@ export async function feedbackSuccess() {
  * - 用于扫码重复、错误等需要用户注意的情况
  */
 export function feedbackDuplicate() {
+  // 先停止之前的震动和音效，确保只有一个循环
+  stopErrorVibrationInternal();
+  stopErrorSoundInternal();
+  // 重新启动
   startErrorVibrationInternal();
   startErrorSoundInternal();
 }
