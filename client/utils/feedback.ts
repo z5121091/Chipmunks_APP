@@ -41,6 +41,13 @@ export function clearSoundCache() {
   soundEnabledCache = null;
 }
 
+/**
+ * 直接设置声音开关状态（设置页面修改后调用，立即生效）
+ */
+export function setSoundEnabled(enabled: boolean) {
+  soundEnabledCache = enabled;
+}
+
 // 持续震动的定时器ID
 let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
 

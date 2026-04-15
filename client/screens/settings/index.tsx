@@ -48,7 +48,7 @@ import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { rs } from '@/utils/responsive';
 import { APP_VERSION, APP_NAME, COMPANY_NAME, AUTHOR } from '@/constants/version';
-import { clearSoundCache } from '@/utils/feedback';
+import { clearSoundCache, setSoundEnabled } from '@/utils/feedback';
 
 // 使用 any 绕过类型检查
 const FileSystem = FileSystemLegacy as any;
@@ -196,12 +196,10 @@ export default function SettingsScreen() {
   
   // 切换声音开关
   const toggleSound = useCallback(async (value: boolean) => {
-    setSoundEnabled(value);
+    setSoundEnabled(value);  // 立即更新缓存，无需等待 AsyncStorage
     await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(value));
     // 同时更新全局设置
     await AsyncStorage.setItem('@settings_sound_enabled', String(value));
-    // 清除反馈工具的缓存，使其立即生效
-    clearSoundCache();
   }, []);
   
   useFocusEffect(

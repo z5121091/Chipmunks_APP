@@ -1,9 +1,9 @@
 {
-  "version": "V3.3.6",
-  "versionCode": 75,
-  "buildNumber": 75,
+  "version": "V3.3.7",
+  "versionCode": 76,
+  "buildNumber": 76,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
-  "changelog": "【新增】\n1. 设置页面新增「扫码提示音」开关，可关闭扫码提示音\n\n【修复】\n1. 重新生成标准 WAV 音效文件\n2. 修复音效播放逻辑，防止重复播放",
+  "changelog": "【优化】\n1. 音效升级为更响亮的2000Hz清脆音\n2. 修复声音开关延迟问题，立即生效\n\n【新增】\n1. 设置页面新增「扫码提示音」开关",
   "forceUpdate": false,
   "appName": "掌上仓库",
   "companyName": "上海花栗鼠科技有限公司",
