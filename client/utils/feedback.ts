@@ -268,3 +268,19 @@ export async function cleanupSounds() {
     errorSoundInstance = null;
   }
 }
+
+// ============================================================================
+// React Hook - 自动清理
+// ============================================================================
+
+/**
+ * 自动清理反馈资源的 Hook
+ */
+export function useFeedbackCleanup() {
+  useEffect(() => {
+    return () => {
+      stopErrorVibrationInternal();
+      stopErrorSoundInternal();
+    };
+  }, []);
+}

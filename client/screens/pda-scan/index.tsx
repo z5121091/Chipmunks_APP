@@ -32,7 +32,7 @@ import {
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, initSoundSetting } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, initSoundSetting, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 
 // 订单号格式：IO-年-月-日-序号（序号2-3位）
