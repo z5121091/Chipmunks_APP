@@ -581,34 +581,27 @@ export default function PDAScanScreen() {
             {aggregateMaterials.map(group => {
               const isExpanded = expandedGroups.has(group.key);
               return (
-                <View key={group.key} style={styles.itemContainer}>
-                  {/* 聚合项（紧凑单行布局） */}
+                <View key={group.key}>
+                  {/* 聚合项（两行布局） */}
                   <TouchableOpacity
                     style={styles.itemRow}
                     onPress={() => toggleExpand(group.key)}
                     onLongPress={() => handleDeleteGroup(group)}
                     delayLongPress={500}
-                    activeOpacity={0.7}
                   >
-                    {/* 勾选箭头 */}
-                    <Text style={styles.expandIcon}>
-                      {isExpanded ? '▼' : '▶'}
-                    </Text>
-                    
-                    {/* 型号 */}
-                    <Text style={styles.itemModel} numberOfLines={1}>
-                      {group.model}
-                    </Text>
-                    
-                    {/* 版本号（紧凑显示） */}
-                    <Text style={styles.itemVersion}>
-                      {group.version || ''}
-                    </Text>
-                    
-                    {/* 数量 */}
-                    <Text style={styles.itemQty}>
-                      {group.totalQuantity.toLocaleString()}
-                    </Text>
+                    <View style={styles.itemLeft}>
+                      <Text style={styles.itemModel}>
+                        {isExpanded ? '▼' : '▶'} {group.model}
+                      </Text>
+                      <Text style={styles.itemBatch}>
+                        版本: {group.version || '-'}
+                      </Text>
+                    </View>
+                    <View style={styles.itemRight}>
+                      <Text style={styles.itemQty}>
+                        {group.totalQuantity.toLocaleString()}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
 
                   {/* 展开的明细 */}

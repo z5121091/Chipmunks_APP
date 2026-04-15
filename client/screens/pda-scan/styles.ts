@@ -159,47 +159,52 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 聚合项容器
   itemContainer: {
     marginBottom: Spacing.xs,
+    backgroundColor: theme.backgroundDefault,
   },
 
-  // 聚合项主行（紧凑单行布局）
+  // 聚合项主行（两行布局：型号 + 版本/数量）
   itemRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     backgroundColor: theme.backgroundDefault,
   },
 
-  // 展开图标
-  expandIcon: {
-    fontSize: rf(12),
-    color: theme.textSecondary,
-    marginRight: rf(4),
+  itemLeft: {
+    flex: 1,
   },
 
-  // 型号（行内）
   itemModel: {
     fontSize: rf(14),
     fontWeight: '600',
     color: theme.textPrimary,
-    flex: 1,
-    marginRight: Spacing.xs,
   },
 
-  // 版本号（紧凑）
-  itemVersion: {
-    fontSize: rf(10),
-    color: theme.textMuted,
-    marginRight: Spacing.sm,
+  itemBatch: {
+    fontSize: rf(12),
+    color: theme.textSecondary,
+    marginTop: 1,
   },
 
-  // 数量（右侧）
+  itemRight: {
+    alignItems: 'flex-end',
+  },
+
   itemQty: {
     fontSize: rf(16),
     fontWeight: '700',
     color: theme.primary,
   },
 
+  itemTime: {
+    fontSize: rf(10),
+    color: theme.textMuted,
+    marginTop: 1,
+  },
+
+  // 明细容器
   detailsContainer: {
     backgroundColor: theme.backgroundTertiary,
     marginLeft: Spacing.xl,

@@ -666,7 +666,7 @@ export default function InboundScreen() {
               
               return (
                 <View key={key} style={styles.itemContainer}>
-                  {/* 聚合项 - 紧凑单行布局 */}
+                  {/* 聚合项 - 两行布局 */}
                   <TouchableOpacity
                     style={[
                       styles.itemRow,
@@ -675,31 +675,33 @@ export default function InboundScreen() {
                     onLongPress={() => handleDeleteGroup(item)}
                     activeOpacity={0.7}
                   >
-                    {/* 勾选框（紧凑） */}
+                    {/* 勾选框 */}
                     <TouchableOpacity
                       style={styles.checkbox}
                       onPress={() => toggleConfirm(key)}
                     >
                       <FontAwesome6 
                         name={isConfirmed ? "square-check" : "square"} 
-                        size={16} 
+                        size={18} 
                         color={isConfirmed ? theme.success : theme.textMuted} 
                       />
                     </TouchableOpacity>
 
-                    {/* 型号和版本（点击展开/折叠） */}
+                    {/* 型号（第一行） */}
                     <TouchableOpacity
                       style={styles.modelContent}
                       onPress={() => toggleExpand(key)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.itemModel}>
+                      <Text style={[styles.itemModel, isConfirmed && styles.itemModelConfirmed]}>
                         {isExpanded ? '▼' : '▶'} {item.model}
                       </Text>
-                      <Text style={styles.itemVersion}>
-                        {item.version || '-'}
-                      </Text>
                     </TouchableOpacity>
+
+                    {/* 版本号（第二行） */}
+                    <Text style={[styles.itemVersion, isConfirmed && styles.itemModelConfirmed]}>
+                      版本: {item.version || '-'}
+                    </Text>
 
                     {/* 数量 */}
                     <Text style={[styles.itemQty, isConfirmed && styles.itemQtyConfirmed]}>

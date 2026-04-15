@@ -210,18 +210,20 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 聚合项容器
   itemContainer: {
     marginBottom: Spacing.xs,
+    backgroundColor: theme.backgroundDefault,
   },
 
-  // 聚合项主行（紧凑单行布局）
+  // 聚合项主行（两行布局）
   itemRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     backgroundColor: theme.backgroundDefault,
   },
 
-  // 勾选框（紧凑，行内）
+  // 勾选框（行内）
   checkbox: {
     marginRight: rf(4),
   },
@@ -242,10 +244,10 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     marginRight: rf(4),
   },
 
-  // 版本号（紧凑）
+  // 版本号
   itemVersion: {
-    fontSize: rf(10),
-    color: theme.textMuted,
+    fontSize: rf(12),
+    color: theme.textSecondary,
   },
 
   // 数量（右侧）
