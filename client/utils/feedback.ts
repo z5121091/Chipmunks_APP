@@ -5,7 +5,41 @@
 
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
+
+// 声音开关存储键
+const SOUND_ENABLED_KEY = '@sound_enabled';
+
+// 声音开关状态缓存
+let soundEnabledCache: boolean | null = null;
+
+/**
+ * 检查声音开关状态
+ */
+async function isSoundEnabled(): Promise<boolean> {
+  // 如果缓存存在，直接返回
+  if (soundEnabledCache !== null) {
+    return soundEnabledCache;
+  }
+  
+  try {
+    const value = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
+    // 默认为开启
+    soundEnabledCache = value === null || value === 'true';
+    return soundEnabledCache;
+  } catch {
+    soundEnabledCache = true;
+    return true;
+  }
+}
+
+/**
+ * 清除声音开关缓存（设置页面修改后调用）
+ */
+export function clearSoundCache() {
+  soundEnabledCache = null;
+}
 
 // 持续震动的定时器ID
 let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
@@ -61,6 +95,9 @@ async function loadSuccessSound(): Promise<Audio.Sound | null> {
  * 播放成功提示音
  */
 async function playSuccessSound() {
+  // 检查声音开关
+  if (!(await isSoundEnabled())) return;
+  
   try {
     const sound = await loadSuccessSound();
     if (sound) {
@@ -115,6 +152,9 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
  * 播放错误提示音（单次）
  */
 async function playErrorSound() {
+  // 检查声音开关
+  if (!(await isSoundEnabled())) return;
+  
   try {
     const sound = await loadErrorSound();
     if (sound) {

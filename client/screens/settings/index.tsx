@@ -14,6 +14,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
+  Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
@@ -47,6 +48,7 @@ import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { rs } from '@/utils/responsive';
 import { APP_VERSION, APP_NAME, COMPANY_NAME, AUTHOR } from '@/constants/version';
+import { clearSoundCache } from '@/utils/feedback';
 
 // 使用 any 绕过类型检查
 const FileSystem = FileSystemLegacy as any;
@@ -55,6 +57,9 @@ const FileSystem = FileSystemLegacy as any;
 const SYNC_CONFIG_KEY = '@sync_config';
 const CONNECTION_STATUS_KEY = '@sync_connection_status';
 const UPDATE_SERVER_KEY = '@update_server_url';
+
+// 声音开关存储键
+const SOUND_ENABLED_KEY = '@sound_enabled';
 
 // 更新服务器配置（请修改为你的NAS地址）
 // 完整URL（含认证信息），兼容Android 7.0
@@ -108,6 +113,9 @@ export default function SettingsScreen() {
   const [syncConfig, setSyncConfig] = useState<SyncConfig>({ ip: '', port: '8080' });
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle');
   
+  // 声音开关
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  
   // 各数据类型的同步状态
   const [syncingInbound, setSyncingInbound] = useState(false);
   const [syncingOutbound, setSyncingOutbound] = useState(false);
@@ -136,15 +144,22 @@ export default function SettingsScreen() {
   
   // 加载数据
   const loadData = useCallback(async () => {
-    const [fieldsData, stats, savedSyncConfig, savedConnectionStatus, savedUpdateServer] = await Promise.all([
+    const [fieldsData, stats, savedSyncConfig, savedConnectionStatus, savedUpdateServer, savedSoundEnabled] = await Promise.all([
       getAllCustomFields(),
       getConfigStats(),
       AsyncStorage.getItem(SYNC_CONFIG_KEY),
       AsyncStorage.getItem(CONNECTION_STATUS_KEY),
       AsyncStorage.getItem(UPDATE_SERVER_KEY),
+      AsyncStorage.getItem(SOUND_ENABLED_KEY),
     ]);
     setCustomFields(fieldsData);
     setConfigStats(stats);
+    
+    // 加载声音开关状态，默认为 true
+    if (savedSoundEnabled !== null) {
+      setSoundEnabled(savedSoundEnabled === 'true');
+    }
+    
     if (savedUpdateServer) {
       setUpdateServerUrl(savedUpdateServer);
       setUpdateServerDisplayUrl(extractDisplayUrl(savedUpdateServer));
@@ -177,6 +192,16 @@ export default function SettingsScreen() {
         setConnectionStatus('disconnected');
       }
     }
+  }, []);
+  
+  // 切换声音开关
+  const toggleSound = useCallback(async (value: boolean) => {
+    setSoundEnabled(value);
+    await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(value));
+    // 同时更新全局设置
+    await AsyncStorage.setItem('@settings_sound_enabled', String(value));
+    // 清除反馈工具的缓存，使其立即生效
+    clearSoundCache();
   }, []);
   
   useFocusEffect(
@@ -1071,6 +1096,36 @@ export default function SettingsScreen() {
     </AnimatedCard>
   );
   
+  // 渲染开关设置项
+  const renderSwitchCard = (
+    title: string,
+    desc: string,
+    iconName: keyof typeof Feather.glyphMap,
+    color: string,
+    value: boolean,
+    onValueChange: (value: boolean) => void
+  ) => (
+    <AnimatedCard onPress={() => onValueChange(!value)}>
+      <View style={styles.exportCardContainer}>
+        <View style={styles.exportCard}>
+          <View style={[styles.exportIcon, { backgroundColor: color + '15' }]}>
+            <Feather name={iconName} size={20} color={color} />
+          </View>
+          <View style={styles.exportInfo}>
+            <Text style={styles.exportTitle}>{title}</Text>
+            <Text style={styles.exportDesc}>{desc}</Text>
+          </View>
+          <Switch
+            value={value}
+            onValueChange={onValueChange}
+            trackColor={{ false: theme.border, true: color + '80' }}
+            thumbColor={value ? color : theme.textMuted}
+          />
+        </View>
+      </View>
+    </AnimatedCard>
+  );
+  
   return (
     <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
       <ScrollView
@@ -1097,6 +1152,15 @@ export default function SettingsScreen() {
             'home',
             theme.primary,
             () => router.push('/warehouse-management')
+          )}
+          
+          {renderSwitchCard(
+            '扫码提示音',
+            '扫码成功/重复时播放提示音',
+            'volume-2',
+            theme.primary,
+            soundEnabled,
+            toggleSound
           )}
           
           {renderMenuCard(
