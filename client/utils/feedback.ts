@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
 
 // 声音开关存储键
-const SOUND_ENABLED_KEY = '@sound_enabled';
+export const SOUND_ENABLED_KEY = '@sound_enabled';
 
 // 声音开关状态缓存（同步访问）
 let soundEnabled: boolean = true;
@@ -100,23 +100,6 @@ export async function feedbackDuplicate() {
   
   // 语音
   await speakChinese('重复');
-}
-
-/**
- * 扫码已存在反馈 - 震动一次 + "已存在"语音
- */
-export async function feedbackExists() {
-  console.log('[Feedback] feedbackExists 触发');
-  
-  // 震动一次
-  try {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-  } catch (e) {
-    console.error('[Feedback] 震动失败:', e);
-  }
-  
-  // 语音
-  await speakChinese('已存在');
 }
 
 /**

@@ -4,6 +4,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Spacing, BorderRadius } from '@/constants/theme';
 import { withAlpha } from '@/utils/colors';
+import { rf } from '@/utils/responsive';
 
 export type AlertButtonType = {
   text: string;
@@ -121,7 +122,7 @@ export function CustomAlert({
 
           {/* 标题 */}
           <Text style={{
-            fontSize: 18,
+            fontSize: rf(18),
             fontWeight: '700',
             textAlign: 'center',
             marginBottom: message ? Spacing.sm : Spacing.lg,
@@ -133,7 +134,7 @@ export function CustomAlert({
           {/* 消息内容 */}
           {message && (
             <Text style={{
-              fontSize: 14,
+              fontSize: rf(14),
               lineHeight: 22,
               textAlign: 'center',
               marginBottom: Spacing.xl,
@@ -174,7 +175,7 @@ export function CustomAlert({
                   activeOpacity={0.7}
                 >
                   <Text style={{
-                    fontSize: 16,
+                    fontSize: rf(16),
                     fontWeight: '600',
                     color: isCancel ? theme.textPrimary : theme.buttonPrimaryText,
                   }}>

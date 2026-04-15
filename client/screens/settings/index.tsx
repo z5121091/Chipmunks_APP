@@ -48,7 +48,7 @@ import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { rs } from '@/utils/responsive';
 import { APP_VERSION, APP_NAME, COMPANY_NAME, AUTHOR } from '@/constants/version';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, setSoundEnabled as setSoundEnabledFn, initSoundSetting } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, setSoundEnabled as setSoundEnabledFn, initSoundSetting, SOUND_ENABLED_KEY } from '@/utils/feedback';
 
 // 使用 any 绕过类型检查
 const FileSystem = FileSystemLegacy as any;
@@ -57,9 +57,6 @@ const FileSystem = FileSystemLegacy as any;
 const SYNC_CONFIG_KEY = '@sync_config';
 const CONNECTION_STATUS_KEY = '@sync_connection_status';
 const UPDATE_SERVER_KEY = '@update_server_url';
-
-// 声音开关存储键
-const SOUND_ENABLED_KEY = '@sound_enabled';
 
 // 更新服务器配置（请修改为你的NAS地址）
 // 完整URL（含认证信息），兼容Android 7.0

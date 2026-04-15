@@ -13,6 +13,7 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import dayjs from 'dayjs';
 import { FontAwesome6 } from '@expo/vector-icons';
+import { rf } from '@/utils/responsive';
 
 // --------------------------------------------------------
 // 1. 配置 Dayjs 
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '600',
     color: '#374151', // Gray 700
     marginBottom: 8,
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2', // Red 50
   },
   text: {
-    fontSize: 16,
+    fontSize: rf(16),
     color: '#111827', // Gray 900
     flex: 1,
   },
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 4,
     marginLeft: 2,
-    fontSize: 12,
+    fontSize: rf(12),
     color: '#EF4444',
   }
 });

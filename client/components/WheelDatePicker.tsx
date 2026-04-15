@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
+import { rf } from '@/utils/responsive';
 
 const { width } = Dimensions.get('window');
 const WHEEL_WIDTH = width - Spacing["2xl"] * 2;
@@ -330,16 +331,16 @@ const createStyles = (theme: Theme) =>
       borderBottomColor: theme.border,
     },
     cancelText: {
-      fontSize: 16,
+      fontSize: rf(16),
       color: theme.textSecondary,
     },
     title: {
-      fontSize: 16,
+      fontSize: rf(16),
       fontWeight: '600',
       color: theme.textPrimary,
     },
     confirmText: {
-      fontSize: 16,
+      fontSize: rf(16),
       color: theme.primary,
       fontWeight: '600',
     },
@@ -360,7 +361,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.primary,
     },
     quickOptionText: {
-      fontSize: 14,
+      fontSize: rf(14),
       color: theme.textPrimary,
     },
     quickOptionTextActive: {
@@ -387,7 +388,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.black,
     },
     dateTabLabel: {
-      fontSize: 12,
+      fontSize: rf(12),
       fontWeight: '500',
       marginBottom: 2,
       color: theme.textSecondary,
@@ -396,7 +397,7 @@ const createStyles = (theme: Theme) =>
       color: 'rgba(255,255,255,0.7)',
     },
     dateTabValue: {
-      fontSize: 16,
+      fontSize: rf(16),
       fontWeight: '600',
       color: theme.textPrimary,
     },
@@ -405,7 +406,7 @@ const createStyles = (theme: Theme) =>
     },
     dateRangeSeparator: {
       marginHorizontal: Spacing.md,
-      fontSize: 14,
+      fontSize: rf(14),
       color: theme.textMuted,
     },
     wheelRow: {
@@ -418,7 +419,7 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
     },
     wheelLabel: {
-      fontSize: 14,
+      fontSize: rf(14),
       color: theme.textPrimary,
       fontWeight: '500',
       marginBottom: Spacing.sm,
@@ -453,12 +454,12 @@ const createStyles = (theme: Theme) =>
       // 选中样式通过文字体现
     },
     wheelItemText: {
-      fontSize: 18,
+      fontSize: rf(18),
       color: theme.textPrimary,
       opacity: 0.6,
     },
     wheelItemTextSelected: {
-      fontSize: 20,
+      fontSize: rf(20),
       fontWeight: '700',
       color: theme.textPrimary,
       opacity: 1,
@@ -472,7 +473,7 @@ const createStyles = (theme: Theme) =>
       borderColor: theme.border,
     },
     clearButtonText: {
-      fontSize: 16,
+      fontSize: rf(16),
       color: theme.textSecondary,
     },
   });
