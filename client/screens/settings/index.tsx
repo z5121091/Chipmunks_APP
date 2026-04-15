@@ -1325,7 +1325,7 @@ export default function SettingsScreen() {
             </View>
             <Text style={styles.aboutAppName}>{APP_NAME}</Text>
             <View style={styles.aboutVersionBadge}>
-              <Text style={styles.aboutVersionText}>V{APP_VERSION}</Text>
+              <Text style={styles.aboutVersionText}>{APP_VERSION}</Text>
             </View>
           </View>
           
