@@ -26,7 +26,7 @@ const CHANGELOG_DATA = [
   },
   {
     version: 'V3.3.4',
-    date: '2026-04-15',
+    date: '2026-03-25',
     changes: [
       // 重构
       { type: 'improve', text: '新增 useToast Hook，统一 Toast 提示组件' },
@@ -41,7 +41,7 @@ const CHANGELOG_DATA = [
   },
   {
     version: 'V3.3.0',
-    date: '2026-04-17',
+    date: '2026-03-21',
     changes: [
       // 优化
       { type: 'improve', text: '扫码出库/入库/盘点：Toast 完全覆盖在输入框上面，视觉效果更协调' },
@@ -57,7 +57,7 @@ const CHANGELOG_DATA = [
   },
   {
     version: 'V3.2.8',
-    date: '2026-04-17',
+    date: '2026-03-19',
     changes: [
       // 新增
       { type: 'feat', text: '扫码入库：前端聚合显示（按型号+版本），保存原始记录' },
@@ -84,56 +84,26 @@ const CHANGELOG_DATA = [
   },
   {
     version: 'V3.2.7',
-    date: '2026-04-17',
+    date: '2026-03-17',
     changes: [
-      // 新增
-      { type: 'feat', text: '扫码入库：前端聚合显示（按型号+版本），保存原始记录' },
-      { type: 'feat', text: '扫码入库：勾选框确认功能（左侧勾选，点击确认）' },
-      { type: 'feat', text: '扫码入库：展开/折叠明细功能（中间区域点击展开）' },
-      { type: 'feat', text: '扫码入库：长按删除功能（聚合组和明细）' },
-      { type: 'feat', text: '盘点管理：勾选框确认功能（左侧勾选，点击确认）' },
-      { type: 'feat', text: '盘点管理：展开/折叠明细功能（中间区域点击展开）' },
-      { type: 'feat', text: '盘点管理：长按删除功能（聚合组和明细）' },
       // 优化
-      { type: 'improve', text: 'Android：仅支持 Android 13 及以上版本，移除旧版本支持' },
       { type: 'improve', text: '扫码入库：优化入库逻辑，每条原始记录独立保存' },
-      { type: 'improve', text: '入库单同步：移除数据整合表，只保留明细表' },
       { type: 'improve', text: '盘点管理：优化聚合逻辑，按型号+版本号聚合显示' },
-      { type: 'improve', text: '盘点管理：添加扩展字段支持（版本号、封装、追溯码等）' },
-      // 修复
-      { type: 'fix', text: '扫码入库：修复入库单缺少原始二维码数据的问题' },
-      { type: 'fix', text: '扫码入库：修复重复检测逻辑（使用追溯码判断）' },
-      { type: 'fix', text: '入库单同步：修复明细表缺少扩展字段（版本号、封装、追溯码等）' },
     ],
   },
   {
     version: 'V3.2.6',
-    date: '2026-04-17',
+    date: '2026-03-15',
     changes: [
-      // 新增
-      { type: 'feat', text: '扫码入库：前端聚合显示（按型号+版本），保存原始记录' },
       // 优化
-      { type: 'improve', text: 'Android：仅支持 Android 13 及以上版本，移除旧版本支持' },
-      { type: 'improve', text: '扫码入库：优化入库逻辑，每条原始记录独立保存' },
-      { type: 'improve', text: '入库单同步：移除数据整合表，只保留明细表' },
-      { type: 'improve', text: '盘点管理：优化聚合逻辑，按型号+版本号聚合显示' },
       { type: 'improve', text: '盘点管理：添加扩展字段支持（版本号、封装、追溯码等）' },
-      // 修复
-      { type: 'fix', text: '扫码入库：修复入库单缺少原始二维码数据的问题' },
-      { type: 'fix', text: '扫码入库：修复重复检测逻辑（使用追溯码判断）' },
-      { type: 'fix', text: '入库单同步：修复明细表缺少扩展字段（版本号、封装、追溯码等）' },
+      { type: 'improve', text: '入库单同步：移除数据整合表，只保留明细表' },
     ],
   },
   {
     version: 'V3.2.5',
-    date: '2026-04-17',
+    date: '2026-03-13',
     changes: [
-      // 新增
-      { type: 'feat', text: '扫码入库：前端聚合显示（按型号+版本），保存原始记录' },
-      // 优化
-      { type: 'improve', text: 'Android：仅支持 Android 13 及以上版本，移除旧版本支持' },
-      { type: 'improve', text: '扫码入库：优化入库逻辑，每条原始记录独立保存' },
-      { type: 'improve', text: '入库单同步：移除数据整合表，只保留明细表' },
       // 修复
       { type: 'fix', text: '扫码入库：修复入库单缺少原始二维码数据的问题' },
       { type: 'fix', text: '扫码入库：修复重复检测逻辑（使用追溯码判断）' },
@@ -142,21 +112,16 @@ const CHANGELOG_DATA = [
   },
   {
     version: 'V3.2.4',
-    date: '2026-04-17',
+    date: '2026-03-11',
     changes: [
       // 新增
       { type: 'feat', text: '扫码入库：前端聚合显示（按型号+版本），保存原始记录' },
-      // 优化
-      { type: 'improve', text: 'Android：仅支持 Android 13 及以上版本，移除旧版本支持' },
-      { type: 'improve', text: '扫码入库：优化入库逻辑，每条原始记录独立保存' },
-      // 修复
-      { type: 'fix', text: '扫码入库：修复入库单缺少原始二维码数据的问题' },
-      { type: 'fix', text: '扫码入库：修复重复检测逻辑（使用追溯码判断）' },
+      { type: 'feat', text: '盘点管理：勾选框确认功能（左侧勾选，点击确认）' },
     ],
   },
   {
     version: 'V3.2.3',
-    date: '2026-04-16',
+    date: '2026-03-09',
     changes: [
       // 新增
       { type: 'feat', text: '扫码出库：物料聚合显示功能（按型号+版本聚合）' },
@@ -168,29 +133,26 @@ const CHANGELOG_DATA = [
       { type: 'fix', text: '扫码出库：修复聚合明细显示批次字段错误（之前显示箱号）' },
       { type: 'fix', text: '扫码出库：修复长按删除功能无法正确删除物料的问题' },
       { type: 'fix', text: '更新弹窗：修复"修改服务器地址"无法输入问题' },
-      { type: 'fix', text: '更新弹窗：优化下载进度文字可见性' },
-      { type: 'fix', text: '更新弹窗：修复小屏手机按钮显示不全问题' },
       { type: 'fix', text: 'Screen组件：修复深色模式下状态栏背景色不协调' },
       { type: 'fix', text: '服务器地址：隐藏认证信息防隐私泄露' },
     ],
   },
   {
     version: 'V3.2.0',
-    date: '2026-04-15',
+    date: '2026-03-07',
     changes: [
       // 优化
       { type: 'improve', text: '首页：UI全新改版，6个模块自适应撑满全屏' },
       { type: 'improve', text: '首页：模块采用大图标、6种主题色、点击缩放动画' },
       { type: 'improve', text: '首页：布局优化，上下左右均匀留白，边框区分模块' },
       { type: 'improve', text: '设置页：关于区域布局优化，图标和文字单行显示' },
-
       // 修复
       { type: 'fix', text: '设置页：关于区域Spacing未导入错误' },
     ],
   },
   {
     version: 'V3.1.2',
-    date: '2026-04-09',
+    date: '2026-03-05',
     changes: [
       // 优化
       { type: 'improve', text: '扫码入库：重复扫码震动提醒' },
@@ -207,7 +169,7 @@ const CHANGELOG_DATA = [
   },
   {
     version: 'V3.1.1',
-    date: '2026-04-08',
+    date: '2026-03-03',
     changes: [
       // 新增
       { type: 'feat', text: '在线更新：支持自动检测并下载更新包' },
