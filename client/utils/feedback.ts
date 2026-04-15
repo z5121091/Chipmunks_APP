@@ -15,9 +15,6 @@ const SOUND_ENABLED_KEY = '@sound_enabled';
 // 声音开关状态缓存（同步访问）
 let soundEnabled: boolean = true;
 
-// 持续震动的定时器ID
-let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
-
 // 音效实例缓存
 let successSoundInstance: Audio.Sound | null = null;
 let successSoundLoading = false;
@@ -134,67 +131,53 @@ async function speakChinese(text: string) {
 }
 
 /**
- * 扫码成功反馈
+ * 扫码成功反馈 - 震动 + "成功"语音
  */
 export async function feedbackSuccess() {
   console.log('[Feedback] feedbackSuccess 触发');
   
-  // 停止持续震动
-  stopErrorVibrationInternal();
-  stopErrorSoundInternal();
-  
   // 震动
   try {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    console.log('[Feedback] 震动成功');
   } catch (e) {
     console.error('[Feedback] 震动失败:', e);
   }
   
-  // 声音 - 简短滴音
-  await playSuccessSound();
+  // 语音
+  await speakChinese('成功');
 }
 
 /**
- * 扫码重复反馈
+ * 扫码重复反馈 - 震动一次 + "重复"语音
  */
 export async function feedbackDuplicate() {
   console.log('[Feedback] feedbackDuplicate 触发');
   
-  // 停止之前的震动
-  stopErrorVibrationInternal();
-  stopErrorSoundInternal();
-  
-  // 震动
+  // 震动一次
   try {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    console.log('[Feedback] 震动成功');
   } catch (e) {
     console.error('[Feedback] 震动失败:', e);
   }
   
-  // 声音 - 中文语音"重复"
+  // 语音
   await speakChinese('重复');
 }
 
 /**
- * 扫码已存在反馈
+ * 扫码已存在反馈 - 震动一次 + "已存在"语音
  */
 export async function feedbackExists() {
   console.log('[Feedback] feedbackExists 触发');
   
-  // 停止之前的震动
-  stopErrorVibrationInternal();
-  stopErrorSoundInternal();
-  
-  // 震动
+  // 震动一次
   try {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   } catch (e) {
     console.error('[Feedback] 震动失败:', e);
   }
   
-  // 声音 - 中文语音"已存在"
+  // 语音
   await speakChinese('已存在');
 }
 
@@ -212,35 +195,14 @@ export async function feedbackWarning() {
   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
 }
 
-// ============================================================================
-// 内部函数 - 持续震动
-// ============================================================================
-
-function stopErrorSoundInternal() {
-  // 停止语音
-  Speech.stop().catch(() => {});
-}
-
-function stopErrorVibrationInternal() {
-  if (errorVibrationInterval) {
-    clearInterval(errorVibrationInterval);
-    errorVibrationInterval = null;
-  }
-}
-
 /**
  * 清理音效资源
  */
 export async function cleanupSounds() {
-  stopErrorVibrationInternal();
-  stopErrorSoundInternal();
-  
   if (successSoundInstance) {
     await successSoundInstance.unloadAsync();
     successSoundInstance = null;
   }
-  
-  // 停止语音
   Speech.stop();
 }
 
@@ -254,8 +216,10 @@ export async function cleanupSounds() {
 export function useFeedbackCleanup() {
   useEffect(() => {
     return () => {
-      stopErrorVibrationInternal();
-      stopErrorSoundInternal();
+      if (successSoundInstance) {
+        successSoundInstance.unloadAsync().catch(() => {});
+      }
+      Speech.stop();
     };
   }, []);
 }
