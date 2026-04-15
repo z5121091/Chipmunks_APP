@@ -92,11 +92,13 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   warehouseBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.xs,
     paddingVertical: Spacing.xs + 2,
     paddingHorizontal: Spacing.sm,
     backgroundColor: theme.backgroundTertiary,
     borderRadius: BorderRadius.sm,
+    minWidth: 80,
   },
 
   warehouseText: {
