@@ -13,7 +13,8 @@ let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
 // 音效实例缓存
 let successSoundInstance: Audio.Sound | null = null;
 let errorSoundInstance: Audio.Sound | null = null;
-let soundLoading = false;
+let successSoundLoading = false;
+let errorSoundLoading = false;
 let errorSoundInterval: ReturnType<typeof setInterval> | null = null;
 
 // 成功提示音：滴（高音，短促）
@@ -30,21 +31,21 @@ async function loadSuccessSound(): Promise<Audio.Sound | null> {
     return successSoundInstance;
   }
   
-  if (soundLoading) {
+  if (successSoundLoading) {
     // 等待加载完成
-    while (soundLoading) {
+    while (successSoundLoading) {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
     return successSoundInstance;
   }
   
-  soundLoading = true;
+  successSoundLoading = true;
   try {
     const { sound } = await Audio.Sound.createAsync(
       SUCCESS_SOUND,
       { shouldPlay: false, isLooping: false, volume: 0.8 },
       null,
-      true // 预加载到内存
+      true
     );
     successSoundInstance = sound;
     return sound;
@@ -52,7 +53,7 @@ async function loadSuccessSound(): Promise<Audio.Sound | null> {
     console.error('加载成功提示音失败:', error);
     return null;
   } finally {
-    soundLoading = false;
+    successSoundLoading = false;
   }
 }
 
@@ -80,22 +81,22 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
     return errorSoundInstance;
   }
   
-  if (soundLoading) {
+  if (errorSoundLoading) {
     // 等待加载完成
-    while (soundLoading) {
+    while (errorSoundLoading) {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
     return errorSoundInstance;
   }
   
-  soundLoading = true;
+  errorSoundLoading = true;
   try {
     // 错误提示音：滴滴滴
     const { sound } = await Audio.Sound.createAsync(
       ERROR_SOUND,
       { shouldPlay: false, isLooping: false, volume: 0.8 },
       null,
-      true // 预加载到内存
+      true
     );
     errorSoundInstance = sound;
     return sound;
@@ -103,7 +104,7 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
     console.error('加载错误提示音失败:', error);
     return null;
   } finally {
-    soundLoading = false;
+    errorSoundLoading = false;
   }
 }
 
