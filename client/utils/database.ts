@@ -529,8 +529,8 @@ const migrateToV9 = async (): Promise<void> => {
       name: '默认仓库',
       description: '系统默认创建的仓库',
       is_default: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: getLocalDateTimeString(),
+      updated_at: getLocalDateTimeString(),
     };
     await AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify([defaultWarehouse]));
     console.log('v9 迁移：创建默认仓库');
@@ -717,7 +717,7 @@ export const upsertOrder = async (
         id: generateId(),
         order_no: orderNo,
         customer_name: customerName || '',
-        created_at: new Date().toISOString(),
+        created_at: getLocalDateTimeString(),
         warehouse_id: warehouse?.id || '',
         warehouse_name: warehouse?.name || '',
       };
@@ -795,7 +795,7 @@ export const addMaterial = async (material: {
       productionDate: material.productionDate || '',
       traceNo: material.traceNo || '',
       sourceNo: material.sourceNo || '',
-      scanned_at: material.scanned_at || new Date().toISOString(),
+      scanned_at: material.scanned_at || getLocalDateTimeString(),
       raw_content: material.raw_content,
       customFields: material.customFields,
       // V3.0 新增字段
@@ -1131,6 +1131,17 @@ const getLocalDateString = (date: Date = new Date()): string => {
   return `${year}-${month}-${day}`;
 };
 
+// 获取本地时间字符串 (YYYY-MM-DD HH:mm:ss)
+const getLocalDateTimeString = (date: Date = new Date()): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
 // 获取统计信息
 export const getStatistics = async (): Promise<{
   totalOrders: number;
@@ -1196,8 +1207,8 @@ export const initDefaultRules = async (): Promise<void> => {
         separator: '/',
         fieldOrder: ['model', 'batch', 'package', 'version', 'quantity', 'productionDate', 'traceNo', 'sourceNo'],
         isActive: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: getLocalDateTimeString(),
+        updated_at: getLocalDateTimeString(),
       };
       await AsyncStorage.setItem(RULES_KEY, JSON.stringify([defaultRule]));
       console.log('初始化默认规则成功');
@@ -1237,8 +1248,8 @@ export const addRule = async (rule: Omit<QRCodeRule, 'id' | 'created_at' | 'upda
     const newRule: QRCodeRule = {
       ...rule,
       id: generateId(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: getLocalDateTimeString(),
+      updated_at: getLocalDateTimeString(),
     };
     rules.unshift(newRule);
     await AsyncStorage.setItem(RULES_KEY, JSON.stringify(rules));
@@ -1258,7 +1269,7 @@ export const updateRule = async (id: string, updates: Partial<QRCodeRule>): Prom
       rules[index] = {
         ...rules[index],
         ...updates,
-        updated_at: new Date().toISOString(),
+        updated_at: getLocalDateTimeString(),
       };
       await AsyncStorage.setItem(RULES_KEY, JSON.stringify(rules));
     }
@@ -1523,8 +1534,8 @@ export const detectRule = async (content: string): Promise<QRCodeRule | null> =>
         separator: best.separator,
         fieldOrder: AVAILABLE_FIELDS.slice(0, Math.min(best.count, AVAILABLE_FIELDS.length)),
         isActive: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: getLocalDateTimeString(),
+        updated_at: getLocalDateTimeString(),
       };
     }
     
@@ -1761,8 +1772,8 @@ export const addCustomField = async (field: Omit<CustomField, 'id' | 'created_at
       ...field,
       id: generateId(),
       sortOrder: newSortOrder,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: getLocalDateTimeString(),
+      updated_at: getLocalDateTimeString(),
     };
     
     fields.push(newField);
@@ -1785,7 +1796,7 @@ export const updateCustomField = async (id: string, updates: Partial<CustomField
       fields[index] = {
         ...fields[index],
         ...updates,
-        updated_at: new Date().toISOString(),
+        updated_at: getLocalDateTimeString(),
       };
       await AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(fields));
     }
@@ -1818,7 +1829,7 @@ export const reorderCustomFields = async (fieldIds: string[]): Promise<void> => 
       const field = fields.find(f => f.id === id);
       if (field) {
         field.sortOrder = index;
-        field.updated_at = new Date().toISOString();
+        field.updated_at = getLocalDateTimeString();
       }
     });
     
@@ -1852,7 +1863,7 @@ export const exportBackupData = async (): Promise<BackupData> => {
 
     const backup: BackupData = {
       version: '1.1',
-      backupTime: new Date().toISOString(),
+      backupTime: getLocalDateTimeString(),
       appVersion: 'V3.2.8',
       rules: rulesData ? JSON.parse(rulesData) : [],
       customFields: customFieldsData ? JSON.parse(customFieldsData) : [],
@@ -2008,7 +2019,7 @@ export const addUnpackRecord = async (record: {
 }): Promise<{ shippedId: string; remainingId: string }> => {
   try {
     const records = await getAllUnpackRecords();
-    const now = new Date().toISOString();
+    const now = getLocalDateTimeString();
     
     // 生成关联ID，用于配对发货标签和剩余标签
     const pairId = generateId();
@@ -2129,7 +2140,7 @@ export const addUnpackRecord = async (record: {
 export const markUnpackRecordsAsPrinted = async (ids: string[]): Promise<void> => {
   try {
     const records = await getAllUnpackRecords();
-    const now = new Date().toISOString();
+    const now = getLocalDateTimeString();
     
     records.forEach(r => {
       if (ids.includes(r.id)) {
@@ -2191,7 +2202,7 @@ export const addPrintHistory = async (history: {
 }): Promise<string> => {
   try {
     const histories = await getAllPrintHistory();
-    const now = new Date().toISOString();
+    const now = getLocalDateTimeString();
     
     const newHistory: PrintHistory = {
       id: generateId(),
@@ -2244,8 +2255,8 @@ export const addWarehouse = async (warehouse: Omit<Warehouse, 'id' | 'created_at
     const newWarehouse: Warehouse = {
       ...warehouse,
       id: generateId(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: getLocalDateTimeString(),
+      updated_at: getLocalDateTimeString(),
     };
     
     // 如果设置为默认，取消其他默认
@@ -2277,7 +2288,7 @@ export const updateWarehouse = async (id: string, updates: Partial<Warehouse>): 
       warehouses[index] = {
         ...warehouses[index],
         ...updates,
-        updated_at: new Date().toISOString(),
+        updated_at: getLocalDateTimeString(),
       };
       await AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(warehouses));
     }
@@ -2348,7 +2359,7 @@ export const addInventoryBinding = async (binding: Omit<InventoryBinding, 'id' |
       existing.inventory_code = binding.inventory_code;
       existing.supplier = binding.supplier || existing.supplier;
       existing.description = binding.description || existing.description;
-      existing.updated_at = new Date().toISOString();
+      existing.updated_at = getLocalDateTimeString();
       await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(bindings));
       return existing.id;
     }
@@ -2356,8 +2367,8 @@ export const addInventoryBinding = async (binding: Omit<InventoryBinding, 'id' |
     const newBinding: InventoryBinding = {
       ...binding,
       id: generateId(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: getLocalDateTimeString(),
+      updated_at: getLocalDateTimeString(),
     };
     
     bindings.push(newBinding);
@@ -2379,7 +2390,7 @@ export const updateInventoryBinding = async (id: string, updates: Partial<Invent
       bindings[index] = {
         ...bindings[index],
         ...updates,
-        updated_at: new Date().toISOString(),
+        updated_at: getLocalDateTimeString(),
       };
       await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(bindings));
     }
@@ -2414,7 +2425,7 @@ export const importInventoryBindings = async (bindings: Array<{ scan_model: stri
         existing.inventory_code = binding.inventory_code;
         existing.supplier = binding.supplier || existing.supplier;
         existing.description = binding.description || existing.description;
-        existing.updated_at = new Date().toISOString();
+        existing.updated_at = getLocalDateTimeString();
       } else {
         // 添加新记录
         existingBindings.push({
@@ -2422,8 +2433,8 @@ export const importInventoryBindings = async (bindings: Array<{ scan_model: stri
           id: generateId(),
           supplier: binding.supplier || '',
           description: binding.description || '',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: getLocalDateTimeString(),
+          updated_at: getLocalDateTimeString(),
         });
         importCount++;
       }
@@ -2573,7 +2584,7 @@ export const addInventoryCheckRecord = async (record: Omit<InventoryCheckRecord,
     const newRecord: InventoryCheckRecord = {
       ...record,
       id: generateId(),
-      created_at: new Date().toISOString(),
+      created_at: getLocalDateTimeString(),
     };
     
     records.unshift(newRecord);

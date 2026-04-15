@@ -504,7 +504,7 @@ export default function OrdersScreen() {
   const handleOpenMaterials = async (todayOnly: boolean = false) => {
     try {
       const allMaterials = await getAllMaterials();
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString('zh-CN');
       
       // 根据参数筛选物料
       const materials = todayOnly 
@@ -550,7 +550,7 @@ export default function OrdersScreen() {
   const handleOpenMaterialDetail = async (model: string) => {
     try {
       const allMaterials = await getAllMaterials();
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString('zh-CN');
       
       // 根据 showTodayOnly 筛选物料
       const filtered = allMaterials.filter(m => {
@@ -1203,7 +1203,7 @@ export default function OrdersScreen() {
           <View style={styles.orderListContainer}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.lg }}>
               <Text style={styles.modalTitle}>
-                {showTodayOrdersOnly ? '今日订单' : '所有订单'} ({showTodayOrdersOnly ? orders.filter(o => o.created_at.startsWith(new Date().toISOString().slice(0, 10))).length : orders.length})
+                {showTodayOrdersOnly ? '今日订单' : '所有订单'} ({showTodayOrdersOnly ? orders.filter(o => o.created_at.startsWith(new Date().toLocaleDateString('zh-CN'))).length : orders.length})
               </Text>
               <TouchableOpacity onPress={() => {
                 setAllOrdersModalVisible(false);
@@ -1215,7 +1215,7 @@ export default function OrdersScreen() {
             
             <ScrollView style={{ maxHeight: 400 }}>
               {(() => {
-                const today = new Date().toISOString().slice(0, 10);
+                const today = new Date().toLocaleDateString('zh-CN');
                 const displayOrders = showTodayOrdersOnly 
                   ? orders.filter(o => o.created_at.startsWith(today))
                   : orders;

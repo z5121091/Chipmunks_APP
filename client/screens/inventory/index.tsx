@@ -500,7 +500,7 @@ export default function InventoryScreen() {
 
     try {
       const checkNo = await generateCheckNo();
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString('zh-CN');
 
       for (const record of scanRecords) {
         await addInventoryCheckRecord({

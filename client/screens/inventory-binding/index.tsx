@@ -225,7 +225,7 @@ export default function InventoryBindingScreen() {
       ];
 
       const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-      const fileName = `物料绑定_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const fileName = `物料绑定_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`;
       const filePath = `${FileSystem.cacheDirectory}${fileName}`;
 
       await FileSystem.writeAsStringAsync(filePath, wbout, {
