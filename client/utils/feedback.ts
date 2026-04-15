@@ -224,6 +224,10 @@ function stopErrorSoundInternal() {
     clearInterval(errorSoundInterval);
     errorSoundInterval = null;
   }
+  // 同时停止音效实例，防止音效继续播放
+  if (errorSoundInstance) {
+    errorSoundInstance.stopAsync().catch(() => {});
+  }
 }
 
 /**
