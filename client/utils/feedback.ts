@@ -1,10 +1,9 @@
 /**
  * 扫码反馈工具
- * 提供震动反馈和成功提示音
+ * 提供震动反馈和中文语音播报
  */
 
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
@@ -14,13 +13,6 @@ const SOUND_ENABLED_KEY = '@sound_enabled';
 
 // 声音开关状态缓存（同步访问）
 let soundEnabled: boolean = true;
-
-// 音效实例缓存
-let successSoundInstance: Audio.Sound | null = null;
-let successSoundLoading = false;
-
-// 成功提示音：滴（高音，短促）
-const SUCCESS_SOUND = require('@/assets/sounds/滴.wav');
 
 /**
  * 初始化声音开关状态
@@ -49,60 +41,6 @@ export function setSoundEnabled(enabled: boolean) {
  */
 export function isSoundEnabled(): boolean {
   return soundEnabled;
-}
-
-/**
- * 加载成功提示音
- */
-async function loadSuccessSound(): Promise<Audio.Sound | null> {
-  if (successSoundInstance) {
-    return successSoundInstance;
-  }
-  
-  if (successSoundLoading) {
-    while (successSoundLoading) {
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-    return successSoundInstance;
-  }
-  
-  successSoundLoading = true;
-  try {
-    const { sound } = await Audio.Sound.createAsync(
-      SUCCESS_SOUND,
-      { shouldPlay: false, isLooping: false, volume: 1.0 },
-      null,
-      true
-    );
-    successSoundInstance = sound;
-    return sound;
-  } catch (error) {
-    console.error('加载成功提示音失败:', error);
-    return null;
-  } finally {
-    successSoundLoading = false;
-  }
-}
-
-/**
- * 播放成功提示音
- */
-async function playSuccessSound() {
-  if (!soundEnabled) {
-    console.log('[Feedback] 声音已关闭，跳过音效');
-    return;
-  }
-  
-  try {
-    const sound = await loadSuccessSound();
-    if (sound) {
-      await sound.stopAsync();
-      await sound.setPositionAsync(0);
-      await sound.playAsync();
-    }
-  } catch (error) {
-    console.error('播放成功提示音失败:', error);
-  }
 }
 
 /**
@@ -196,13 +134,9 @@ export async function feedbackWarning() {
 }
 
 /**
- * 清理音效资源
+ * 清理语音资源
  */
-export async function cleanupSounds() {
-  if (successSoundInstance) {
-    await successSoundInstance.unloadAsync();
-    successSoundInstance = null;
-  }
+export function cleanupSounds() {
   Speech.stop();
 }
 
@@ -216,9 +150,6 @@ export async function cleanupSounds() {
 export function useFeedbackCleanup() {
   useEffect(() => {
     return () => {
-      if (successSoundInstance) {
-        successSoundInstance.unloadAsync().catch(() => {});
-      }
       Speech.stop();
     };
   }, []);
