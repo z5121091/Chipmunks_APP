@@ -6,47 +6,12 @@
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect } from 'react';
 
 // 声音开关存储键
 const SOUND_ENABLED_KEY = '@sound_enabled';
 
-// 声音开关状态缓存
-let soundEnabledCache: boolean | null = null;
-
-/**
- * 检查声音开关状态
- */
-async function isSoundEnabled(): Promise<boolean> {
-  // 如果缓存存在，直接返回
-  if (soundEnabledCache !== null) {
-    return soundEnabledCache;
-  }
-  
-  try {
-    const value = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
-    // 默认为开启
-    soundEnabledCache = value === null || value === 'true';
-    return soundEnabledCache;
-  } catch {
-    soundEnabledCache = true;
-    return true;
-  }
-}
-
-/**
- * 清除声音开关缓存（设置页面修改后调用）
- */
-export function clearSoundCache() {
-  soundEnabledCache = null;
-}
-
-/**
- * 直接设置声音开关状态（设置页面修改后调用，立即生效）
- */
-export function setSoundEnabled(enabled: boolean) {
-  soundEnabledCache = enabled;
-}
+// 声音开关状态缓存（同步访问）
+let soundEnabled: boolean = true;
 
 // 持续震动的定时器ID
 let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
@@ -65,6 +30,35 @@ const SUCCESS_SOUND = require('@/assets/sounds/滴.wav');
 const ERROR_SOUND = require('@/assets/sounds/滴滴滴.wav');
 
 /**
+ * 初始化声音开关状态
+ */
+export async function initSoundSetting() {
+  try {
+    const value = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
+    soundEnabled = value === null || value === 'true';
+    console.log('[Feedback] 声音开关状态:', soundEnabled);
+  } catch {
+    soundEnabled = true;
+  }
+}
+
+/**
+ * 设置声音开关状态（设置页面调用）
+ */
+export function setSoundEnabled(enabled: boolean) {
+  soundEnabled = enabled;
+  AsyncStorage.setItem(SOUND_ENABLED_KEY, String(enabled)).catch(console.error);
+  console.log('[Feedback] 设置声音开关:', enabled);
+}
+
+/**
+ * 获取声音开关状态
+ */
+export function isSoundEnabled(): boolean {
+  return soundEnabled;
+}
+
+/**
  * 加载成功提示音
  */
 async function loadSuccessSound(): Promise<Audio.Sound | null> {
@@ -73,7 +67,6 @@ async function loadSuccessSound(): Promise<Audio.Sound | null> {
   }
   
   if (successSoundLoading) {
-    // 等待加载完成
     while (successSoundLoading) {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
@@ -84,7 +77,7 @@ async function loadSuccessSound(): Promise<Audio.Sound | null> {
   try {
     const { sound } = await Audio.Sound.createAsync(
       SUCCESS_SOUND,
-      { shouldPlay: false, isLooping: false, volume: 0.8 },
+      { shouldPlay: false, isLooping: false, volume: 1.0 },
       null,
       true
     );
@@ -102,17 +95,16 @@ async function loadSuccessSound(): Promise<Audio.Sound | null> {
  * 播放成功提示音
  */
 async function playSuccessSound() {
-  // 检查声音开关
-  if (!(await isSoundEnabled())) return;
+  if (!soundEnabled) {
+    console.log('[Feedback] 声音已关闭，跳过音效');
+    return;
+  }
   
   try {
     const sound = await loadSuccessSound();
     if (sound) {
-      // 先停止当前播放
       await sound.stopAsync();
-      // 重置位置到开头
       await sound.setPositionAsync(0);
-      // 播放
       await sound.playAsync();
     }
   } catch (error) {
@@ -129,7 +121,6 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
   }
   
   if (errorSoundLoading) {
-    // 等待加载完成
     while (errorSoundLoading) {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
@@ -138,10 +129,9 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
   
   errorSoundLoading = true;
   try {
-    // 错误提示音：滴滴滴
     const { sound } = await Audio.Sound.createAsync(
       ERROR_SOUND,
-      { shouldPlay: false, isLooping: false, volume: 0.8 },
+      { shouldPlay: false, isLooping: false, volume: 1.0 },
       null,
       true
     );
@@ -156,20 +146,19 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
 }
 
 /**
- * 播放错误提示音（单次）
+ * 播放错误提示音
  */
 async function playErrorSound() {
-  // 检查声音开关
-  if (!(await isSoundEnabled())) return;
+  if (!soundEnabled) {
+    console.log('[Feedback] 声音已关闭，跳过音效');
+    return;
+  }
   
   try {
     const sound = await loadErrorSound();
     if (sound) {
-      // 先停止当前播放
       await sound.stopAsync();
-      // 重置位置到开头
       await sound.setPositionAsync(0);
-      // 播放
       await sound.playAsync();
     }
   } catch (error) {
@@ -179,82 +168,57 @@ async function playErrorSound() {
 
 /**
  * 扫码成功反馈
- * - 震动 + 提示音
- * - 清脆提示感
- * - 停止所有错误持续提醒
  */
 export async function feedbackSuccess() {
+  console.log('[Feedback] feedbackSuccess 触发');
+  
+  // 停止持续震动
   stopErrorVibrationInternal();
   stopErrorSoundInternal();
-  await Promise.all([
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
-    playSuccessSound(),
-  ]);
+  
+  // 震动
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    console.log('[Feedback] 震动成功');
+  } catch (e) {
+    console.error('[Feedback] 震动失败:', e);
+  }
+  
+  // 声音
+  await playSuccessSound();
 }
 
 /**
- * 扫码重复/失败反馈
- * - 长震动 + 长提示音（持续）
- * - 用于扫码重复、错误等需要用户注意的情况
+ * 扫码重复反馈
  */
 export function feedbackDuplicate() {
-  // 先停止之前的震动和音效，确保只有一个循环
+  console.log('[Feedback] feedbackDuplicate 触发');
+  
   stopErrorVibrationInternal();
   stopErrorSoundInternal();
-  // 重新启动
+  
   startErrorVibrationInternal();
   startErrorSoundInternal();
 }
 
 /**
- * 错误反馈（单次震动）
+ * 错误反馈（单次）
  */
 export async function feedbackError() {
   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 }
 
 /**
- * 警告反馈（单次震动）
+ * 警告反馈（单次）
  */
 export async function feedbackWarning() {
   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-}
-
-/**
- * 通用轻触反馈
- */
-export async function feedbackLight() {
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-}
-
-/**
- * 中等触感反馈
- */
-export async function feedbackMedium() {
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-}
-
-/**
- * 重触感反馈
- */
-export async function feedbackHeavy() {
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-}
-
-/**
- * 选中反馈
- */
-export async function feedbackSelection() {
-  await Haptics.selectionAsync();
 }
 
 // ============================================================================
 // 内部函数 - 持续震动和提示音
 // ============================================================================
 
-/**
- * 开始错误持续提示音（内部函数）
- */
 function startErrorSoundInternal() {
   stopErrorSoundInternal();
   playErrorSound();
@@ -263,23 +227,16 @@ function startErrorSoundInternal() {
   }, 500);
 }
 
-/**
- * 停止错误持续提示音（内部函数）
- */
 function stopErrorSoundInternal() {
   if (errorSoundInterval) {
     clearInterval(errorSoundInterval);
     errorSoundInterval = null;
   }
-  // 同时停止音效实例，防止音效继续播放
   if (errorSoundInstance) {
     errorSoundInstance.stopAsync().catch(() => {});
   }
 }
 
-/**
- * 开始错误持续震动（内部函数）
- */
 function startErrorVibrationInternal() {
   stopErrorVibrationInternal();
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -288,9 +245,6 @@ function startErrorVibrationInternal() {
   }, 500);
 }
 
-/**
- * 停止错误持续震动（内部函数）
- */
 function stopErrorVibrationInternal() {
   if (errorVibrationInterval) {
     clearInterval(errorVibrationInterval);
@@ -299,7 +253,7 @@ function stopErrorVibrationInternal() {
 }
 
 /**
- * 清理音效资源（应用退出时调用）
+ * 清理音效资源
  */
 export async function cleanupSounds() {
   stopErrorVibrationInternal();
@@ -313,27 +267,4 @@ export async function cleanupSounds() {
     await errorSoundInstance.unloadAsync();
     errorSoundInstance = null;
   }
-}
-
-// ============================================================================
-// React Hook - 自动清理
-// ============================================================================
-
-/**
- * 自动清理反馈资源的 Hook
- * 在组件卸载时自动停止所有震动和提示音
- * 
- * @example
- * function MyComponent() {
- *   useFeedbackCleanup(); // 只需一行，自动处理卸载清理
- *   // ... 其他逻辑
- * }
- */
-export function useFeedbackCleanup() {
-  useEffect(() => {
-    return () => {
-      stopErrorVibrationInternal();
-      stopErrorSoundInternal();
-    };
-  }, []);
 }

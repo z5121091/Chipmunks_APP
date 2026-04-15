@@ -48,7 +48,7 @@ import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { rs } from '@/utils/responsive';
 import { APP_VERSION, APP_NAME, COMPANY_NAME, AUTHOR } from '@/constants/version';
-import { clearSoundCache, setSoundEnabled } from '@/utils/feedback';
+import { setSoundEnabled, initSoundSetting } from '@/utils/feedback';
 
 // 使用 any 绕过类型检查
 const FileSystem = FileSystemLegacy as any;
@@ -89,6 +89,9 @@ export default function SettingsScreen() {
   const [screenHeight, setScreenHeight] = useState(Dimensions.get('window').height);
 
   useEffect(() => {
+    // 初始化声音设置
+    initSoundSetting();
+    
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       setScreenWidth(window.width);
       setScreenHeight(window.height);

@@ -32,7 +32,7 @@ import {
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, initSoundSetting } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 
 // 订单号格式：IO-年-月-日-序号（序号2-3位）
@@ -64,6 +64,11 @@ export default function PDAScanScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const router = useSafeRouter();
+
+  // 初始化声音设置
+  useEffect(() => {
+    initSoundSetting();
+  }, []);
 
   // 输入
   const inputRef = useRef<TextInput>(null);
