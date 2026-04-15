@@ -69,7 +69,7 @@ async function speakChinese(text: string) {
 }
 
 /**
- * 扫码成功反馈 - 震动 + "成功"语音
+ * 扫码成功反馈 - 震动 + "扫码成功"语音
  */
 export async function feedbackSuccess() {
   console.log('[Feedback] feedbackSuccess 触发');
@@ -82,11 +82,11 @@ export async function feedbackSuccess() {
   }
   
   // 语音
-  await speakChinese('成功');
+  await speakChinese('扫码成功');
 }
 
 /**
- * 扫码重复反馈 - 震动一次 + "重复"语音
+ * 扫码重复反馈 - 震动一次 + "扫码重复"语音
  */
 export async function feedbackDuplicate() {
   console.log('[Feedback] feedbackDuplicate 触发');
@@ -99,7 +99,7 @@ export async function feedbackDuplicate() {
   }
   
   // 语音
-  await speakChinese('重复');
+  await speakChinese('扫码重复');
 }
 
 /**
