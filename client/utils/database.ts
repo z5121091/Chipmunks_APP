@@ -1874,7 +1874,7 @@ export const exportBackupData = async (): Promise<BackupData> => {
     const backup: BackupData = {
       version: '1.3',
       backupTime: getLocalDateTimeString(),
-      appVersion: 'V3.2.8',
+      appVersion: 'V3.3.4',
       rules: rulesData ? JSON.parse(rulesData) : [],
       customFields: customFieldsData ? JSON.parse(customFieldsData) : [],
       inventoryBindings: inventoryBindingsData ? JSON.parse(inventoryBindingsData) : [],
