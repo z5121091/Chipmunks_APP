@@ -11,90 +11,50 @@ import { Spacing } from '@/constants/theme';
 // 更新日志数据
 const CHANGELOG_DATA = [
   {
-    version: 'V3.3.5',
+    version: 'V3.2.0',
     date: '2026-04-15',
     changes: [
-      // 修复
-      { type: 'fix', text: '扫码：音效无声' },
-      { type: 'fix', text: '扫码：音效加载竞态' },
-      { type: 'fix', text: '全局：时间显示为北京时间' },
-      // 优化
-      { type: 'improve', text: '备份：新增仓库和服务器配置' },
-      { type: 'improve', text: '全局：统一版本号管理' },
-    ],
-  },
-  {
-    version: 'V3.3.4',
-    date: '2026-03-25',
-    changes: [
       // 新增
-      { type: 'feat', text: '全局：统一 Toast 组件' },
-      { type: 'feat', text: '扫码：统一重复反馈' },
-      // 优化
-      { type: 'improve', text: '提示音：成功「滴」，错误「滴滴滴」' },
-      { type: 'improve', text: '扫码：移除重复震动/提示音' },
-    ],
-  },
-  {
-    version: 'V3.3.0',
-    date: '2026-03-21',
-    changes: [
-      // 优化
-      { type: 'improve', text: '扫码：Toast 覆盖在输入框上方' },
-      { type: 'improve', text: '扫码：统一输入框、按钮、标签样式' },
-      // 修复
-      { type: 'fix', text: '扫码：移除空格分隔符' },
-      { type: 'fix', text: '扫码：Toast 布局黑色区域' },
-    ],
-  },
-  {
-    version: 'V3.2.8',
-    date: '2026-03-19',
-    changes: [
-      // 新增
+      { type: 'feat', text: '首页：UI 改版' },
       { type: 'feat', text: '扫码入库：聚合显示' },
       { type: 'feat', text: '扫码入库：勾选确认' },
       { type: 'feat', text: '扫码入库：展开折叠' },
       { type: 'feat', text: '扫码入库：长按删除' },
+      { type: 'feat', text: '扫码出库：聚合显示' },
+      { type: 'feat', text: '扫码出库：长按删除' },
       { type: 'feat', text: '盘点：勾选确认' },
       { type: 'feat', text: '盘点：展开折叠' },
       { type: 'feat', text: '盘点：长按删除' },
       { type: 'feat', text: '盘点：扩展字段支持' },
-      // 优化
-      { type: 'improve', text: '入库同步：只保留明细表' },
-      { type: 'improve', text: '扫码/盘点：统一聚合样式' },
-      { type: 'improve', text: '全局：仅支持 Android 13' },
-      // 修复
-      { type: 'fix', text: '入库：缺少原始二维码' },
-      { type: 'fix', text: '入库：重复检测逻辑' },
-    ],
-  },
-  {
-    version: 'V3.2.3',
-    date: '2026-03-09',
-    changes: [
-      // 新增
-      { type: 'feat', text: '扫码出库：聚合显示' },
-      { type: 'feat', text: '扫码出库：长按删除' },
+      { type: 'feat', text: '全局：统一 Toast 组件' },
+      { type: 'feat', text: '扫码：统一重复反馈' },
       { type: 'feat', text: '自动更新功能' },
       // 优化
+      { type: 'improve', text: '首页：大图标、主题色、点击动画' },
+      { type: 'improve', text: '扫码：Toast 覆盖在输入框上方' },
+      { type: 'improve', text: '扫码：统一输入框、按钮、标签样式' },
+      { type: 'improve', text: '入库同步：只保留明细表' },
+      { type: 'improve', text: '扫码/盘点：统一聚合样式' },
       { type: 'improve', text: '更新弹窗优化' },
+      { type: 'improve', text: '备份：新增仓库和服务器配置' },
+      { type: 'improve', text: '全局：统一版本号管理' },
+      { type: 'improve', text: '扫码反馈：成功播报「成功」，重复播报「重复」' },
+      { type: 'improve', text: '扫码反馈：震动改为单次' },
+      { type: 'improve', text: '提示音：移除音效文件，纯中文语音反馈' },
+      { type: 'improve', text: '声音开关：支持实时控制语音播报' },
       // 修复
+      { type: 'fix', text: '扫码：移除空格分隔符' },
+      { type: 'fix', text: '扫码：Toast 布局黑色区域' },
+      { type: 'fix', text: '入库：缺少原始二维码' },
+      { type: 'fix', text: '入库：重复检测逻辑' },
       { type: 'fix', text: '出库：聚合明细批次显示错误' },
       { type: 'fix', text: '出库：长按删除失效' },
       { type: 'fix', text: '更新弹窗：服务器地址无法输入' },
       { type: 'fix', text: '设置：状态栏背景色不协调' },
       { type: 'fix', text: '设置：服务器地址认证信息泄露' },
-    ],
-  },
-  {
-    version: 'V3.2.0',
-    date: '2026-03-07',
-    changes: [
-      // 新增
-      { type: 'feat', text: '首页：UI 改版' },
-      // 优化
-      { type: 'improve', text: '首页：大图标、主题色、点击动画' },
+      { type: 'fix', text: '扫码：音效无声' },
+      { type: 'fix', text: '扫码：音效加载竞态' },
+      { type: 'fix', text: '全局：时间显示为北京时间' },
     ],
   },
   {
