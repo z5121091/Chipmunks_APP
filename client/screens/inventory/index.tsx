@@ -729,50 +729,35 @@ export default function InventoryScreen() {
 
               return (
                 <View key={key} style={styles.itemContainer}>
-                  {/* 聚合项 */}
+                  {/* 聚合项（紧凑单行布局） */}
                   <TouchableOpacity
-                    style={styles.item}
+                    style={styles.itemRow}
+                    onPress={() => toggleExpand(key)}
                     onLongPress={() => handleDeleteGroup(item)}
                     delayLongPress={500}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.itemLeft}>
-                      {/* 型号和版本（点击展开/折叠） */}
-                      <TouchableOpacity
-                        style={styles.modelContent}
-                        onPress={() => toggleExpand(key)}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.itemModel}>
-                          {isExpanded ? '▼' : '▶'} {item.model}
-                        </Text>
-                        <Text style={styles.itemBatch}>
-                          版本: {item.version || '-'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.itemRight}>
-                      {checkType === 'partial' ? (
-                        <>
-                          <View style={styles.quantityRow}>
-                            <Text style={styles.itemQtyLabel}>标签:</Text>
-                            <Text style={styles.itemQty}>{item.totalQuantity.toLocaleString()}</Text>
-                          </View>
-                          <TouchableOpacity
-                            style={styles.actualRow}
-                            onPress={() => openQuantityModal(item.records[0])}
-                          >
-                            <Text style={styles.actualLabel}>实际:</Text>
-                            <Text style={styles.actualQty}>{item.actualTotalQuantity.toLocaleString()}</Text>
-                            <Feather name="edit-3" size={12} color={theme.accent} style={{ marginLeft: Spacing.xs }} />
-                          </TouchableOpacity>
-                        </>
-                      ) : (
-                        <Text style={styles.itemQty}>
-                          {item.totalQuantity.toLocaleString()}
-                        </Text>
-                      )}
-                    </View>
+                    {/* 展开箭头 */}
+                    <Text style={styles.expandIcon}>
+                      {isExpanded ? '▼' : '▶'}
+                    </Text>
+                    
+                    {/* 型号 */}
+                    <Text style={styles.itemModel} numberOfLines={1}>
+                      {item.model}
+                    </Text>
+                    
+                    {/* 版本号（紧凑显示） */}
+                    <Text style={styles.itemVersion}>
+                      {item.version || ''}
+                    </Text>
+                    
+                    {/* 数量 */}
+                    <Text style={styles.itemQty}>
+                      {checkType === 'partial' 
+                        ? `${item.totalQuantity}/${item.actualTotalQuantity}` 
+                        : item.totalQuantity.toLocaleString()}
+                    </Text>
                   </TouchableOpacity>
 
                   {/* 展开的明细 */}

@@ -156,52 +156,59 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
 
-  item: {
+  // 聚合项容器
+  itemContainer: {
+    marginBottom: Spacing.xs,
+  },
+
+  // 聚合项主行（紧凑单行布局）
+  itemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm + 2,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
+    backgroundColor: theme.backgroundDefault,
   },
 
-  itemLeft: {
-    flex: 1,
+  // 展开图标
+  expandIcon: {
+    fontSize: rf(12),
+    color: theme.textSecondary,
+    marginRight: rf(4),
   },
 
+  // 型号（行内）
   itemModel: {
     fontSize: rf(14),
     fontWeight: '600',
     color: theme.textPrimary,
+    flex: 1,
+    marginRight: Spacing.xs,
   },
 
-  itemBatch: {
-    fontSize: rf(12),
-    color: theme.textSecondary,
-    marginTop: 1,
+  // 版本号（紧凑）
+  itemVersion: {
+    fontSize: rf(10),
+    color: theme.textMuted,
+    marginRight: Spacing.sm,
   },
 
-  itemRight: {
-    alignItems: 'flex-end',
-  },
-
+  // 数量（右侧）
   itemQty: {
     fontSize: rf(16),
     fontWeight: '700',
     color: theme.primary,
   },
 
-  itemTime: {
-    fontSize: rf(10),
-    color: theme.textMuted,
-    marginTop: 1,
-  },
-
   detailsContainer: {
     backgroundColor: theme.backgroundTertiary,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
+    marginLeft: Spacing.xl,
+    marginRight: Spacing.sm,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
 
   detailItem: {

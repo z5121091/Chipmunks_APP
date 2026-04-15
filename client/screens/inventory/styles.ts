@@ -181,105 +181,48 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
 
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm + 2,
-    paddingHorizontal: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
-  },
-
-  itemLeft: {
-    flex: 1,
-  },
-
-  itemModelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-
-  itemModel: {
-    fontSize: rf(14),
-    fontWeight: '600',
-    color: theme.textPrimary,
-  },
-
-  itemBatch: {
-    fontSize: rf(12),
-    color: theme.textSecondary,
-    marginTop: 1,
-  },
-
-  itemCode: {
-    fontSize: rf(11),
-    color: theme.textMuted,
-    marginTop: 1,
-  },
-
-  itemRight: {
-    alignItems: 'flex-end',
-  },
-
-  itemQty: {
-    fontSize: rf(16),
-    fontWeight: '700',
-    color: theme.primary,
-  },
-
-  itemQtyLabel: {
-    fontSize: rf(11),
-    color: theme.textMuted,
-  },
-
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 3,
-  },
-
-  actualRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 3,
-    marginTop: 1,
-  },
-
-  actualLabel: {
-    fontSize: rf(11),
-    color: theme.textMuted,
-  },
-
-  actualQty: {
-    fontSize: rf(14),
-    fontWeight: '700',
-    color: theme.accent,
-  },
-
-  itemTime: {
-    fontSize: rf(10),
-    color: theme.textMuted,
-    marginTop: 1,
-  },
-
   // 聚合项容器
   itemContainer: {
     marginBottom: Spacing.xs,
   },
 
-  // 型号内容区域（包含箭头和型号）
-  modelContent: {
-    flex: 1,
+  // 聚合项主行（紧凑单行布局）
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: theme.backgroundDefault,
   },
 
-  // 聚合项内容区域
-  itemContent: {
+  // 展开图标
+  expandIcon: {
+    fontSize: rf(12),
+    color: theme.textSecondary,
+    marginRight: rf(4),
+  },
+
+  // 型号（行内）
+  itemModel: {
+    fontSize: rf(14),
+    fontWeight: '600',
+    color: theme.textPrimary,
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginRight: Spacing.xs,
+  },
+
+  // 版本号（紧凑）
+  itemVersion: {
+    fontSize: rf(10),
+    color: theme.textMuted,
+    marginRight: Spacing.sm,
+  },
+
+  // 数量
+  itemQty: {
+    fontSize: rf(16),
+    fontWeight: '700',
+    color: theme.primary,
   },
 
   // 明细容器

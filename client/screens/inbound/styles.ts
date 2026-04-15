@@ -93,13 +93,13 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.primary,
     borderRadius: BorderRadius.lg,
-    overflow: 'hidden', // 隐藏超出的内容
+    overflow: 'hidden',
   },
 
   scanInput: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'transparent', // 透明，让容器背景显示
+    backgroundColor: 'transparent',
     paddingHorizontal: Spacing.lg,
     fontSize: rf(18),
     fontWeight: '500',
@@ -109,10 +109,10 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
 
   // Toast（完全覆盖在输入框上面）
   toast: {
-    ...StyleSheet.absoluteFillObject, // top:0, left:0, right:0, bottom:0
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10, // 在输入框上面
+    zIndex: 10,
   },
 
   toastSuccess: { backgroundColor: theme.success },
@@ -124,6 +124,25 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     fontSize: rf(16),
     fontWeight: '600',
     textAlign: 'center',
+  },
+
+  // 入库单标签
+  inboundNoTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: theme.backgroundTertiary,
+    borderRadius: BorderRadius.sm,
+    marginHorizontal: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+
+  inboundNoText: {
+    fontSize: rf(12),
+    fontWeight: '600',
+    color: theme.textPrimary,
+    marginRight: Spacing.xs,
   },
 
   // 列表
@@ -159,15 +178,18 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
 
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  // 空状态
+  empty: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Spacing.sm + 2,
-    paddingHorizontal: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
-    backgroundColor: theme.backgroundDefault,
+    paddingVertical: Spacing.xl * 2,
+  },
+
+  emptyText: {
+    fontSize: rf(16),
+    color: theme.textMuted,
+    marginTop: Spacing.md,
   },
 
   // 已确认状态的样式
@@ -177,32 +199,6 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
 
   itemModelConfirmed: {
     color: theme.success,
-  },
-
-  itemLeft: {
-    flex: 1,
-  },
-
-  itemModel: {
-    fontSize: rf(14),
-    fontWeight: '600',
-    color: theme.textPrimary,
-  },
-
-  itemBatch: {
-    fontSize: rf(12),
-    color: theme.textSecondary,
-    marginTop: 1,
-  },
-
-  itemRight: {
-    alignItems: 'flex-end',
-  },
-
-  itemQty: {
-    fontSize: rf(16),
-    fontWeight: '700',
-    color: theme.primary,
   },
 
   itemTime: {
@@ -216,24 +212,51 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: Spacing.xs,
   },
 
-  // 勾选框
-  checkbox: {
+  // 聚合项主行（紧凑单行布局）
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: theme.backgroundDefault,
   },
 
-  // 型号内容区域（包含箭头和型号）
+  // 勾选框（紧凑，行内）
+  checkbox: {
+    marginRight: rf(4),
+  },
+
+  // 型号内容（行内紧凑）
   modelContent: {
     flex: 1,
-    marginLeft: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
   },
 
-  // 聚合项内容区域
-  itemContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  // 型号文字
+  itemModel: {
+    fontSize: rf(14),
+    fontWeight: '600',
+    color: theme.textPrimary,
+    marginRight: rf(4),
+  },
+
+  // 版本号（紧凑）
+  itemVersion: {
+    fontSize: rf(10),
+    color: theme.textMuted,
+  },
+
+  // 数量（右侧）
+  itemQty: {
+    fontSize: rf(16),
+    fontWeight: '700',
+    color: theme.primary,
+  },
+
+  itemQtyConfirmed: {
+    color: theme.success,
   },
 
   // 明细容器
@@ -262,31 +285,24 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textSecondary,
   },
 
-  empty: {
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-  },
-
-  emptyText: {
-    fontSize: rf(16),
-    color: theme.textMuted,
-  },
-
   // 操作按钮
   actionBar: {
     flexDirection: 'row',
-    gap: Spacing.sm,
-    padding: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.md,
+    backgroundColor: theme.backgroundDefault,
     borderTopWidth: 1,
     borderTopColor: theme.borderLight,
+    gap: Spacing.sm,
   },
 
   clearBtn: {
     flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    backgroundColor: theme.backgroundTertiary,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    backgroundColor: theme.backgroundTertiary,
+    borderRadius: BorderRadius.lg,
   },
 
   clearBtnText: {
@@ -297,10 +313,11 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
 
   submitBtn: {
     flex: 2,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    backgroundColor: theme.primary,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    backgroundColor: theme.primary,
+    borderRadius: BorderRadius.lg,
   },
 
   submitBtnText: {
@@ -319,34 +336,36 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 100,
   },
 
   pickerBox: {
     width: '80%',
+    maxHeight: '60%',
     backgroundColor: theme.backgroundDefault,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
   },
 
   pickerTitle: {
-    fontSize: rf(15),
-    fontWeight: '600',
+    fontSize: rf(16),
+    fontWeight: '700',
     color: theme.textPrimary,
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
 
   pickerItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
   },
 
   pickerItemActive: {
-    backgroundColor: withAlpha(theme.primary, 0.06),
+    backgroundColor: withAlpha(theme.primary, 0.1),
   },
 
   pickerItemText: {
@@ -355,9 +374,11 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   pickerClose: {
-    marginTop: Spacing.sm,
-    paddingVertical: Spacing.sm,
     alignItems: 'center',
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: theme.borderLight,
   },
 
   pickerCloseText: {

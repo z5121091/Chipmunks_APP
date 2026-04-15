@@ -666,49 +666,45 @@ export default function InboundScreen() {
               
               return (
                 <View key={key} style={styles.itemContainer}>
-                  {/* 聚合项 */}
+                  {/* 聚合项 - 紧凑单行布局 */}
                   <TouchableOpacity
                     style={[
-                      styles.item,
+                      styles.itemRow,
                       isConfirmed && styles.itemConfirmed
                     ]}
                     onLongPress={() => handleDeleteGroup(item)}
-                    delayLongPress={500}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.itemLeft}>
-                      {/* 勾选框 */}
-                      <TouchableOpacity
-                        style={styles.checkbox}
-                        onPress={() => toggleConfirm(key)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <FontAwesome6 
-                          name={isConfirmed ? "square-check" : "square"} 
-                          size={20} 
-                          color={isConfirmed ? theme.success : theme.textMuted} 
-                        />
-                      </TouchableOpacity>
+                    {/* 勾选框（紧凑） */}
+                    <TouchableOpacity
+                      style={styles.checkbox}
+                      onPress={() => toggleConfirm(key)}
+                    >
+                      <FontAwesome6 
+                        name={isConfirmed ? "square-check" : "square"} 
+                        size={16} 
+                        color={isConfirmed ? theme.success : theme.textMuted} 
+                      />
+                    </TouchableOpacity>
 
-                      {/* 型号和版本（点击展开/折叠） */}
-                      <TouchableOpacity
-                        style={styles.modelContent}
-                        onPress={() => toggleExpand(key)}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.itemModel}>
-                          {isExpanded ? '▼' : '▶'} {item.model}
-                        </Text>
-                        <Text style={styles.itemBatch}>
-                          版本: {item.version || '-'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.itemRight}>
-                      <Text style={styles.itemQty}>
-                        {item.totalQuantity.toLocaleString()}
+                    {/* 型号和版本（点击展开/折叠） */}
+                    <TouchableOpacity
+                      style={styles.modelContent}
+                      onPress={() => toggleExpand(key)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.itemModel}>
+                        {isExpanded ? '▼' : '▶'} {item.model}
                       </Text>
-                    </View>
+                      <Text style={styles.itemVersion}>
+                        {item.version || '-'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {/* 数量 */}
+                    <Text style={[styles.itemQty, isConfirmed && styles.itemQtyConfirmed]}>
+                      {item.totalQuantity.toLocaleString()}
+                    </Text>
                   </TouchableOpacity>
 
                   {/* 展开的明细 */}
