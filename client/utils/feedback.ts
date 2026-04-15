@@ -15,8 +15,11 @@ let errorSoundInstance: Audio.Sound | null = null;
 let soundLoading = false;
 let errorSoundInterval: ReturnType<typeof setInterval> | null = null;
 
-// 成功提示音资源（静态导入）
-const SUCCESS_SOUND = require('@/assets/sounds/success.wav');
+// 成功提示音：滴（高音，短促）
+const SUCCESS_SOUND = require('@/assets/sounds/滴.wav');
+
+// 错误提示音：滴滴滴（三声）
+const ERROR_SOUND = require('@/assets/sounds/滴滴滴.wav');
 
 /**
  * 加载成功提示音
@@ -86,9 +89,9 @@ async function loadErrorSound(): Promise<Audio.Sound | null> {
   
   soundLoading = true;
   try {
-    // 错误提示音复用成功提示音
+    // 错误提示音：滴滴滴
     const { sound } = await Audio.Sound.createAsync(
-      SUCCESS_SOUND,
+      ERROR_SOUND,
       { shouldPlay: false, isLooping: false, volume: 0.8 },
       null,
       true // 预加载到内存
