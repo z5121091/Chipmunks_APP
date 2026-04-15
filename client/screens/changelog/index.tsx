@@ -15,12 +15,12 @@ const CHANGELOG_DATA = [
     date: '2026-04-15',
     changes: [
       // 修复
-      { type: 'fix', text: '扫码成功音效无声' },
-      { type: 'fix', text: '音效加载竞态条件' },
-      { type: 'fix', text: '时间显示改为北京时间' },
+      { type: 'fix', text: '扫码：音效无声' },
+      { type: 'fix', text: '扫码：音效加载竞态' },
+      { type: 'fix', text: '全局：时间显示为北京时间' },
       // 优化
-      { type: 'improve', text: '备份功能新增仓库和服务器配置' },
-      { type: 'improve', text: '统一版本号管理' },
+      { type: 'improve', text: '备份：新增仓库和服务器配置' },
+      { type: 'improve', text: '全局：统一版本号管理' },
     ],
   },
   {
@@ -28,11 +28,11 @@ const CHANGELOG_DATA = [
     date: '2026-03-25',
     changes: [
       // 新增
-      { type: 'feat', text: '统一 Toast 提示组件（useToast Hook）' },
-      { type: 'feat', text: '统一重复扫码反馈（feedbackDuplicate）' },
+      { type: 'feat', text: '全局：统一 Toast 组件' },
+      { type: 'feat', text: '扫码：统一重复反馈' },
       // 优化
-      { type: 'improve', text: '成功提示音改为「滴」，错误提示音改为「滴滴滴」' },
-      { type: 'improve', text: '扫码页面移除重复的震动/提示音逻辑' },
+      { type: 'improve', text: '提示音：成功「滴」，错误「滴滴滴」' },
+      { type: 'improve', text: '扫码：移除重复震动/提示音' },
     ],
   },
   {
@@ -40,11 +40,11 @@ const CHANGELOG_DATA = [
     date: '2026-03-21',
     changes: [
       // 优化
-      { type: 'improve', text: 'Toast 覆盖在输入框上方' },
-      { type: 'improve', text: '统一输入框、按钮、标签、Toast 样式' },
+      { type: 'improve', text: '扫码：Toast 覆盖在输入框上方' },
+      { type: 'improve', text: '扫码：统一输入框、按钮、标签样式' },
       // 修复
-      { type: 'fix', text: '移除空格分隔符，避免误判二维码' },
-      { type: 'fix', text: 'Toast 布局黑色区域' },
+      { type: 'fix', text: '扫码：移除空格分隔符' },
+      { type: 'fix', text: '扫码：Toast 布局黑色区域' },
     ],
   },
   {
@@ -52,16 +52,21 @@ const CHANGELOG_DATA = [
     date: '2026-03-19',
     changes: [
       // 新增
-      { type: 'feat', text: '扫码入库：聚合显示、勾选确认、展开折叠、长按删除' },
-      { type: 'feat', text: '盘点管理：勾选确认、展开折叠、长按删除' },
-      { type: 'feat', text: '盘点管理：扩展字段支持（版本号、封装、追溯码）' },
+      { type: 'feat', text: '扫码入库：聚合显示' },
+      { type: 'feat', text: '扫码入库：勾选确认' },
+      { type: 'feat', text: '扫码入库：展开折叠' },
+      { type: 'feat', text: '扫码入库：长按删除' },
+      { type: 'feat', text: '盘点：勾选确认' },
+      { type: 'feat', text: '盘点：展开折叠' },
+      { type: 'feat', text: '盘点：长按删除' },
+      { type: 'feat', text: '盘点：扩展字段支持' },
       // 优化
-      { type: 'improve', text: '入库单同步只保留明细表' },
-      { type: 'improve', text: '统一聚合样式，显示箭头' },
-      { type: 'improve', text: '仅支持 Android 13 及以上' },
+      { type: 'improve', text: '入库同步：只保留明细表' },
+      { type: 'improve', text: '扫码/盘点：统一聚合样式' },
+      { type: 'improve', text: '全局：仅支持 Android 13' },
       // 修复
-      { type: 'fix', text: '入库单缺少原始二维码数据' },
-      { type: 'fix', text: '重复检测逻辑和扩展字段缺失' },
+      { type: 'fix', text: '入库：缺少原始二维码' },
+      { type: 'fix', text: '入库：重复检测逻辑' },
     ],
   },
   {
@@ -69,13 +74,17 @@ const CHANGELOG_DATA = [
     date: '2026-03-09',
     changes: [
       // 新增
-      { type: 'feat', text: '扫码出库：物料聚合显示和长按删除' },
+      { type: 'feat', text: '扫码出库：聚合显示' },
+      { type: 'feat', text: '扫码出库：长按删除' },
       { type: 'feat', text: '自动更新功能' },
       // 优化
       { type: 'improve', text: '更新弹窗优化' },
       // 修复
-      { type: 'fix', text: '聚合明细显示批次错误' },
-      { type: 'fix', text: '服务器地址认证信息泄露' },
+      { type: 'fix', text: '出库：聚合明细批次显示错误' },
+      { type: 'fix', text: '出库：长按删除失效' },
+      { type: 'fix', text: '更新弹窗：服务器地址无法输入' },
+      { type: 'fix', text: '设置：状态栏背景色不协调' },
+      { type: 'fix', text: '设置：服务器地址认证信息泄露' },
     ],
   },
   {
@@ -83,9 +92,9 @@ const CHANGELOG_DATA = [
     date: '2026-03-07',
     changes: [
       // 新增
-      { type: 'feat', text: '首页 UI 改版，6 个模块自适应布局' },
+      { type: 'feat', text: '首页：UI 改版' },
       // 优化
-      { type: 'improve', text: '首页大图标、主题色、点击动画' },
+      { type: 'improve', text: '首页：大图标、主题色、点击动画' },
     ],
   },
   {
@@ -93,12 +102,13 @@ const CHANGELOG_DATA = [
     date: '2026-03-05',
     changes: [
       // 优化
-      { type: 'improve', text: '扫码入库震动提醒' },
-      { type: 'improve', text: '订单编辑、解析规则优化' },
-      { type: 'improve', text: '输入框键盘避让' },
+      { type: 'improve', text: '入库：重复扫码震动' },
+      { type: 'improve', text: '订单：编辑优化' },
+      { type: 'improve', text: '解析规则：智能识别日期' },
+      { type: 'improve', text: '输入框：键盘避让' },
       // 修复
-      { type: 'fix', text: '出库清单命名和编码' },
-      { type: 'fix', text: '解析规则日期字段拆分错误' },
+      { type: 'fix', text: '出库：清单命名和编码' },
+      { type: 'fix', text: '解析规则：日期字段拆分' },
     ],
   },
   {
@@ -106,10 +116,12 @@ const CHANGELOG_DATA = [
     date: '2026-03-03',
     changes: [
       // 新增
-      { type: 'feat', text: '扫码入库：历史查询、合并显示、滑动删除' },
-      { type: 'feat', text: '点击型号行切换确认状态' },
+      { type: 'feat', text: '入库：历史查询与筛选' },
+      { type: 'feat', text: '入库：同型号数量合并' },
+      { type: 'feat', text: '入库：点击型号切换确认' },
+      { type: 'feat', text: '入库：滑动删除' },
       // 优化
-      { type: 'improve', text: '同步服务日志自动轮转' },
+      { type: 'improve', text: '同步服务：日志自动轮转' },
     ],
   },
   {
@@ -118,6 +130,17 @@ const CHANGELOG_DATA = [
     changes: [
       // 新增
       { type: 'feat', text: '掌上仓库 APP 正式上线' },
+      { type: 'feat', text: '扫码入库：供应商识别、重复检测' },
+      { type: 'feat', text: '扫码出库：PDA扫码模式' },
+      { type: 'feat', text: '订单管理：创建、编辑、删除、导出' },
+      { type: 'feat', text: '盘点功能：整包/拆包盘点' },
+      { type: 'feat', text: '物料管理：型号编码绑定' },
+      { type: 'feat', text: '仓库管理：多仓库支持' },
+      { type: 'feat', text: '数据同步：一键同步到电脑' },
+      { type: 'feat', text: '备份恢复：配置备份' },
+    ],
+  },
+];
       { type: 'feat', text: '扫码入库：供应商识别、重复检测、自动生成单号' },
       { type: 'feat', text: '扫码出库：PDA扫码模式，自动识别订单' },
       { type: 'feat', text: '订单管理：订单创建、编辑、删除、导出' },
