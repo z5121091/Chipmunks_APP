@@ -1,9 +1,9 @@
 {
-  "version": "V3.3.4",
-  "versionCode": 73,
-  "buildNumber": 73,
+  "version": "V3.3.5",
+  "versionCode": 74,
+  "buildNumber": 74,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
-  "changelog": "【修复】\n1. 修复扫码入库/出库成功反馈音效（3声滴滴滴 → 1声滴）\n2. 修复音效加载竞态条件 bug\n3. 统一使用北京时间，替代 UTC 时间\n\n【增强】\n1. 备份功能新增仓库数据\n2. 备份功能新增同步服务器 IP/端口\n3. 重新生成音效文件，确保音效时长准确",
+  "changelog": "【修复】\n1. 修复扫码成功音效无声问题\n2. 修复音效加载竞态条件 bug\n\n【优化】\n1. 统一使用北京时间，替代 UTC 时间\n2. 备份功能新增仓库数据\n3. 备份功能新增同步服务器 IP/端口\n4. 统一版本号管理，只需修改 version.json",
   "forceUpdate": false,
   "appName": "掌上仓库",
   "companyName": "上海花栗鼠科技有限公司",
