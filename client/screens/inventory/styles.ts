@@ -100,10 +100,10 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   },
 
   warehouseText: {
-    fontSize: rf(11),
+    fontSize: rf(12),
     fontWeight: '500',
     color: theme.textPrimary,
-    maxWidth: 60,
+    maxWidth: 70,
   },
 
   // 扫码框（包含输入框和 Toast）

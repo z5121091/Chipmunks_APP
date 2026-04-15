@@ -688,7 +688,7 @@ export default function InventoryScreen() {
 
           {/* 仓库选择 */}
           <TouchableOpacity style={styles.warehouseBtn} onPress={() => setShowWarehousePicker(true)}>
-            <FontAwesome6 name="warehouse" size={12} color={theme.textPrimary} />
+            <FontAwesome6 name="warehouse" size={14} color={theme.textPrimary} />
             <Text style={styles.warehouseText} numberOfLines={1}>
               {currentWarehouse?.name || '仓库'}
             </Text>
