@@ -11,6 +11,20 @@ import { Spacing } from '@/constants/theme';
 // 更新日志数据
 const CHANGELOG_DATA = [
   {
+    version: 'V3.3.4',
+    date: '2026-04-15',
+    changes: [
+      // 修复
+      { type: 'fix', text: '修复扫码入库/出库成功反馈音效（3声滴滴滴 → 1声滴）' },
+      { type: 'fix', text: '修复音效加载竞态条件 bug' },
+      { type: 'fix', text: '统一使用北京时间，替代 UTC 时间' },
+      // 增强
+      { type: 'feat', text: '备份功能新增仓库数据' },
+      { type: 'feat', text: '备份功能新增同步服务器 IP/端口' },
+      { type: 'feat', text: '重新生成音效文件，确保音效时长准确' },
+    ],
+  },
+  {
     version: 'V3.3.3',
     date: '2026-04-15',
     changes: [

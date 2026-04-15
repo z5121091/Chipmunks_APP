@@ -1262,7 +1262,7 @@ export default function SettingsScreen() {
         <View style={{ gap: getSpacing().md }}>
           {renderMenuCard(
             '备份配置',
-            '导出规则、字段、物料绑定',
+            '导出规则、字段、物料绑定、仓库、同步服务器',
             'save',
             theme.cyan,
             handleBackup,

@@ -1,9 +1,9 @@
 {
-  "version": "3.3.3",
-  "versionCode": 72,
-  "buildNumber": 72,
+  "version": "3.3.4",
+  "versionCode": 73,
+  "buildNumber": 73,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
-  "changelog": "【重构】\n1. 新增 useToast Hook，统一 Toast 提示组件\n2. 新增 feedbackDuplicate()，统一重复扫码反馈（震动+提示音）\n3. 新增 useFeedbackCleanup Hook，自动清理震动和提示音\n4. 扫码出库/入库/盘点：移除重复的震动/提示音逻辑\n5. 扫码出库/入库/盘点：页面只调用 API，不实现细节\n\n【优化】\n1. 提示音升级：成功提示音改为「滴」（800Hz，短促）\n2. 提示音升级：错误提示音改为「滴滴滴」（600Hz，三声）",
+  "changelog": "【修复】\n1. 修复扫码入库/出库成功反馈音效（3声滴滴滴 → 1声滴）\n2. 修复音效加载竞态条件 bug\n3. 统一使用北京时间，替代 UTC 时间\n\n【增强】\n1. 备份功能新增仓库数据\n2. 备份功能新增同步服务器 IP/端口\n3. 重新生成音效文件，确保音效时长准确",
   "forceUpdate": false,
   "appName": "掌上仓库",
   "companyName": "上海花栗鼠科技有限公司",
