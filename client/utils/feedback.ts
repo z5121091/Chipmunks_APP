@@ -5,6 +5,7 @@
 
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import { useEffect } from 'react';
 
 // 持续震动的定时器ID
 let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
@@ -259,4 +260,28 @@ export async function cleanupSounds() {
     await errorSoundInstance.unloadAsync();
     errorSoundInstance = null;
   }
+}
+
+// ============================================================================
+// React Hook - 自动清理
+// ============================================================================
+
+/**
+ * 自动清理反馈资源的 Hook
+ * 在组件卸载时自动停止所有震动和提示音
+ * 
+ * @example
+ * function MyComponent() {
+ *   useFeedbackCleanup(); // 只需一行，自动处理卸载清理
+ *   // ... 其他逻辑
+ * }
+ */
+export function useFeedbackCleanup() {
+  useEffect(() => {
+    // 组件卸载时自动清理
+    return () => {
+      stopErrorVibration();
+      stopErrorSound();
+    };
+  }, []);
 }

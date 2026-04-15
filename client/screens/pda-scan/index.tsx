@@ -33,7 +33,7 @@ import {
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, stopErrorVibration, startErrorSound, stopErrorSound } from '@/utils/feedback';
+import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, startErrorSound, useFeedbackCleanup } from '@/utils/feedback';
 
 // 订单号格式：IO-年-月-日-序号（序号2-3位）
 const ORDER_NO_REGEX = /^IO-\d{4}-\d{2}-\d{2}-\d{2,3}$/;
@@ -101,12 +101,11 @@ export default function PDAScanScreen() {
       if (autoSubmitTimerRef.current) {
         clearTimeout(autoSubmitTimerRef.current);
       }
-      stopErrorVibration();
-      stopErrorSound();
     };
   }, []);
 
-  // 聚焦
+  // 自动清理震动和提示音
+  useFeedbackCleanup();
   useFocusEffect(
     useCallback(() => {
       setTimeout(() => inputRef.current?.focus(), 100);

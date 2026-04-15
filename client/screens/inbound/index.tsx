@@ -31,7 +31,7 @@ import {
 import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, stopErrorVibration, startErrorSound, stopErrorSound } from '@/utils/feedback';
+import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, startErrorSound, useFeedbackCleanup } from '@/utils/feedback';
 import { Str } from '@/resources/strings';
 
 // 扫描记录类型
@@ -158,14 +158,10 @@ export default function InboundScreen() {
   useEffect(() => {
     loadWarehouses();
     generateNo();
-    return () => {
-      if (autoSubmitTimerRef.current) {
-        clearTimeout(autoSubmitTimerRef.current);
-      }
-      stopErrorVibration();
-      stopErrorSound();
-    };
   }, []);
+
+  // 自动清理震动和提示音
+  useFeedbackCleanup();
 
   // 聚焦
   useFocusEffect(

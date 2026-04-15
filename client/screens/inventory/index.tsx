@@ -33,7 +33,7 @@ import {
 } from '@/utils/database';
 import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
-import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, stopErrorVibration, startErrorSound, stopErrorSound } from '@/utils/feedback';
+import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, startErrorSound, useFeedbackCleanup } from '@/utils/feedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 盘点类型
@@ -242,12 +242,11 @@ export default function InventoryScreen() {
       if (autoSubmitTimerRef.current) {
         clearTimeout(autoSubmitTimerRef.current);
       }
-      stopErrorVibration();
-      stopErrorSound();
     };
   }, []);
 
-  // 聚焦输入框
+  // 自动清理震动和提示音
+  useFeedbackCleanup();
   useFocusEffect(
     useCallback(() => {
       setTimeout(() => inputRef.current?.focus(), 100);
