@@ -6,6 +6,7 @@
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
 
 // 声音开关存储键
 const SOUND_ENABLED_KEY = '@sound_enabled';
