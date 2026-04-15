@@ -163,6 +163,7 @@ export default function InboundScreen() {
         clearTimeout(autoSubmitTimerRef.current);
       }
       stopErrorVibration();
+      stopErrorSound();
     };
   }, []);
 
@@ -313,7 +314,6 @@ export default function InboundScreen() {
       saveScanRecords(newRecords);
       showToast(`${parsed.model}`, 'success');
       feedbackSuccess();
-      stopErrorVibration();
       console.log('[扫码入库] 扫码成功:', { model: parsed.model, version: parsed.version, quantity });
     } catch (e) {
       console.error('[扫码入库] 处理失败:', e);

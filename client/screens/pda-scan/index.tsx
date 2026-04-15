@@ -102,6 +102,7 @@ export default function PDAScanScreen() {
         clearTimeout(autoSubmitTimerRef.current);
       }
       stopErrorVibration();
+      stopErrorSound();
     };
   }, []);
 
@@ -290,7 +291,6 @@ export default function PDAScanScreen() {
       setMaterialCount(prev => prev + 1);
       showToast(`${parsed.model} +1`, 'success');
       feedbackSuccess();
-      stopErrorVibration();
       console.log('[扫码出库] 扫码成功:', { model: parsed.model, version: parsed.version });
 
     } catch (e) {

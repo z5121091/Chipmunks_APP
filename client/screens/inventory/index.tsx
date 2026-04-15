@@ -242,6 +242,8 @@ export default function InventoryScreen() {
       if (autoSubmitTimerRef.current) {
         clearTimeout(autoSubmitTimerRef.current);
       }
+      stopErrorVibration();
+      stopErrorSound();
     };
   }, []);
 
