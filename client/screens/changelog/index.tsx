@@ -128,7 +128,6 @@ const CHANGELOG_DATA = [
     version: 'V3.0.0',
     date: '2026-03-01',
     changes: [
-      // 新增
       { type: 'feat', text: '掌上仓库 APP 正式上线' },
       { type: 'feat', text: '扫码入库：供应商识别、重复检测' },
       { type: 'feat', text: '扫码出库：PDA扫码模式' },
@@ -138,17 +137,6 @@ const CHANGELOG_DATA = [
       { type: 'feat', text: '仓库管理：多仓库支持' },
       { type: 'feat', text: '数据同步：一键同步到电脑' },
       { type: 'feat', text: '备份恢复：配置备份' },
-    ],
-  },
-];
-      { type: 'feat', text: '扫码入库：供应商识别、重复检测、自动生成单号' },
-      { type: 'feat', text: '扫码出库：PDA扫码模式，自动识别订单' },
-      { type: 'feat', text: '订单管理：订单创建、编辑、删除、导出' },
-      { type: 'feat', text: '盘点功能：整包盘点和拆包盘点' },
-      { type: 'feat', text: '物料管理：型号-编码绑定，支持导入导出' },
-      { type: 'feat', text: '仓库管理：多仓库支持，可设置默认仓库' },
-      { type: 'feat', text: '数据同步：一键同步到电脑' },
-      { type: 'feat', text: '备份恢复：配置数据备份与恢复' },
     ],
   },
 ];
