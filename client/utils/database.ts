@@ -1842,7 +1842,7 @@ export const reorderCustomFields = async (fieldIds: string[]): Promise<void> => 
 
 // ============== 数据备份与恢复功能 ==============
 
-// 备份数据接口（备份配置项：规则 + 自定义字段 + 物料绑定 + 仓库）
+// 备份数据接口（备份配置项：规则 + 自定义字段 + 物料绑定 + 仓库 + 同步配置）
 export interface BackupData {
   version: string;           // 备份版本号
   backupTime: string;        // 备份时间
@@ -1851,26 +1851,35 @@ export interface BackupData {
   customFields: CustomField[]; // 自定义字段
   inventoryBindings: InventoryBinding[]; // 物料绑定（型号-存货编码）
   warehouses: Warehouse[];   // 仓库列表
+  syncConfig?: {             // 数据同步配置（可选）
+    ip: string;
+    port: string;
+  };
 }
+
+// 同步配置存储键（需要与设置页面保持一致）
+const SYNC_CONFIG_KEY = '@sync_config';
 
 // 导出配置数据（用于备份）
 export const exportBackupData = async (): Promise<BackupData> => {
   try {
-    const [rulesData, customFieldsData, inventoryBindingsData, warehousesData] = await Promise.all([
+    const [rulesData, customFieldsData, inventoryBindingsData, warehousesData, syncData] = await Promise.all([
       AsyncStorage.getItem(RULES_KEY),
       AsyncStorage.getItem(CUSTOM_FIELDS_KEY),
       AsyncStorage.getItem(INVENTORY_BINDINGS_KEY),
       AsyncStorage.getItem(WAREHOUSES_KEY),
+      AsyncStorage.getItem(SYNC_CONFIG_KEY),
     ]);
 
     const backup: BackupData = {
-      version: '1.2',
+      version: '1.3',
       backupTime: getLocalDateTimeString(),
       appVersion: 'V3.2.8',
       rules: rulesData ? JSON.parse(rulesData) : [],
       customFields: customFieldsData ? JSON.parse(customFieldsData) : [],
       inventoryBindings: inventoryBindingsData ? JSON.parse(inventoryBindingsData) : [],
       warehouses: warehousesData ? JSON.parse(warehousesData) : [],
+      syncConfig: syncData ? JSON.parse(syncData) : undefined,
     };
 
     return backup;
@@ -1889,6 +1898,7 @@ export const importBackupData = async (backup: BackupData): Promise<{
     customFields: number;
     inventoryBindings: number;
     warehouses: number;
+    hasSyncConfig: boolean;
   };
 }> => {
   try {
@@ -1897,17 +1907,24 @@ export const importBackupData = async (backup: BackupData): Promise<{
       return {
         success: false,
         message: '无效的备份文件格式',
-        stats: { rules: 0, customFields: 0, inventoryBindings: 0, warehouses: 0 },
+        stats: { rules: 0, customFields: 0, inventoryBindings: 0, warehouses: 0, hasSyncConfig: false },
       };
     }
 
-    // 恢复数据（恢复配置项 + 物料绑定 + 仓库）
-    await Promise.all([
+    // 恢复数据（恢复配置项 + 物料绑定 + 仓库 + 同步配置）
+    const promises: Promise<void>[] = [
       AsyncStorage.setItem(RULES_KEY, JSON.stringify(backup.rules || [])),
       AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(backup.customFields || [])),
       AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(backup.inventoryBindings || [])),
       AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(backup.warehouses || [])),
-    ]);
+    ];
+
+    // 如果备份中包含同步配置，也恢复它
+    if (backup.syncConfig) {
+      promises.push(AsyncStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(backup.syncConfig)));
+    }
+
+    await Promise.all(promises);
 
     return {
       success: true,
@@ -1917,6 +1934,7 @@ export const importBackupData = async (backup: BackupData): Promise<{
         customFields: (backup.customFields || []).length,
         inventoryBindings: (backup.inventoryBindings || []).length,
         warehouses: (backup.warehouses || []).length,
+        hasSyncConfig: !!backup.syncConfig,
       },
     };
   } catch (error) {

@@ -886,7 +886,7 @@ export default function SettingsScreen() {
             dialogTitle: '保存配置备份',
             UTI: 'public.json',
           });
-          alert.showSuccess(`已备份配置:\n• 解析规则: ${backupData.rules.length} 条\n• 自定义字段: ${backupData.customFields.length} 个\n• 物料绑定: ${backupData.inventoryBindings.length} 条\n• 仓库: ${backupData.warehouses.length} 个\n\n请妥善保管备份文件！`);
+          alert.showSuccess(`已备份配置:\n• 解析规则: ${backupData.rules.length} 条\n• 自定义字段: ${backupData.customFields.length} 个\n• 物料绑定: ${backupData.inventoryBindings.length} 条\n• 仓库: ${backupData.warehouses.length} 个\n• 同步服务器: ${backupData.syncConfig ? backupData.syncConfig.ip : '未配置'}\n\n请妥善保管备份文件！`);
         }
       } else {
         // Android 7.0 及以下：保存到 Downloads 文件夹
@@ -936,7 +936,7 @@ export default function SettingsScreen() {
             }
           }
 
-          alert.showSuccess(`备份已保存到 Downloads 文件夹:\n${fileName}\n\n• 解析规则: ${backupData.rules.length} 条\n• 自定义字段: ${backupData.customFields.length} 个\n• 物料绑定: ${backupData.inventoryBindings.length} 条\n• 仓库: ${backupData.warehouses.length} 个`);
+          alert.showSuccess(`备份已保存到 Downloads 文件夹:\n${fileName}\n\n• 解析规则: ${backupData.rules.length} 条\n• 自定义字段: ${backupData.customFields.length} 个\n• 物料绑定: ${backupData.inventoryBindings.length} 条\n• 仓库: ${backupData.warehouses.length} 个\n• 同步服务器: ${backupData.syncConfig ? backupData.syncConfig.ip : '未配置'}`);
         } catch (mediaError) {
           console.error('保存到Downloads失败:', mediaError);
           
@@ -947,7 +947,7 @@ export default function SettingsScreen() {
               dialogTitle: '保存配置备份',
               UTI: 'public.json',
             });
-            alert.showSuccess(`已备份配置:\n• 解析规则: ${backupData.rules.length} 条\n• 自定义字段: ${backupData.customFields.length} 个\n• 物料绑定: ${backupData.inventoryBindings.length} 条\n• 仓库: ${backupData.warehouses.length} 个`);
+            alert.showSuccess(`已备份配置:\n• 解析规则: ${backupData.rules.length} 条\n• 自定义字段: ${backupData.customFields.length} 个\n• 物料绑定: ${backupData.inventoryBindings.length} 条\n• 仓库: ${backupData.warehouses.length} 个\n• 同步服务器: ${backupData.syncConfig ? backupData.syncConfig.ip : '未配置'}`);
           } else {
             alert.showError('备份失败，请重试');
           }
@@ -1001,13 +1001,13 @@ export default function SettingsScreen() {
       
       alert.showConfirm(
         '确认恢复配置',
-        `即将恢复以下配置:\n• 解析规则: ${backupData.rules?.length || 0} 条\n• 自定义字段: ${backupData.customFields?.length || 0} 个\n• 物料绑定: ${backupData.inventoryBindings?.length || 0} 条\n• 仓库: ${backupData.warehouses?.length || 0} 个\n\n[警告] 当前配置将被覆盖！`,
+        `即将恢复以下配置:\n• 解析规则: ${backupData.rules?.length || 0} 条\n• 自定义字段: ${backupData.customFields?.length || 0} 个\n• 物料绑定: ${backupData.inventoryBindings?.length || 0} 条\n• 仓库: ${backupData.warehouses?.length || 0} 个\n• 同步服务器: ${backupData.syncConfig ? backupData.syncConfig.ip : '未配置'}\n\n[警告] 当前配置将被覆盖！`,
         async () => {
           setRestoreLoading(true);
           try {
             const result = await importBackupData(backupData);
             if (result.success) {
-              alert.showSuccess(`恢复成功:\n• 解析规则: ${result.stats.rules} 条\n• 自定义字段: ${result.stats.customFields} 个\n• 物料绑定: ${result.stats.inventoryBindings} 条\n• 仓库: ${result.stats.warehouses} 个`);
+              alert.showSuccess(`恢复成功:\n• 解析规则: ${result.stats.rules} 条\n• 自定义字段: ${result.stats.customFields} 个\n• 物料绑定: ${result.stats.inventoryBindings} 条\n• 仓库: ${result.stats.warehouses} 个\n• 同步服务器: ${result.stats.hasSyncConfig ? '已恢复' : '未配置'}`);
               loadData();
             } else {
               alert.showError(result.message);
