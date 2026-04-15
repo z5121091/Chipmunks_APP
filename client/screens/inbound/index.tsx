@@ -437,7 +437,7 @@ export default function InboundScreen() {
 
     setSaving(true);
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString('zh-CN');
 
       // 保存每条扫描记录
       for (const record of scanRecords) {
