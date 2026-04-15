@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { APP_VERSION } from '@/constants/version';
 
 // 存储键
 const ORDERS_KEY = '@warehouse_orders';
@@ -1874,7 +1875,7 @@ export const exportBackupData = async (): Promise<BackupData> => {
     const backup: BackupData = {
       version: '1.3',
       backupTime: getLocalDateTimeString(),
-      appVersion: 'V3.3.4',
+      appVersion: APP_VERSION,
       rules: rulesData ? JSON.parse(rulesData) : [],
       customFields: customFieldsData ? JSON.parse(customFieldsData) : [],
       inventoryBindings: inventoryBindingsData ? JSON.parse(inventoryBindingsData) : [],
