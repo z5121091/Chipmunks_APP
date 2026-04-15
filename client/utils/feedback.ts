@@ -103,6 +103,14 @@ export async function feedbackDuplicate() {
 }
 
 /**
+ * 确认反馈 - 只播放"确认"语音，不震动
+ */
+export async function feedbackConfirm() {
+  console.log('[Feedback] feedbackConfirm 触发');
+  await speakChinese('确认');
+}
+
+/**
  * 错误反馈（单次）
  */
 export async function feedbackError() {

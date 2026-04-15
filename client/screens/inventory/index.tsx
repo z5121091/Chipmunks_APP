@@ -32,7 +32,7 @@ import {
 } from '@/utils/database';
 import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, feedbackConfirm, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -525,7 +525,7 @@ export default function InventoryScreen() {
       }
 
       showToast(`盘点成功！共 ${scanRecords.length} 条`, 'success');
-      feedbackSuccess();
+      feedbackConfirm();
       setScanRecords([]);
       loadSavedRecords(); // 刷新已保存记录
     } catch (error) {

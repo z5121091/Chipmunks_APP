@@ -30,7 +30,7 @@ import {
 import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, feedbackConfirm, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 import { Str } from '@/resources/strings';
 
@@ -462,7 +462,7 @@ export default function InboundScreen() {
       }
 
       showToast(`入库成功！共 ${scanRecords.length} 条`, 'success');
-      feedbackSuccess();
+      feedbackConfirm();
       
       // 重置
       setScanRecords([]);
