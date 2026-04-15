@@ -5,6 +5,7 @@
 
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
 
@@ -19,16 +20,10 @@ let errorVibrationInterval: ReturnType<typeof setInterval> | null = null;
 
 // 音效实例缓存
 let successSoundInstance: Audio.Sound | null = null;
-let errorSoundInstance: Audio.Sound | null = null;
 let successSoundLoading = false;
-let errorSoundLoading = false;
-let errorSoundInterval: ReturnType<typeof setInterval> | null = null;
 
 // 成功提示音：滴（高音，短促）
 const SUCCESS_SOUND = require('@/assets/sounds/滴.wav');
-
-// 错误提示音：滴滴滴（三声）
-const ERROR_SOUND = require('@/assets/sounds/滴滴滴.wav');
 
 /**
  * 初始化声音开关状态
@@ -114,56 +109,27 @@ async function playSuccessSound() {
 }
 
 /**
- * 加载错误提示音
+ * 播放中文语音
  */
-async function loadErrorSound(): Promise<Audio.Sound | null> {
-  if (errorSoundInstance) {
-    return errorSoundInstance;
-  }
-  
-  if (errorSoundLoading) {
-    while (errorSoundLoading) {
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-    return errorSoundInstance;
-  }
-  
-  errorSoundLoading = true;
-  try {
-    const { sound } = await Audio.Sound.createAsync(
-      ERROR_SOUND,
-      { shouldPlay: false, isLooping: false, volume: 1.0 },
-      null,
-      true
-    );
-    errorSoundInstance = sound;
-    return sound;
-  } catch (error) {
-    console.error('加载错误提示音失败:', error);
-    return null;
-  } finally {
-    errorSoundLoading = false;
-  }
-}
-
-/**
- * 播放错误提示音
- */
-async function playErrorSound() {
+async function speakChinese(text: string) {
   if (!soundEnabled) {
-    console.log('[Feedback] 声音已关闭，跳过音效');
+    console.log('[Feedback] 声音已关闭，跳过语音');
     return;
   }
   
   try {
-    const sound = await loadErrorSound();
-    if (sound) {
-      await sound.stopAsync();
-      await sound.setPositionAsync(0);
-      await sound.playAsync();
-    }
+    // 停止之前的语音
+    await Speech.stop();
+    
+    // 播放中文语音
+    Speech.speak(text, {
+      language: 'zh-CN',
+      pitch: 1.0,
+      rate: 1.0,
+    });
+    console.log('[Feedback] 播放语音:', text);
   } catch (error) {
-    console.error('播放错误提示音失败:', error);
+    console.error('播放语音失败:', error);
   }
 }
 
@@ -185,21 +151,51 @@ export async function feedbackSuccess() {
     console.error('[Feedback] 震动失败:', e);
   }
   
-  // 声音
+  // 声音 - 简短滴音
   await playSuccessSound();
 }
 
 /**
  * 扫码重复反馈
  */
-export function feedbackDuplicate() {
+export async function feedbackDuplicate() {
   console.log('[Feedback] feedbackDuplicate 触发');
   
+  // 停止之前的震动
   stopErrorVibrationInternal();
   stopErrorSoundInternal();
   
-  startErrorVibrationInternal();
-  startErrorSoundInternal();
+  // 震动
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    console.log('[Feedback] 震动成功');
+  } catch (e) {
+    console.error('[Feedback] 震动失败:', e);
+  }
+  
+  // 声音 - 中文语音"重复"
+  await speakChinese('重复');
+}
+
+/**
+ * 扫码已存在反馈
+ */
+export async function feedbackExists() {
+  console.log('[Feedback] feedbackExists 触发');
+  
+  // 停止之前的震动
+  stopErrorVibrationInternal();
+  stopErrorSoundInternal();
+  
+  // 震动
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  } catch (e) {
+    console.error('[Feedback] 震动失败:', e);
+  }
+  
+  // 声音 - 中文语音"已存在"
+  await speakChinese('已存在');
 }
 
 /**
@@ -217,33 +213,12 @@ export async function feedbackWarning() {
 }
 
 // ============================================================================
-// 内部函数 - 持续震动和提示音
+// 内部函数 - 持续震动
 // ============================================================================
 
-function startErrorSoundInternal() {
-  stopErrorSoundInternal();
-  playErrorSound();
-  errorSoundInterval = setInterval(() => {
-    playErrorSound();
-  }, 500);
-}
-
 function stopErrorSoundInternal() {
-  if (errorSoundInterval) {
-    clearInterval(errorSoundInterval);
-    errorSoundInterval = null;
-  }
-  if (errorSoundInstance) {
-    errorSoundInstance.stopAsync().catch(() => {});
-  }
-}
-
-function startErrorVibrationInternal() {
-  stopErrorVibrationInternal();
-  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-  errorVibrationInterval = setInterval(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  }, 500);
+  // 停止语音
+  Speech.stop().catch(() => {});
 }
 
 function stopErrorVibrationInternal() {
@@ -264,10 +239,9 @@ export async function cleanupSounds() {
     await successSoundInstance.unloadAsync();
     successSoundInstance = null;
   }
-  if (errorSoundInstance) {
-    await errorSoundInstance.unloadAsync();
-    errorSoundInstance = null;
-  }
+  
+  // 停止语音
+  Speech.stop();
 }
 
 // ============================================================================
