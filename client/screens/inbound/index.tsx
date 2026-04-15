@@ -687,7 +687,7 @@ export default function InboundScreen() {
                       />
                     </TouchableOpacity>
 
-                    {/* 型号（第一行） */}
+                    {/* 型号内容（包含型号和版本号两行） */}
                     <TouchableOpacity
                       style={styles.modelContent}
                       onPress={() => toggleExpand(key)}
@@ -696,12 +696,10 @@ export default function InboundScreen() {
                       <Text style={[styles.itemModel, isConfirmed && styles.itemModelConfirmed]}>
                         {isExpanded ? '▼' : '▶'} {item.model}
                       </Text>
+                      <Text style={[styles.itemBatch, isConfirmed && styles.itemModelConfirmed]}>
+                        版本: {item.version || '-'}
+                      </Text>
                     </TouchableOpacity>
-
-                    {/* 版本号（第二行） */}
-                    <Text style={[styles.itemVersion, isConfirmed && styles.itemModelConfirmed]}>
-                      版本: {item.version || '-'}
-                    </Text>
 
                     {/* 数量 */}
                     <Text style={[styles.itemQty, isConfirmed && styles.itemQtyConfirmed]}>

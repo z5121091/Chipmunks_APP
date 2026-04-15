@@ -216,24 +216,27 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   // 聚合项主行（两行布局）
   itemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     backgroundColor: theme.backgroundDefault,
   },
 
-  // 勾选框（行内）
-  checkbox: {
-    marginRight: rf(4),
-  },
-
-  // 型号内容（行内紧凑）
-  modelContent: {
+  // 左侧区域（勾选框 + 型号 + 版本号）
+  itemLeft: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: Spacing.sm,
+  },
+
+  // 勾选框
+  checkbox: {
+    marginRight: rf(6),
+  },
+
+  // 型号内容区域
+  modelContent: {
+    flex: 1,
   },
 
   // 型号文字
@@ -241,13 +244,13 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     fontSize: rf(14),
     fontWeight: '600',
     color: theme.textPrimary,
-    marginRight: rf(4),
   },
 
-  // 版本号
-  itemVersion: {
+  // 版本号（第二行）
+  itemBatch: {
     fontSize: rf(12),
     color: theme.textSecondary,
+    marginTop: 1,
   },
 
   // 数量（右侧）
@@ -255,6 +258,7 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
     fontSize: rf(16),
     fontWeight: '700',
     color: theme.primary,
+    marginLeft: Spacing.sm,
   },
 
   itemQtyConfirmed: {
