@@ -1842,7 +1842,7 @@ export const reorderCustomFields = async (fieldIds: string[]): Promise<void> => 
 
 // ============== 数据备份与恢复功能 ==============
 
-// 备份数据接口（备份配置项：规则 + 自定义字段 + 物料绑定）
+// 备份数据接口（备份配置项：规则 + 自定义字段 + 物料绑定 + 仓库）
 export interface BackupData {
   version: string;           // 备份版本号
   backupTime: string;        // 备份时间
@@ -1850,24 +1850,27 @@ export interface BackupData {
   rules: QRCodeRule[];       // 解析规则
   customFields: CustomField[]; // 自定义字段
   inventoryBindings: InventoryBinding[]; // 物料绑定（型号-存货编码）
+  warehouses: Warehouse[];   // 仓库列表
 }
 
 // 导出配置数据（用于备份）
 export const exportBackupData = async (): Promise<BackupData> => {
   try {
-    const [rulesData, customFieldsData, inventoryBindingsData] = await Promise.all([
+    const [rulesData, customFieldsData, inventoryBindingsData, warehousesData] = await Promise.all([
       AsyncStorage.getItem(RULES_KEY),
       AsyncStorage.getItem(CUSTOM_FIELDS_KEY),
       AsyncStorage.getItem(INVENTORY_BINDINGS_KEY),
+      AsyncStorage.getItem(WAREHOUSES_KEY),
     ]);
 
     const backup: BackupData = {
-      version: '1.1',
+      version: '1.2',
       backupTime: getLocalDateTimeString(),
       appVersion: 'V3.2.8',
       rules: rulesData ? JSON.parse(rulesData) : [],
       customFields: customFieldsData ? JSON.parse(customFieldsData) : [],
       inventoryBindings: inventoryBindingsData ? JSON.parse(inventoryBindingsData) : [],
+      warehouses: warehousesData ? JSON.parse(warehousesData) : [],
     };
 
     return backup;
@@ -1885,6 +1888,7 @@ export const importBackupData = async (backup: BackupData): Promise<{
     rules: number;
     customFields: number;
     inventoryBindings: number;
+    warehouses: number;
   };
 }> => {
   try {
@@ -1893,15 +1897,16 @@ export const importBackupData = async (backup: BackupData): Promise<{
       return {
         success: false,
         message: '无效的备份文件格式',
-        stats: { rules: 0, customFields: 0, inventoryBindings: 0 },
+        stats: { rules: 0, customFields: 0, inventoryBindings: 0, warehouses: 0 },
       };
     }
 
-    // 恢复数据（恢复配置项 + 物料绑定）
+    // 恢复数据（恢复配置项 + 物料绑定 + 仓库）
     await Promise.all([
       AsyncStorage.setItem(RULES_KEY, JSON.stringify(backup.rules || [])),
       AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(backup.customFields || [])),
       AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(backup.inventoryBindings || [])),
+      AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(backup.warehouses || [])),
     ]);
 
     return {
@@ -1911,6 +1916,7 @@ export const importBackupData = async (backup: BackupData): Promise<{
         rules: (backup.rules || []).length,
         customFields: (backup.customFields || []).length,
         inventoryBindings: (backup.inventoryBindings || []).length,
+        warehouses: (backup.warehouses || []).length,
       },
     };
   } catch (error) {
