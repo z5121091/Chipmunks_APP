@@ -33,7 +33,7 @@ import {
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, startErrorSound, useFeedbackCleanup } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
 
 // 订单号格式：IO-年-月-日-序号（序号2-3位）
 const ORDER_NO_REGEX = /^IO-\d{4}-\d{2}-\d{2}-\d{2,3}$/;
@@ -245,8 +245,7 @@ export default function PDAScanScreen() {
       const check = await checkMaterialExists(orderNo, parsed.model, parsed.batch, parsed.sourceNo, parsed.traceNo, parsed.quantity);
       if (check.material) {
         showToast('⚠️ 该物料已扫码，请勿重复', 'warning');
-        startErrorVibration();
-        startErrorSound();
+        feedbackDuplicate();
         return;
       }
 

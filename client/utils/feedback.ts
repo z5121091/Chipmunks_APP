@@ -130,11 +130,8 @@ async function playErrorSound() {
  * - 停止所有错误持续提醒
  */
 export async function feedbackSuccess() {
-  // 成功时停止所有错误持续提醒
-  stopErrorVibration();
-  stopErrorSound();
-  
-  // 同时触发震动和提示音
+  stopErrorVibrationInternal();
+  stopErrorSoundInternal();
   await Promise.all([
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
     playSuccessSound(),
@@ -142,78 +139,27 @@ export async function feedbackSuccess() {
 }
 
 /**
- * 扫描重复/警告反馈
- * - 中等震动
- * - 警告提示感
+ * 扫码重复/失败反馈
+ * - 长震动 + 长提示音（持续）
+ * - 用于扫码重复、错误等需要用户注意的情况
  */
-export async function feedbackWarning() {
-  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+export function feedbackDuplicate() {
+  startErrorVibrationInternal();
+  startErrorSoundInternal();
 }
 
 /**
- * 扫描失败/错误反馈（单次）
- * - 重震动
- * - 错误提示感
+ * 错误反馈（单次震动）
  */
 export async function feedbackError() {
   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 }
 
 /**
- * 开始错误持续提示音
- * - 持续的提示音提醒，直到调用 stopErrorSound
- * - 用于扫描重复等需要用户注意的情况
+ * 警告反馈（单次震动）
  */
-export function startErrorSound() {
-  // 如果已经在播放，先停止
-  stopErrorSound();
-  
-  // 立即播放一次
-  playErrorSound();
-  
-  // 每500ms播放一次，持续提醒
-  errorSoundInterval = setInterval(() => {
-    playErrorSound();
-  }, 500);
-}
-
-/**
- * 停止错误持续提示音
- */
-export function stopErrorSound() {
-  if (errorSoundInterval) {
-    clearInterval(errorSoundInterval);
-    errorSoundInterval = null;
-  }
-}
-
-/**
- * 开始错误持续震动
- * - 持续的震动提醒，直到调用 stopErrorVibration 或 feedbackSuccess
- * - 用于扫描错误、重复等需要用户注意的情况
- */
-export function startErrorVibration() {
-  // 如果已经在震动，先停止
-  stopErrorVibration();
-  
-  // 立即震动一次
-  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-  
-  // 每500ms震动一次，持续提醒
-  errorVibrationInterval = setInterval(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  }, 500);
-}
-
-/**
- * 停止错误持续震动
- * - 当用户执行正确操作后调用
- */
-export function stopErrorVibration() {
-  if (errorVibrationInterval) {
-    clearInterval(errorVibrationInterval);
-    errorVibrationInterval = null;
-  }
+export async function feedbackWarning() {
+  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
 }
 
 /**
@@ -244,13 +190,58 @@ export async function feedbackSelection() {
   await Haptics.selectionAsync();
 }
 
+// ============================================================================
+// 内部函数 - 持续震动和提示音
+// ============================================================================
+
+/**
+ * 开始错误持续提示音（内部函数）
+ */
+function startErrorSoundInternal() {
+  stopErrorSoundInternal();
+  playErrorSound();
+  errorSoundInterval = setInterval(() => {
+    playErrorSound();
+  }, 500);
+}
+
+/**
+ * 停止错误持续提示音（内部函数）
+ */
+function stopErrorSoundInternal() {
+  if (errorSoundInterval) {
+    clearInterval(errorSoundInterval);
+    errorSoundInterval = null;
+  }
+}
+
+/**
+ * 开始错误持续震动（内部函数）
+ */
+function startErrorVibrationInternal() {
+  stopErrorVibrationInternal();
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  errorVibrationInterval = setInterval(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  }, 500);
+}
+
+/**
+ * 停止错误持续震动（内部函数）
+ */
+function stopErrorVibrationInternal() {
+  if (errorVibrationInterval) {
+    clearInterval(errorVibrationInterval);
+    errorVibrationInterval = null;
+  }
+}
+
 /**
  * 清理音效资源（应用退出时调用）
  */
 export async function cleanupSounds() {
-  // 停止所有持续提醒
-  stopErrorVibration();
-  stopErrorSound();
+  stopErrorVibrationInternal();
+  stopErrorSoundInternal();
   
   if (successSoundInstance) {
     await successSoundInstance.unloadAsync();
@@ -278,10 +269,9 @@ export async function cleanupSounds() {
  */
 export function useFeedbackCleanup() {
   useEffect(() => {
-    // 组件卸载时自动清理
     return () => {
-      stopErrorVibration();
-      stopErrorSound();
+      stopErrorVibrationInternal();
+      stopErrorSoundInternal();
     };
   }, []);
 }

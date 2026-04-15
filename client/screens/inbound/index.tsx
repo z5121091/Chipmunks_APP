@@ -31,7 +31,7 @@ import {
 import { isQRCode } from '@/utils/qrcodeParser';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackWarning, feedbackError, startErrorVibration, startErrorSound, useFeedbackCleanup } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, useFeedbackCleanup } from '@/utils/feedback';
 import { Str } from '@/resources/strings';
 
 // 扫描记录类型
@@ -283,8 +283,7 @@ export default function InboundScreen() {
 
       if (isDuplicate) {
         showToast('⚠️ 该物料已扫码，请勿重复', 'warning');
-        startErrorVibration();
-        startErrorSound();
+        feedbackDuplicate();
         return;
       }
 
