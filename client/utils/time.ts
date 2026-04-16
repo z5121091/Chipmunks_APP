@@ -97,3 +97,26 @@ export const getToday = (): string => {
 export const formatTime = (dateString: string | undefined | null): string => {
   return formatDateTime(dateString);
 };
+
+/**
+ * 导出专用日期时间格式 (YYYY/M/D HH:mm)
+ * 用于 Excel 导出，不补零，更紧凑
+ */
+export const formatDateTimeExport = (dateString: string | undefined | null): string => {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    // 检查是否为有效日期
+    if (isNaN(date.getTime())) {
+      return '-';
+    }
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;  // 不补零
+    const day = date.getDate();  // 不补零
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}/${month}/${day} ${hours}:${minutes}`;
+  } catch {
+    return '-';
+  }
+};

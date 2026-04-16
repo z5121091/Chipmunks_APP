@@ -40,7 +40,7 @@ import {
   BackupData,
   STORAGE_KEYS,
 } from '@/utils/database';
-import { formatDateTime, formatTime, formatDate } from '@/utils/time';
+import { formatDateTime, formatTime, formatDate, formatDateTimeExport } from '@/utils/time';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
@@ -400,7 +400,7 @@ export default function SettingsScreen() {
     const records = await getAllInventoryCheckRecords();
     
     const headers = [
-      '盘点单号', '仓库名称', '存货编码', '扫描型号', '数量', '盘点类型', '实际数量', '盘点日期', '备注', '创建时间'
+      '盘点单号', '仓库名称', '存货编码', '扫描型号', '数量', '盘点类型', '实际数量', '盘点日期', '创建时间'
     ];
     
     const rows = records.map(r => [
@@ -412,8 +412,7 @@ export default function SettingsScreen() {
       r.check_type === 'whole' ? '整包' : '拆包',
       r.actual_quantity || '',
       r.check_date || '',
-      r.notes || '',
-      r.created_at || '',
+      formatDateTimeExport(r.created_at),
     ]);
     
     // 获取唯一仓库名称列表
