@@ -18,7 +18,7 @@ const INVENTORY_RECORDS_KEY = '@warehouse_inventory_records';
 
 // 数据版本管理
 const DATA_VERSION_KEY = '@warehouse_data_version';
-const CURRENT_DATA_VERSION = 11; // 更新此版本号触发迁移
+const CURRENT_DATA_VERSION = 12; // 更新此版本号触发迁移
 
 // 匹配条件接口（简化版：指定位置字段包含指定关键字）
 export interface MatchCondition {
