@@ -119,7 +119,7 @@ export const testConnection = async (config: SyncConfig): Promise<boolean> => {
     const timeoutId = setTimeout(() => controller.abort(), NETWORK_CONFIG.HEARTBEAT_TIMEOUT);
 
     const response = await fetch(
-      `http://${config.ip}:${config.port || NETWORK_CONFIG.DEFAULT_PORT}/api/v1/health`,
+      `http://${config.ip}:${config.port || NETWORK_CONFIG.DEFAULT_PORT}/health`,
       {
         method: 'GET',
         signal: controller.signal,
