@@ -655,65 +655,70 @@ const migrateToV10 = async (): Promise<void> => {
 
 // v11 迁移：重新解析二维码内容，修复 productionDate 字段
 const migrateToV11 = async (): Promise<void> => {
-  console.log('v11 迁移：重新解析二维码内容，修复 productionDate 字段');
+  console.log('===== v11 迁移开始 =====');
   
   const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
   if (materialsData) {
     const materials: MaterialRecord[] = JSON.parse(materialsData);
+    console.log(`v11 迁移：找到 ${materials.length} 条物料`);
     let updatedCount = 0;
     
     for (const material of materials) {
       // 如果有原始二维码内容，尝试重新解析
       if (material.raw_content && material.raw_content.trim()) {
         try {
+          console.log(`处理: ${material.id}, raw: ${material.raw_content}`);
+          
           // 检测规则
           const rule = await detectRule(material.raw_content);
           if (rule) {
+            console.log(`  规则: ${rule.name}, 分隔符: ${rule.separator}`);
+            
             // 使用规则解析
             const { standardFields } = parseWithRule(material.raw_content, rule);
+            console.log(`  解析结果: productionDate="${standardFields.productionDate}"`);
             
-            // 如果解析出的生产日期有值，且当前物料的生产日期为空或无效，则更新
+            // 检查当前值是否无效
+            const isInvalid = !material.productionDate || 
+              material.productionDate.trim() === '' || 
+              material.productionDate.trim() === '-' ||
+              material.productionDate.trim().length < 3;
+            
+            // 如果解析出的生产日期有值，且当前物料的生产日期无效，则更新
             if (standardFields.productionDate && standardFields.productionDate.trim()) {
-              if (!material.productionDate || !material.productionDate.trim()) {
+              if (isInvalid) {
                 material.productionDate = standardFields.productionDate.trim();
                 updatedCount++;
-                console.log(`修复物料 ${material.id} 的生产日期: ${material.productionDate}`);
+                console.log(`  ✅ 修复: ${material.productionDate}`);
               }
+            } else {
+              console.log(`  ❌ 解析结果中 productionDate 为空`);
             }
             
             // 同时修复其他可能为空的字段
-            if (!material.batch && standardFields.batch) {
-              material.batch = standardFields.batch;
-            }
-            if (!material.package && standardFields.package) {
-              material.package = standardFields.package;
-            }
-            if (!material.version && standardFields.version) {
-              material.version = standardFields.version;
-            }
-            if (!material.quantity && standardFields.quantity) {
-              material.quantity = standardFields.quantity;
-            }
-            if (!material.traceNo && standardFields.traceNo) {
-              material.traceNo = standardFields.traceNo;
-            }
-            if (!material.sourceNo && standardFields.sourceNo) {
-              material.sourceNo = standardFields.sourceNo;
-            }
+            if (!material.batch && standardFields.batch) material.batch = standardFields.batch;
+            if (!material.package && standardFields.package) material.package = standardFields.package;
+            if (!material.version && standardFields.version) material.version = standardFields.version;
+            if (!material.quantity && standardFields.quantity) material.quantity = standardFields.quantity;
+            if (!material.traceNo && standardFields.traceNo) material.traceNo = standardFields.traceNo;
+            if (!material.sourceNo && standardFields.sourceNo) material.sourceNo = standardFields.sourceNo;
+          } else {
+            console.log(`  ❌ 无法检测规则`);
           }
         } catch (e) {
-          console.log(`解析物料 ${material.id} 失败:`, e);
+          console.log(`  ❌ 解析失败:`, e);
         }
       }
     }
     
     if (updatedCount > 0) {
       await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
-      console.log(`v11 迁移完成：修复了 ${updatedCount} 条物料的生产日期`);
+      console.log(`v11 完成：修复 ${updatedCount} 条`);
     } else {
-      console.log('v11 迁移完成：没有需要修复的物料');
+      console.log('v11 完成：无数据需要修复');
     }
   }
+  console.log('===== v11 迁移结束 =====');
 };
 
 // 添加或更新订单
