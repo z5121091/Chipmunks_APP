@@ -1,7 +1,7 @@
 {
-  "version": "V3.3.3",
-  "versionCode": 84,
-  "buildNumber": 84,
+  "version": "V3.3.4",
+  "versionCode": 85,
+  "buildNumber": 85,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
   "forceUpdate": false,
   "appName": "掌上仓库",
@@ -9,6 +9,17 @@
   "companyWebsite": "http://www.chipmunks.com.cn/",
   "author": "zx5121091",
   "changelog": [
+    {
+      "version": "V3.3.4",
+      "date": "2026-04-22",
+      "changes": [
+        { "type": "improve", "text": "代码重构：提取存储键、网络配置到统一配置模块" },
+        { "type": "improve", "text": "代码重构：封装Excel导出工具函数" },
+        { "type": "improve", "text": "代码重构：封装心跳检测工具" },
+        { "type": "improve", "text": "代码重构：封装在线更新工具函数" },
+        { "type": "improve", "text": "导出序号：改为按天递增模式（当日导出01、02、03...）" }
+      ]
+    },
     {
       "version": "V3.3.3",
       "date": "2026-04-21",

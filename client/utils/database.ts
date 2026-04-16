@@ -1,27 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APP_VERSION } from '@/constants/version';
+import { STORAGE_KEYS, ExportType, ExportCountData } from '@/constants/config';
 import { getISODateTime, formatDateTime } from './time';
 
-// 存储键
-const ORDERS_KEY = '@warehouse_orders';
-const MATERIALS_KEY = '@warehouse_materials';
-const RULES_KEY = '@warehouse_qrcode_rules';
-const CUSTOM_FIELDS_KEY = '@warehouse_custom_fields';
-const UNPACK_RECORDS_KEY = '@warehouse_unpack_records';
-const PRINT_HISTORY_KEY = '@warehouse_print_history';
-
-// V3.0 新增存储键
-const WAREHOUSES_KEY = '@warehouse_warehouses';
-const INVENTORY_BINDINGS_KEY = '@warehouse_inventory_bindings';
-const INBOUND_RECORDS_KEY = '@warehouse_inbound_records';
-const INVENTORY_RECORDS_KEY = '@warehouse_inventory_records';
-
-// 数据版本管理
-const DATA_VERSION_KEY = '@warehouse_data_version';
+// 数据版本
 const CURRENT_DATA_VERSION = 12; // 更新此版本号触发迁移
-
-// 导出计数器存储键
-const EXPORT_COUNT_KEY = '@warehouse_export_count';
 
 // 匹配条件接口（简化版：指定位置字段包含指定关键字）
 export interface MatchCondition {
@@ -286,15 +269,15 @@ export const initDatabase = async (): Promise<void> => {
   try {
     // 检查是否已有数据，没有则初始化空数组
     const keys = [
-      ORDERS_KEY, 
-      MATERIALS_KEY, 
-      UNPACK_RECORDS_KEY, 
-      PRINT_HISTORY_KEY,
+      STORAGE_KEYS.ORDERS, 
+      STORAGE_KEYS.MATERIALS, 
+      STORAGE_KEYS.UNPACK_RECORDS, 
+      STORAGE_KEYS.PRINT_HISTORY,
       // V3.0 新增
-      WAREHOUSES_KEY,
-      INVENTORY_BINDINGS_KEY,
-      INBOUND_RECORDS_KEY,
-      INVENTORY_RECORDS_KEY,
+      STORAGE_KEYS.WAREHOUSES,
+      STORAGE_KEYS.INVENTORY_BINDINGS,
+      STORAGE_KEYS.INBOUND_RECORDS,
+      STORAGE_KEYS.INVENTORY_RECORDS,
     ];
     
     for (const key of keys) {
@@ -317,7 +300,7 @@ export const initDatabase = async (): Promise<void> => {
 // 数据版本迁移
 const runMigrations = async (): Promise<void> => {
   try {
-    const storedVersionStr = await AsyncStorage.getItem(DATA_VERSION_KEY);
+    const storedVersionStr = await AsyncStorage.getItem(STORAGE_KEYS.DATA_VERSION);
     const storedVersion = storedVersionStr ? parseInt(storedVersionStr, 10) : 0;
     
     if (storedVersion >= CURRENT_DATA_VERSION) {
@@ -379,18 +362,18 @@ const runMigrations = async (): Promise<void> => {
     }
     
     // 更新版本号
-    await AsyncStorage.setItem(DATA_VERSION_KEY, CURRENT_DATA_VERSION.toString());
+    await AsyncStorage.setItem(STORAGE_KEYS.DATA_VERSION, CURRENT_DATA_VERSION.toString());
     console.log('数据迁移完成');
   } catch (error) {
     console.error('数据迁移失败:', error);
     // 即使迁移失败也更新版本号，避免每次启动都尝试迁移
-    await AsyncStorage.setItem(DATA_VERSION_KEY, CURRENT_DATA_VERSION.toString());
+    await AsyncStorage.setItem(STORAGE_KEYS.DATA_VERSION, CURRENT_DATA_VERSION.toString());
   }
 };
 
 // v2 迁移：添加拆包记录相关字段
 const migrateToV2 = async (): Promise<void> => {
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
   
   let updated = false;
@@ -406,14 +389,14 @@ const migrateToV2 = async (): Promise<void> => {
   }
   
   if (updated) {
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     console.log('v2 迁移完成：添加拆包字段');
   }
 };
 
 // v3 迁移：修复物料记录中的数量字段
 const migrateToV3 = async (): Promise<void> => {
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
   
   let updated = false;
@@ -431,20 +414,20 @@ const migrateToV3 = async (): Promise<void> => {
   }
   
   if (updated) {
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     console.log('v3 迁移完成：修复数量字段');
   }
 };
 
 // v5 迁移：确保所有物料有正确的拆包状态
 const migrateToV5 = async (): Promise<void> => {
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
   
   let updated = false;
   for (const material of materials) {
     // 检查是否有拆包记录
-    const unpackData = await AsyncStorage.getItem(UNPACK_RECORDS_KEY);
+    const unpackData = await AsyncStorage.getItem(STORAGE_KEYS.UNPACK_RECORDS);
     const unpackRecords: UnpackRecord[] = unpackData ? JSON.parse(unpackData) : [];
     const hasUnpackRecord = unpackRecords.some(r => r.original_material_id === material.id);
     
@@ -455,14 +438,14 @@ const migrateToV5 = async (): Promise<void> => {
   }
   
   if (updated) {
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     console.log('v5 迁移完成：修复拆包状态');
   }
 };
 
 // v6 迁移：修复拆包记录的标签类型
 const migrateToV6 = async (): Promise<void> => {
-  const unpackData = await AsyncStorage.getItem(UNPACK_RECORDS_KEY);
+  const unpackData = await AsyncStorage.getItem(STORAGE_KEYS.UNPACK_RECORDS);
   const unpackRecords: UnpackRecord[] = unpackData ? JSON.parse(unpackData) : [];
   
   let updated = false;
@@ -482,7 +465,7 @@ const migrateToV6 = async (): Promise<void> => {
   }
   
   if (updated) {
-    await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(unpackRecords));
+    await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(unpackRecords));
     console.log('v6 迁移完成：修复拆包记录字段');
   }
 };
@@ -490,20 +473,20 @@ const migrateToV6 = async (): Promise<void> => {
 // v7 迁移：清理可能的脏数据
 const migrateToV7 = async (): Promise<void> => {
   // 清理物料中的无效数据
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
   
   const validMaterials = materials.filter(m => m.id && m.order_no);
   
   if (validMaterials.length !== materials.length) {
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(validMaterials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(validMaterials));
     console.log(`v7 迁移完成：清理了 ${materials.length - validMaterials.length} 条无效物料记录`);
   }
 };
 
 // v8 迁移：确保物料记录有正确的字段
 const migrateToV8 = async (): Promise<void> => {
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
   
   let updated = false;
@@ -534,7 +517,7 @@ const migrateToV8 = async (): Promise<void> => {
   }
   
   if (updated) {
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     console.log('v8 迁移完成：确保物料字段完整');
   }
 };
@@ -544,7 +527,7 @@ const migrateToV9 = async (): Promise<void> => {
   console.log('v9 迁移：初始化V3.0数据结构');
   
   // 1. 初始化仓库表（创建一个默认仓库）
-  const warehousesData = await AsyncStorage.getItem(WAREHOUSES_KEY);
+  const warehousesData = await AsyncStorage.getItem(STORAGE_KEYS.WAREHOUSES);
   if (!warehousesData) {
     const defaultWarehouse: Warehouse = {
       id: generateId(),
@@ -554,33 +537,33 @@ const migrateToV9 = async (): Promise<void> => {
       created_at: getISODateTime(),
       updated_at: getISODateTime(),
     };
-    await AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify([defaultWarehouse]));
+    await AsyncStorage.setItem(STORAGE_KEYS.WAREHOUSES, JSON.stringify([defaultWarehouse]));
     console.log('v9 迁移：创建默认仓库');
   }
   
   // 2. 初始化空的物料绑定表
-  const bindingsData = await AsyncStorage.getItem(INVENTORY_BINDINGS_KEY);
+  const bindingsData = await AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_BINDINGS);
   if (!bindingsData) {
-    await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify([]));
     console.log('v9 迁移：初始化物料绑定表');
   }
   
   // 3. 初始化空的入库记录表
-  const inboundData = await AsyncStorage.getItem(INBOUND_RECORDS_KEY);
+  const inboundData = await AsyncStorage.getItem(STORAGE_KEYS.INBOUND_RECORDS);
   if (!inboundData) {
-    await AsyncStorage.setItem(INBOUND_RECORDS_KEY, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.INBOUND_RECORDS, JSON.stringify([]));
     console.log('v9 迁移：初始化入库记录表');
   }
   
   // 4. 初始化空的盘点记录表
-  const inventoryData = await AsyncStorage.getItem(INVENTORY_RECORDS_KEY);
+  const inventoryData = await AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_RECORDS);
   if (!inventoryData) {
-    await AsyncStorage.setItem(INVENTORY_RECORDS_KEY, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_RECORDS, JSON.stringify([]));
     console.log('v9 迁移：初始化盘点记录表');
   }
   
   // 5. 为现有物料和订单添加V3.0新字段（保留现有数据，新字段留空）
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   if (materialsData) {
     const materials: MaterialRecord[] = JSON.parse(materialsData);
     let updated = false;
@@ -599,12 +582,12 @@ const migrateToV9 = async (): Promise<void> => {
       }
     }
     if (updated) {
-      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
       console.log('v9 迁移：物料表添加V3.0字段');
     }
   }
   
-  const ordersData = await AsyncStorage.getItem(ORDERS_KEY);
+  const ordersData = await AsyncStorage.getItem(STORAGE_KEYS.ORDERS);
   if (ordersData) {
     const orders: Order[] = JSON.parse(ordersData);
     let updated = false;
@@ -619,7 +602,7 @@ const migrateToV9 = async (): Promise<void> => {
       }
     }
     if (updated) {
-      await AsyncStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      await AsyncStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
       console.log('v9 迁移：订单表添加V3.0字段');
     }
   }
@@ -631,7 +614,7 @@ const migrateToV9 = async (): Promise<void> => {
 const migrateToV10 = async (): Promise<void> => {
   console.log('v10 迁移：为拆包记录添加仓库字段');
   
-  const unpackData = await AsyncStorage.getItem(UNPACK_RECORDS_KEY);
+  const unpackData = await AsyncStorage.getItem(STORAGE_KEYS.UNPACK_RECORDS);
   if (unpackData) {
     const unpackRecords: UnpackRecord[] = JSON.parse(unpackData);
     let updated = false;
@@ -650,7 +633,7 @@ const migrateToV10 = async (): Promise<void> => {
       }
     }
     if (updated) {
-      await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(unpackRecords));
+      await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(unpackRecords));
       console.log('v10 迁移完成：拆包记录添加仓库字段');
     }
   }
@@ -660,7 +643,7 @@ const migrateToV10 = async (): Promise<void> => {
 const migrateToV11 = async (): Promise<void> => {
   console.log('===== v11 迁移开始 =====');
   
-  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
   if (materialsData) {
     const materials: MaterialRecord[] = JSON.parse(materialsData);
     console.log(`v11 迁移：找到 ${materials.length} 条物料`);
@@ -715,7 +698,7 @@ const migrateToV11 = async (): Promise<void> => {
     }
     
     if (updatedCount > 0) {
-      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
       console.log(`v11 完成：修复 ${updatedCount} 条`);
     } else {
       console.log('v11 完成：无数据需要修复');
@@ -734,7 +717,7 @@ export const upsertOrder = async (
     console.log('===== upsertOrder 开始 =====');
     console.log('订单号:', orderNo, '客户名称:', customerName, '仓库:', warehouse?.name);
     
-    const ordersData = await AsyncStorage.getItem(ORDERS_KEY);
+    const ordersData = await AsyncStorage.getItem(STORAGE_KEYS.ORDERS);
     const orders: Order[] = ordersData ? JSON.parse(ordersData) : [];
     
     const existingIndex = orders.findIndex(o => o.order_no === orderNo);
@@ -753,7 +736,7 @@ export const upsertOrder = async (
         }
         
         // 同步更新该订单下所有物料的客户名称
-        const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+        const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
         const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
         console.log('物料总数:', materials.length);
         
@@ -773,14 +756,14 @@ export const upsertOrder = async (
           }
         });
         if (materialsUpdated > 0) {
-          await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+          await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
           console.log(`已同步更新 ${materialsUpdated} 条物料的客户名称`);
         } else {
           console.log('没有需要更新的物料');
         }
         
         // 同步更新该订单下所有拆包记录（标签）的客户名称
-        const unpackData = await AsyncStorage.getItem(UNPACK_RECORDS_KEY);
+        const unpackData = await AsyncStorage.getItem(STORAGE_KEYS.UNPACK_RECORDS);
         const unpackRecords: UnpackRecord[] = unpackData ? JSON.parse(unpackData) : [];
         console.log('拆包记录总数:', unpackRecords.length);
         
@@ -797,7 +780,7 @@ export const upsertOrder = async (
           }
         });
         if (unpackUpdated > 0) {
-          await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(unpackRecords));
+          await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(unpackRecords));
           console.log(`已同步更新 ${unpackUpdated} 条拆包记录的客户名称`);
         }
       }
@@ -814,7 +797,7 @@ export const upsertOrder = async (
       orders.unshift(newOrder); // 添加到开头
     }
     
-    await AsyncStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    await AsyncStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
   } catch (error) {
     console.error('保存订单失败:', error);
     throw error;
@@ -824,7 +807,7 @@ export const upsertOrder = async (
 // 获取订单信息
 export const getOrder = async (orderNo: string): Promise<Order | null> => {
   try {
-    const ordersData = await AsyncStorage.getItem(ORDERS_KEY);
+    const ordersData = await AsyncStorage.getItem(STORAGE_KEYS.ORDERS);
     const orders: Order[] = ordersData ? JSON.parse(ordersData) : [];
     
     return orders.find(o => o.order_no === orderNo) || null;
@@ -837,7 +820,7 @@ export const getOrder = async (orderNo: string): Promise<Order | null> => {
 // 获取所有订单
 export const getAllOrders = async (): Promise<Order[]> => {
   try {
-    const ordersData = await AsyncStorage.getItem(ORDERS_KEY);
+    const ordersData = await AsyncStorage.getItem(STORAGE_KEYS.ORDERS);
     return ordersData ? JSON.parse(ordersData) : [];
   } catch (error) {
     console.error('获取订单列表失败:', error);
@@ -868,7 +851,7 @@ export const addMaterial = async (material: {
   inventory_code?: string;
 }): Promise<string> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     const newMaterial: MaterialRecord = {
@@ -895,7 +878,7 @@ export const addMaterial = async (material: {
     };
     
     materials.unshift(newMaterial); // 添加到开头
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     
     return newMaterial.id;
   } catch (error) {
@@ -907,7 +890,7 @@ export const addMaterial = async (material: {
 // 获取物料记录
 export const getMaterial = async (id: string): Promise<MaterialRecord | null> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     return materials.find(m => m.id === id) || null;
@@ -920,7 +903,7 @@ export const getMaterial = async (id: string): Promise<MaterialRecord | null> =>
 // 获取订单下的所有物料记录
 export const getMaterialsByOrder = async (orderNo: string): Promise<MaterialRecord[]> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     return materials.filter(m => m.order_no === orderNo);
@@ -941,7 +924,7 @@ export const checkMaterialExists = async (
   quantity?: string
 ): Promise<{ material: MaterialRecord | null; isUnpacked: boolean; canRescan: boolean }> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     // 只检测追踪码（T/C），箱号可能重复不检测
@@ -1035,7 +1018,7 @@ export const getNextUnpackIndex = async (traceNo: string): Promise<number> => {
 // 获取所有物料记录
 export const getAllMaterials = async (): Promise<MaterialRecord[]> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     return materialsData ? JSON.parse(materialsData) : [];
   } catch (error) {
     console.error('获取物料列表失败:', error);
@@ -1053,7 +1036,7 @@ export const searchMaterials = async (params: {
   batch?: string;
 }): Promise<MaterialRecord[]> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     let materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     console.log('搜索参数:', params);
@@ -1121,11 +1104,11 @@ export const searchMaterials = async (params: {
 // 删除物料记录
 export const deleteMaterial = async (id: string): Promise<void> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     let materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     materials = materials.filter(m => m.id !== id);
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
   } catch (error) {
     console.error('删除物料记录失败:', error);
     throw error;
@@ -1138,13 +1121,13 @@ export const updateMaterialCustomFields = async (
   customFields: Record<string, string>
 ): Promise<void> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     const index = materials.findIndex(m => m.id === id);
     if (index >= 0) {
       materials[index].customFields = customFields;
-      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     }
   } catch (error) {
     console.error('更新物料自定义字段失败:', error);
@@ -1158,13 +1141,13 @@ export const updateMaterialQuantity = async (
   newQuantity: string
 ): Promise<void> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     const index = materials.findIndex(m => m.id === id);
     if (index >= 0) {
       materials[index].quantity = newQuantity;
-      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     }
   } catch (error) {
     console.error('更新物料数量失败:', error);
@@ -1178,14 +1161,14 @@ export const updateMaterial = async (
   updates: Partial<Pick<MaterialRecord, 'model' | 'batch' | 'quantity' | 'package' | 'version' | 'productionDate' | 'traceNo' | 'sourceNo' | 'customer_name'>>
 ): Promise<void> => {
   try {
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     
     const index = materials.findIndex(m => m.id === id);
     if (index >= 0) {
       // 应用更新
       Object.assign(materials[index], updates);
-      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
     }
   } catch (error) {
     console.error('更新物料信息失败:', error);
@@ -1197,16 +1180,16 @@ export const updateMaterial = async (
 export const deleteOrder = async (orderNo: string): Promise<void> => {
   try {
     // 删除订单
-    const ordersData = await AsyncStorage.getItem(ORDERS_KEY);
+    const ordersData = await AsyncStorage.getItem(STORAGE_KEYS.ORDERS);
     let orders: Order[] = ordersData ? JSON.parse(ordersData) : [];
     orders = orders.filter(o => o.order_no !== orderNo);
-    await AsyncStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    await AsyncStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
     
     // 删除关联的物料记录
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     let materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     materials = materials.filter(m => m.order_no !== orderNo);
-    await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+    await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
   } catch (error) {
     console.error('删除订单失败:', error);
     throw error;
@@ -1232,8 +1215,8 @@ export const getStatistics = async (): Promise<{
   todayQuantity: number;
 }> => {
   try {
-    const ordersData = await AsyncStorage.getItem(ORDERS_KEY);
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const ordersData = await AsyncStorage.getItem(STORAGE_KEYS.ORDERS);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     
     const orders: Order[] = ordersData ? JSON.parse(ordersData) : [];
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
@@ -1278,7 +1261,7 @@ export const getStatistics = async (): Promise<{
 // 初始化默认规则（极海半导体）
 export const initDefaultRules = async (): Promise<void> => {
   try {
-    const rulesData = await AsyncStorage.getItem(RULES_KEY);
+    const rulesData = await AsyncStorage.getItem(STORAGE_KEYS.RULES);
     if (rulesData === null) {
       const defaultRule: QRCodeRule = {
         id: 'default_jihai',
@@ -1290,7 +1273,7 @@ export const initDefaultRules = async (): Promise<void> => {
         created_at: getISODateTime(),
         updated_at: getISODateTime(),
       };
-      await AsyncStorage.setItem(RULES_KEY, JSON.stringify([defaultRule]));
+      await AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify([defaultRule]));
       console.log('初始化默认规则成功');
     }
   } catch (error) {
@@ -1302,7 +1285,7 @@ export const initDefaultRules = async (): Promise<void> => {
 export const getAllRules = async (): Promise<QRCodeRule[]> => {
   try {
     await initDefaultRules(); // 确保默认规则存在
-    const rulesData = await AsyncStorage.getItem(RULES_KEY);
+    const rulesData = await AsyncStorage.getItem(STORAGE_KEYS.RULES);
     return rulesData ? JSON.parse(rulesData) : [];
   } catch (error) {
     console.error('获取规则列表失败:', error);
@@ -1332,7 +1315,7 @@ export const addRule = async (rule: Omit<QRCodeRule, 'id' | 'created_at' | 'upda
       updated_at: getISODateTime(),
     };
     rules.unshift(newRule);
-    await AsyncStorage.setItem(RULES_KEY, JSON.stringify(rules));
+    await AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(rules));
     return newRule.id;
   } catch (error) {
     console.error('添加规则失败:', error);
@@ -1351,7 +1334,7 @@ export const updateRule = async (id: string, updates: Partial<QRCodeRule>): Prom
         ...updates,
         updated_at: getISODateTime(),
       };
-      await AsyncStorage.setItem(RULES_KEY, JSON.stringify(rules));
+      await AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(rules));
     }
   } catch (error) {
     console.error('更新规则失败:', error);
@@ -1364,7 +1347,7 @@ export const deleteRule = async (id: string): Promise<void> => {
   try {
     const rules = await getAllRules();
     const filteredRules = rules.filter(r => r.id !== id);
-    await AsyncStorage.setItem(RULES_KEY, JSON.stringify(filteredRules));
+    await AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(filteredRules));
   } catch (error) {
     console.error('删除规则失败:', error);
     throw error;
@@ -1799,9 +1782,9 @@ export const parseWithRule = (
 // 初始化默认自定义字段
 export const initDefaultCustomFields = async (): Promise<void> => {
   try {
-    const fieldsData = await AsyncStorage.getItem(CUSTOM_FIELDS_KEY);
+    const fieldsData = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS);
     if (fieldsData === null) {
-      await AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify([]));
+      await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify([]));
       console.log('初始化自定义字段成功');
     }
   } catch (error) {
@@ -1813,7 +1796,7 @@ export const initDefaultCustomFields = async (): Promise<void> => {
 export const getAllCustomFields = async (): Promise<CustomField[]> => {
   try {
     await initDefaultCustomFields(); // 确保初始化
-    const fieldsData = await AsyncStorage.getItem(CUSTOM_FIELDS_KEY);
+    const fieldsData = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS);
     const fields: CustomField[] = fieldsData ? JSON.parse(fieldsData) : [];
     // 按排序顺序返回
     return fields.sort((a, b) => a.sortOrder - b.sortOrder);
@@ -1838,7 +1821,7 @@ export const addCustomField = async (field: Omit<CustomField, 'id' | 'created_at
     };
     
     fields.push(newField);
-    await AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(fields));
+    await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify(fields));
     return newField.id;
   } catch (error) {
     console.error('添加自定义字段失败:', error);
@@ -1849,7 +1832,7 @@ export const addCustomField = async (field: Omit<CustomField, 'id' | 'created_at
 // 更新自定义字段
 export const updateCustomField = async (id: string, updates: Partial<CustomField>): Promise<void> => {
   try {
-    const fieldsData = await AsyncStorage.getItem(CUSTOM_FIELDS_KEY);
+    const fieldsData = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS);
     const fields: CustomField[] = fieldsData ? JSON.parse(fieldsData) : [];
     
     const index = fields.findIndex(f => f.id === id);
@@ -1859,7 +1842,7 @@ export const updateCustomField = async (id: string, updates: Partial<CustomField
         ...updates,
         updated_at: getISODateTime(),
       };
-      await AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(fields));
+      await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify(fields));
     }
   } catch (error) {
     console.error('更新自定义字段失败:', error);
@@ -1870,10 +1853,10 @@ export const updateCustomField = async (id: string, updates: Partial<CustomField
 // 删除自定义字段
 export const deleteCustomField = async (id: string): Promise<void> => {
   try {
-    const fieldsData = await AsyncStorage.getItem(CUSTOM_FIELDS_KEY);
+    const fieldsData = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS);
     const fields: CustomField[] = fieldsData ? JSON.parse(fieldsData) : [];
     const filteredFields = fields.filter(f => f.id !== id);
-    await AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(filteredFields));
+    await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify(filteredFields));
   } catch (error) {
     console.error('删除自定义字段失败:', error);
     throw error;
@@ -1883,7 +1866,7 @@ export const deleteCustomField = async (id: string): Promise<void> => {
 // 更新自定义字段排序
 export const reorderCustomFields = async (fieldIds: string[]): Promise<void> => {
   try {
-    const fieldsData = await AsyncStorage.getItem(CUSTOM_FIELDS_KEY);
+    const fieldsData = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS);
     const fields: CustomField[] = fieldsData ? JSON.parse(fieldsData) : [];
     
     fieldIds.forEach((id, index) => {
@@ -1894,7 +1877,7 @@ export const reorderCustomFields = async (fieldIds: string[]): Promise<void> => 
       }
     });
     
-    await AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(fields));
+    await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify(fields));
   } catch (error) {
     console.error('更新自定义字段排序失败:', error);
     throw error;
@@ -1925,10 +1908,10 @@ const SYNC_CONFIG_KEY = '@sync_config';
 export const exportBackupData = async (): Promise<BackupData> => {
   try {
     const [rulesData, customFieldsData, inventoryBindingsData, warehousesData, syncData] = await Promise.all([
-      AsyncStorage.getItem(RULES_KEY),
-      AsyncStorage.getItem(CUSTOM_FIELDS_KEY),
-      AsyncStorage.getItem(INVENTORY_BINDINGS_KEY),
-      AsyncStorage.getItem(WAREHOUSES_KEY),
+      AsyncStorage.getItem(STORAGE_KEYS.RULES),
+      AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS),
+      AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_BINDINGS),
+      AsyncStorage.getItem(STORAGE_KEYS.WAREHOUSES),
       AsyncStorage.getItem(SYNC_CONFIG_KEY),
     ]);
 
@@ -1974,10 +1957,10 @@ export const importBackupData = async (backup: BackupData): Promise<{
 
     // 恢复数据（恢复配置项 + 物料绑定 + 仓库 + 同步配置）
     const promises: Promise<void>[] = [
-      AsyncStorage.setItem(RULES_KEY, JSON.stringify(backup.rules || [])),
-      AsyncStorage.setItem(CUSTOM_FIELDS_KEY, JSON.stringify(backup.customFields || [])),
-      AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(backup.inventoryBindings || [])),
-      AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(backup.warehouses || [])),
+      AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(backup.rules || [])),
+      AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify(backup.customFields || [])),
+      AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify(backup.inventoryBindings || [])),
+      AsyncStorage.setItem(STORAGE_KEYS.WAREHOUSES, JSON.stringify(backup.warehouses || [])),
     ];
 
     // 如果备份中包含同步配置，也恢复它
@@ -2012,9 +1995,9 @@ export const getConfigStats = async (): Promise<{
 }> => {
   try {
     const [rulesData, customFieldsData, inventoryBindingsData] = await Promise.all([
-      AsyncStorage.getItem(RULES_KEY),
-      AsyncStorage.getItem(CUSTOM_FIELDS_KEY),
-      AsyncStorage.getItem(INVENTORY_BINDINGS_KEY),
+      AsyncStorage.getItem(STORAGE_KEYS.RULES),
+      AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS),
+      AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_BINDINGS),
     ]);
 
     return {
@@ -2032,12 +2015,12 @@ export const getConfigStats = async (): Promise<{
 export const clearAllData = async (): Promise<void> => {
   try {
     await Promise.all([
-      AsyncStorage.removeItem(ORDERS_KEY),
-      AsyncStorage.removeItem(MATERIALS_KEY),
-      AsyncStorage.removeItem(RULES_KEY),
-      AsyncStorage.removeItem(CUSTOM_FIELDS_KEY),
-      AsyncStorage.removeItem(UNPACK_RECORDS_KEY),
-      AsyncStorage.removeItem(PRINT_HISTORY_KEY),
+      AsyncStorage.removeItem(STORAGE_KEYS.ORDERS),
+      AsyncStorage.removeItem(STORAGE_KEYS.MATERIALS),
+      AsyncStorage.removeItem(STORAGE_KEYS.RULES),
+      AsyncStorage.removeItem(STORAGE_KEYS.CUSTOM_FIELDS),
+      AsyncStorage.removeItem(STORAGE_KEYS.UNPACK_RECORDS),
+      AsyncStorage.removeItem(STORAGE_KEYS.PRINT_HISTORY),
     ]);
   } catch (error) {
     console.error('清空数据失败:', error);
@@ -2050,7 +2033,7 @@ export const clearAllData = async (): Promise<void> => {
 // 获取所有拆包记录
 export const getAllUnpackRecords = async (): Promise<UnpackRecord[]> => {
   try {
-    const data = await AsyncStorage.getItem(UNPACK_RECORDS_KEY);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.UNPACK_RECORDS);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('获取拆包记录失败:', error);
@@ -2170,14 +2153,14 @@ export const addUnpackRecord = async (record: {
     // 添加两条记录
     records.unshift(shippedRecord);
     records.unshift(remainingRecord);
-    await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(records));
+    await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(records));
     
     console.log('生成两条标签:');
     console.log('- 发货标签:', record.new_traceNo, '数量:', record.new_quantity);
     console.log('- 剩余标签:', record.traceNo, '数量:', record.remaining_quantity);
     
     // 更新原物料：累计发货数量，剩余数量用于下次拆包
-    const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+    const materialsData = await AsyncStorage.getItem(STORAGE_KEYS.MATERIALS);
     const materials: MaterialRecord[] = materialsData ? JSON.parse(materialsData) : [];
     const materialIndex = materials.findIndex(m => m.id === record.original_material_id);
     
@@ -2210,7 +2193,7 @@ export const addUnpackRecord = async (record: {
         remaining_quantity: record.remaining_quantity,
       };
       
-      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      await AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(materials));
       console.log('更新原物料：累计发货', newShippedQty, '个，剩余', record.remaining_quantity, '个待入库');
     }
     
@@ -2235,7 +2218,7 @@ export const markUnpackRecordsAsPrinted = async (ids: string[]): Promise<void> =
       }
     });
     
-    await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(records));
+    await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(records));
   } catch (error) {
     console.error('更新拆包记录状态失败:', error);
     throw error;
@@ -2247,7 +2230,7 @@ export const deleteUnpackRecord = async (id: string): Promise<void> => {
   try {
     const records = await getAllUnpackRecords();
     const filtered = records.filter(r => r.id !== id);
-    await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(filtered));
   } catch (error) {
     console.error('删除拆包记录失败:', error);
     throw error;
@@ -2259,7 +2242,7 @@ export const deleteUnpackRecords = async (ids: string[]): Promise<void> => {
   try {
     const records = await getAllUnpackRecords();
     const filtered = records.filter(r => !ids.includes(r.id));
-    await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify(filtered));
   } catch (error) {
     console.error('批量删除拆包记录失败:', error);
     throw error;
@@ -2271,7 +2254,7 @@ export const deleteUnpackRecords = async (ids: string[]): Promise<void> => {
 // 获取所有打印历史
 export const getAllPrintHistory = async (): Promise<PrintHistory[]> => {
   try {
-    const data = await AsyncStorage.getItem(PRINT_HISTORY_KEY);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.PRINT_HISTORY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('获取打印历史失败:', error);
@@ -2300,7 +2283,7 @@ export const addPrintHistory = async (history: {
     };
     
     histories.unshift(newHistory);
-    await AsyncStorage.setItem(PRINT_HISTORY_KEY, JSON.stringify(histories));
+    await AsyncStorage.setItem(STORAGE_KEYS.PRINT_HISTORY, JSON.stringify(histories));
     
     return newHistory.id;
   } catch (error) {
@@ -2314,7 +2297,7 @@ export const addPrintHistory = async (history: {
 // 获取所有仓库
 export const getAllWarehouses = async (): Promise<Warehouse[]> => {
   try {
-    const data = await AsyncStorage.getItem(WAREHOUSES_KEY);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.WAREHOUSES);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('获取仓库列表失败:', error);
@@ -2350,7 +2333,7 @@ export const addWarehouse = async (warehouse: Omit<Warehouse, 'id' | 'created_at
     }
     
     warehouses.push(newWarehouse);
-    await AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(warehouses));
+    await AsyncStorage.setItem(STORAGE_KEYS.WAREHOUSES, JSON.stringify(warehouses));
     return newWarehouse.id;
   } catch (error) {
     console.error('添加仓库失败:', error);
@@ -2375,7 +2358,7 @@ export const updateWarehouse = async (id: string, updates: Partial<Warehouse>): 
         ...updates,
         updated_at: getISODateTime(),
       };
-      await AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(warehouses));
+      await AsyncStorage.setItem(STORAGE_KEYS.WAREHOUSES, JSON.stringify(warehouses));
     }
   } catch (error) {
     console.error('更新仓库失败:', error);
@@ -2388,7 +2371,7 @@ export const deleteWarehouse = async (id: string): Promise<void> => {
   try {
     const warehouses = await getAllWarehouses();
     const filtered = warehouses.filter(w => w.id !== id);
-    await AsyncStorage.setItem(WAREHOUSES_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(STORAGE_KEYS.WAREHOUSES, JSON.stringify(filtered));
   } catch (error) {
     console.error('删除仓库失败:', error);
     throw error;
@@ -2400,7 +2383,7 @@ export const deleteWarehouse = async (id: string): Promise<void> => {
 // 获取所有物料绑定
 export const getAllInventoryBindings = async (): Promise<InventoryBinding[]> => {
   try {
-    const data = await AsyncStorage.getItem(INVENTORY_BINDINGS_KEY);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_BINDINGS);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('获取物料绑定列表失败:', error);
@@ -2445,7 +2428,7 @@ export const addInventoryBinding = async (binding: Omit<InventoryBinding, 'id' |
       existing.supplier = binding.supplier || existing.supplier;
       existing.description = binding.description || existing.description;
       existing.updated_at = getISODateTime();
-      await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(bindings));
+      await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify(bindings));
       return existing.id;
     }
     
@@ -2457,7 +2440,7 @@ export const addInventoryBinding = async (binding: Omit<InventoryBinding, 'id' |
     };
     
     bindings.push(newBinding);
-    await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(bindings));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify(bindings));
     return newBinding.id;
   } catch (error) {
     console.error('添加物料绑定失败:', error);
@@ -2477,7 +2460,7 @@ export const updateInventoryBinding = async (id: string, updates: Partial<Invent
         ...updates,
         updated_at: getISODateTime(),
       };
-      await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(bindings));
+      await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify(bindings));
     }
   } catch (error) {
     console.error('更新物料绑定失败:', error);
@@ -2490,7 +2473,7 @@ export const deleteInventoryBinding = async (id: string): Promise<void> => {
   try {
     const bindings = await getAllInventoryBindings();
     const filtered = bindings.filter(b => b.id !== id);
-    await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify(filtered));
   } catch (error) {
     console.error('删除物料绑定失败:', error);
     throw error;
@@ -2525,7 +2508,7 @@ export const importInventoryBindings = async (bindings: Array<{ scan_model: stri
       }
     }
     
-    await AsyncStorage.setItem(INVENTORY_BINDINGS_KEY, JSON.stringify(existingBindings));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_BINDINGS, JSON.stringify(existingBindings));
     return importCount;
   } catch (error) {
     console.error('批量导入物料绑定失败:', error);
@@ -2573,7 +2556,7 @@ export const generateInboundNo = async (): Promise<string> => {
 // 获取所有入库记录
 export const getAllInboundRecords = async (): Promise<InboundRecord[]> => {
   try {
-    const data = await AsyncStorage.getItem(INBOUND_RECORDS_KEY);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.INBOUND_RECORDS);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('获取入库记录列表失败:', error);
@@ -2592,7 +2575,7 @@ export const addInboundRecord = async (record: Omit<InboundRecord, 'id' | 'creat
     };
     
     records.unshift(newRecord);
-    await AsyncStorage.setItem(INBOUND_RECORDS_KEY, JSON.stringify(records));
+    await AsyncStorage.setItem(STORAGE_KEYS.INBOUND_RECORDS, JSON.stringify(records));
     return newRecord.id;
   } catch (error) {
     console.error('添加入库记录失败:', error);
@@ -2605,7 +2588,7 @@ export const deleteInboundRecord = async (id: string): Promise<void> => {
   try {
     const records = await getAllInboundRecords();
     const filtered = records.filter(r => r.id !== id);
-    await AsyncStorage.setItem(INBOUND_RECORDS_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(STORAGE_KEYS.INBOUND_RECORDS, JSON.stringify(filtered));
   } catch (error) {
     console.error('删除入库记录失败:', error);
     throw error;
@@ -2615,7 +2598,7 @@ export const deleteInboundRecord = async (id: string): Promise<void> => {
 // 清空所有入库记录
 export const clearAllInboundRecords = async (): Promise<void> => {
   try {
-    await AsyncStorage.setItem(INBOUND_RECORDS_KEY, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.INBOUND_RECORDS, JSON.stringify([]));
   } catch (error) {
     console.error('清空入库记录失败:', error);
     throw error;
@@ -2654,7 +2637,7 @@ export const generateCheckNo = async (): Promise<string> => {
 // 获取所有盘点记录
 export const getAllInventoryCheckRecords = async (): Promise<InventoryCheckRecord[]> => {
   try {
-    const data = await AsyncStorage.getItem(INVENTORY_RECORDS_KEY);
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_RECORDS);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('获取盘点记录列表失败:', error);
@@ -2673,7 +2656,7 @@ export const addInventoryCheckRecord = async (record: Omit<InventoryCheckRecord,
     };
     
     records.unshift(newRecord);
-    await AsyncStorage.setItem(INVENTORY_RECORDS_KEY, JSON.stringify(records));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_RECORDS, JSON.stringify(records));
     return newRecord.id;
   } catch (error) {
     console.error('添加盘点记录失败:', error);
@@ -2686,7 +2669,7 @@ export const deleteInventoryCheckRecord = async (id: string): Promise<void> => {
   try {
     const records = await getAllInventoryCheckRecords();
     const filtered = records.filter(r => r.id !== id);
-    await AsyncStorage.setItem(INVENTORY_RECORDS_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_RECORDS, JSON.stringify(filtered));
   } catch (error) {
     console.error('删除盘点记录失败:', error);
     throw error;
@@ -2696,7 +2679,7 @@ export const deleteInventoryCheckRecord = async (id: string): Promise<void> => {
 // 清空所有盘点记录
 export const clearAllInventoryCheckRecords = async (): Promise<void> => {
   try {
-    await AsyncStorage.setItem(INVENTORY_RECORDS_KEY, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_RECORDS, JSON.stringify([]));
   } catch (error) {
     console.error('清空盘点记录失败:', error);
     throw error;
@@ -2709,12 +2692,12 @@ export const clearAllInventoryCheckRecords = async (): Promise<void> => {
 export const clearAllBusinessData = async (): Promise<void> => {
   try {
     await Promise.all([
-      AsyncStorage.setItem(ORDERS_KEY, JSON.stringify([])),
-      AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify([])),
-      AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify([])),
-      AsyncStorage.setItem(PRINT_HISTORY_KEY, JSON.stringify([])),
-      AsyncStorage.setItem(INBOUND_RECORDS_KEY, JSON.stringify([])),
-      AsyncStorage.setItem(INVENTORY_RECORDS_KEY, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.UNPACK_RECORDS, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.PRINT_HISTORY, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.INBOUND_RECORDS, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_RECORDS, JSON.stringify([])),
     ]);
     console.log('清空业务数据成功');
   } catch (error) {
@@ -2727,17 +2710,17 @@ export const clearAllBusinessData = async (): Promise<void> => {
 export const clearAllDataV3 = async (): Promise<void> => {
   try {
     await Promise.all([
-      AsyncStorage.removeItem(ORDERS_KEY),
-      AsyncStorage.removeItem(MATERIALS_KEY),
-      AsyncStorage.removeItem(RULES_KEY),
-      AsyncStorage.removeItem(CUSTOM_FIELDS_KEY),
-      AsyncStorage.removeItem(UNPACK_RECORDS_KEY),
-      AsyncStorage.removeItem(PRINT_HISTORY_KEY),
-      AsyncStorage.removeItem(WAREHOUSES_KEY),
-      AsyncStorage.removeItem(INVENTORY_BINDINGS_KEY),
-      AsyncStorage.removeItem(INBOUND_RECORDS_KEY),
-      AsyncStorage.removeItem(INVENTORY_RECORDS_KEY),
-      AsyncStorage.removeItem(DATA_VERSION_KEY),
+      AsyncStorage.removeItem(STORAGE_KEYS.ORDERS),
+      AsyncStorage.removeItem(STORAGE_KEYS.MATERIALS),
+      AsyncStorage.removeItem(STORAGE_KEYS.RULES),
+      AsyncStorage.removeItem(STORAGE_KEYS.CUSTOM_FIELDS),
+      AsyncStorage.removeItem(STORAGE_KEYS.UNPACK_RECORDS),
+      AsyncStorage.removeItem(STORAGE_KEYS.PRINT_HISTORY),
+      AsyncStorage.removeItem(STORAGE_KEYS.WAREHOUSES),
+      AsyncStorage.removeItem(STORAGE_KEYS.INVENTORY_BINDINGS),
+      AsyncStorage.removeItem(STORAGE_KEYS.INBOUND_RECORDS),
+      AsyncStorage.removeItem(STORAGE_KEYS.INVENTORY_RECORDS),
+      AsyncStorage.removeItem(STORAGE_KEYS.DATA_VERSION),
     ]);
     console.log('清空所有数据成功');
   } catch (error) {
@@ -2748,18 +2731,12 @@ export const clearAllDataV3 = async (): Promise<void> => {
 
 // ============== 导出计数器 ==============
 
-interface ExportCountData {
-  date: string;       // 日期 YYYY-MM-DD
-  inboundCount: number;  // 入库导出次数
-  outboundCount: number; // 出库导出次数
-}
-
 // 获取当天的导出序号（入库/出库）
 // 返回格式：01, 02, 03...
-export const getTodayExportCount = async (type: 'inbound' | 'outbound'): Promise<number> => {
+export const getTodayExportCount = async (type: ExportType): Promise<number> => {
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const dataStr = await AsyncStorage.getItem(EXPORT_COUNT_KEY);
+    const dataStr = await AsyncStorage.getItem(STORAGE_KEYS.EXPORT_COUNT);
     const data: ExportCountData = dataStr ? JSON.parse(dataStr) : { date: '', inboundCount: 0, outboundCount: 0 };
     
     // 如果日期不是今天，重置计数器
@@ -2775,10 +2752,10 @@ export const getTodayExportCount = async (type: 'inbound' | 'outbound'): Promise
 };
 
 // 增加导出计数并返回新的序号
-export const incrementExportCount = async (type: 'inbound' | 'outbound'): Promise<number> => {
+export const incrementExportCount = async (type: ExportType): Promise<number> => {
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const dataStr = await AsyncStorage.getItem(EXPORT_COUNT_KEY);
+    const dataStr = await AsyncStorage.getItem(STORAGE_KEYS.EXPORT_COUNT);
     let data: ExportCountData = dataStr ? JSON.parse(dataStr) : { date: '', inboundCount: 0, outboundCount: 0 };
     
     // 如果日期不是今天，重置计数器
@@ -2794,7 +2771,7 @@ export const incrementExportCount = async (type: 'inbound' | 'outbound'): Promis
       data.outboundCount = newCount;
     }
     
-    await AsyncStorage.setItem(EXPORT_COUNT_KEY, JSON.stringify(data));
+    await AsyncStorage.setItem(STORAGE_KEYS.EXPORT_COUNT, JSON.stringify(data));
     return newCount;
   } catch (error) {
     console.error('增加导出计数失败:', error);
@@ -2802,5 +2779,5 @@ export const incrementExportCount = async (type: 'inbound' | 'outbound'): Promis
   }
 };
 
-// 导出导出计数器存储键（供外部使用）
-export { EXPORT_COUNT_KEY };
+// 导出类型和配置键（供外部使用）
+export { ExportType, ExportCountData, STORAGE_KEYS } from '@/constants/config';

@@ -24,7 +24,6 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as MediaLibrary from 'expo-media-library';
 import * as XLSX from 'xlsx';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getAllMaterials,
   getAllUnpackRecords,
@@ -35,48 +34,41 @@ import {
   importBackupData,
   getConfigStats,
   clearAllBusinessData,
-  getTodayExportCount,
   incrementExportCount,
   CustomField,
   BackupData,
+  STORAGE_KEYS,
 } from '@/utils/database';
 import { formatDateTime, formatTime, formatDate } from '@/utils/time';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
 import { AnimatedCard } from '@/components/AnimatedCard';
-import { getSpacing, Spacing } from '@/constants/theme';
+import { getSpacing } from '@/constants/theme';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { rs } from '@/utils/responsive';
 import { APP_VERSION, APP_NAME, COMPANY_NAME, AUTHOR } from '@/constants/version';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, setSoundEnabled as setSoundEnabledFn, initSoundSetting, SOUND_ENABLED_KEY } from '@/utils/feedback';
+import { feedbackSuccess, feedbackWarning, setSoundEnabled as setSoundEnabledFn, initSoundSetting } from '@/utils/feedback';
+import { syncExcelToComputer, ExcelSheet } from '@/utils/excel';
+import { 
+  testConnection, 
+  useHeartbeat 
+} from '@/utils/heartbeat';
+import {
+  UPDATE_CONFIG,
+  NETWORK_CONFIG,
+  SyncConfig,
+  ConnectionStatus,
+} from '@/constants/config';
 
 // 使用 any 绕过类型检查
 const FileSystem = FileSystemLegacy as any;
 
-// 电脑同步配置存储键
-const SYNC_CONFIG_KEY = '@sync_config';
-const CONNECTION_STATUS_KEY = '@sync_connection_status';
-const UPDATE_SERVER_KEY = '@update_server_url';
-
 // 更新服务器配置（请修改为你的NAS地址）
 // 完整URL（含认证信息），兼容Android 7.0
-const DEFAULT_UPDATE_SERVER = 'http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate';
-
-interface SyncConfig {
-  ip: string;
-  port: string;
-}
-
-// 连接状态类型
-type ConnectionStatus = 'idle' | 'testing' | 'success' | 'disconnected' | 'error';
-
-// 心跳检测配置
-const HEARTBEAT_INTERVAL = 10000;
-const HEARTBEAT_TIMEOUT = 5000;
-const MAX_FAILURE_COUNT = 2;
+const DEFAULT_UPDATE_SERVER = UPDATE_CONFIG.DEFAULT_SERVER;
 
 export default function SettingsScreen() {
   const { theme, isDark } = useTheme();
@@ -150,10 +142,10 @@ export default function SettingsScreen() {
     const [fieldsData, stats, savedSyncConfig, savedConnectionStatus, savedUpdateServer, savedSoundEnabled] = await Promise.all([
       getAllCustomFields(),
       getConfigStats(),
-      AsyncStorage.getItem(SYNC_CONFIG_KEY),
-      AsyncStorage.getItem(CONNECTION_STATUS_KEY),
-      AsyncStorage.getItem(UPDATE_SERVER_KEY),
-      AsyncStorage.getItem(SOUND_ENABLED_KEY),
+      AsyncStorage.getItem(STORAGE_KEYS.SYNC_CONFIG),
+      AsyncStorage.getItem(STORAGE_KEYS.CONNECTION_STATUS),
+      AsyncStorage.getItem(STORAGE_KEYS.UPDATE_SERVER_URL),
+      AsyncStorage.getItem(STORAGE_KEYS.SOUND_ENABLED),
     ]);
     setCustomFields(fieldsData);
     setConfigStats(stats);
@@ -174,23 +166,8 @@ export default function SettingsScreen() {
       // 如果之前是已连接状态，自动验证连接
       if (savedConnectionStatus === 'success' && config.ip) {
         setConnectionStatus('testing');
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), HEARTBEAT_TIMEOUT);
-          const response = await fetch(
-            `http://${config.ip}:${config.port || '8080'}/health`,
-            { signal: controller.signal }
-          );
-          clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            setConnectionStatus('success');
-          } else {
-            setConnectionStatus('disconnected');
-          }
-        } catch {
-          setConnectionStatus('disconnected');
-        }
+        const success = await testConnection(config);
+        setConnectionStatus(success ? 'success' : 'disconnected');
       } else if (savedConnectionStatus === 'disconnected') {
         setConnectionStatus('disconnected');
       }
@@ -199,11 +176,9 @@ export default function SettingsScreen() {
   
   // 切换声音开关
   const toggleSound = useCallback(async (value: boolean) => {
-    setSoundEnabled(value);  // 更新 UI 状态
-    setSoundEnabledFn(value);  // 更新 feedback.ts 中的缓存
-    await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(value));
-    // 同时更新全局设置
-    await AsyncStorage.setItem('@settings_sound_enabled', String(value));
+    setSoundEnabled(value);
+    setSoundEnabledFn(value);
+    await AsyncStorage.setItem(STORAGE_KEYS.SOUND_ENABLED, String(value));
   }, []);
   
   useFocusEffect(
@@ -227,10 +202,10 @@ export default function SettingsScreen() {
     heartbeatTimerRef.current = setInterval(async () => {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), HEARTBEAT_TIMEOUT);
+        const timeoutId = setTimeout(() => controller.abort(), NETWORK_CONFIG.HEARTBEAT_TIMEOUT);
         
         const response = await fetch(
-          `http://${syncConfig.ip}:${syncConfig.port || '8080'}/health`,
+          `http://${syncConfig.ip}:${syncConfig.port || NETWORK_CONFIG.DEFAULT_PORT}/health`,
           { signal: controller.signal }
         );
         clearTimeout(timeoutId);
@@ -244,12 +219,12 @@ export default function SettingsScreen() {
         failureCountRef.current++;
       }
       
-      if (failureCountRef.current >= MAX_FAILURE_COUNT) {
+      if (failureCountRef.current >= NETWORK_CONFIG.MAX_FAILURE_COUNT) {
         setConnectionStatus('disconnected');
-        await AsyncStorage.setItem(CONNECTION_STATUS_KEY, 'disconnected');
+        await AsyncStorage.setItem(STORAGE_KEYS.CONNECTION_STATUS, 'disconnected');
         stopHeartbeat();
       }
-    }, HEARTBEAT_INTERVAL);
+    }, NETWORK_CONFIG.HEARTBEAT_INTERVAL);
   };
   
   const stopHeartbeat = () => {
@@ -279,31 +254,13 @@ export default function SettingsScreen() {
     }
     
     setConnectionStatus('testing');
-    
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), HEARTBEAT_TIMEOUT);
-      
-      const response = await fetch(
-        `http://${syncConfig.ip}:${syncConfig.port || '8080'}/health`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        setConnectionStatus('success');
-        await Promise.all([
-          AsyncStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(syncConfig)),
-          AsyncStorage.setItem(CONNECTION_STATUS_KEY, 'success'),
-        ]);
-      } else {
-        setConnectionStatus('error');
-        await AsyncStorage.setItem(CONNECTION_STATUS_KEY, 'error');
-      }
-    } catch {
-      setConnectionStatus('error');
-      await AsyncStorage.setItem(CONNECTION_STATUS_KEY, 'error');
-    }
+    const success = await testConnection(syncConfig);
+    const status: ConnectionStatus = success ? 'success' : 'error';
+    setConnectionStatus(status);
+    await Promise.all([
+      AsyncStorage.setItem(STORAGE_KEYS.SYNC_CONFIG, JSON.stringify(syncConfig)),
+      AsyncStorage.setItem(STORAGE_KEYS.CONNECTION_STATUS, status),
+    ]);
   };
   
   // 生成 Excel 并同步到电脑（支持多Sheet）
@@ -317,79 +274,22 @@ export default function SettingsScreen() {
     setLoading: (loading: boolean) => void,
     nameSuffix?: string
   ) => {
-    if (!syncConfig.ip) {
-      alert.showWarning('请先配置服务器地址');
-      return;
-    }
-    
-    const totalRows = sheets.reduce((sum, s) => sum + s.rows.length, 0);
-    if (totalRows === 0) {
-      alert.showWarning('暂无数据可同步');
-      return;
-    }
-    
     setLoading(true);
     try {
-      const wb = XLSX.utils.book_new();
+      const result = await syncExcelToComputer(
+        sheets,
+        endpoint,
+        syncConfig,
+        nameSuffix,
+        (path) => alert.showSuccess(`同步成功！\n路径: ${path}`),
+        (error) => alert.showError(error)
+      );
       
-      for (const sheet of sheets) {
-        if (sheet.rows.length === 0) continue;
-        
-        const ws = XLSX.utils.aoa_to_sheet([sheet.headers, ...sheet.rows]);
-        
-        // 自动列宽
-        const colWidths = sheet.headers.map((header, colIdx) => {
-          let maxWidth = header.length;
-          sheet.rows.forEach(row => {
-            const cellValue = String(row[colIdx] || '');
-            const width = cellValue.split('').reduce((acc, char) => {
-              return acc + (char.charCodeAt(0) > 127 ? 2 : 1);
-            }, 0);
-            if (width > maxWidth) maxWidth = width;
-          });
-          return { wch: Math.min(maxWidth + 2, 50) };
-        });
-        ws['!cols'] = colWidths;
-        
-        XLSX.utils.book_append_sheet(wb, ws, sheet.name);
-      }
-      
-      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-      
-      const binaryString = atob(wbout);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      
-      const baseUrl = `http://${syncConfig.ip}:${syncConfig.port || '8080'}${endpoint}`;
-      const url = nameSuffix ? `${baseUrl}?name_suffix=${encodeURIComponent(nameSuffix)}` : baseUrl;
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        },
-        body: bytes,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        alert.showSuccess(`同步成功！\n路径: ${result.path || ''}`);
-      } else {
-        alert.showError('同步失败: ' + (result.message || '未知错误'));
+      if (!result.success && result.message) {
+        alert.showError(result.message);
       }
     } catch (error: any) {
-      const errorMsg = error.name === 'AbortError' 
-        ? '同步超时（30秒）' 
-        : `同步失败: ${error.message || '请检查服务是否运行'}`;
-      alert.showError(errorMsg);
+      alert.showError(`同步失败: ${error.message || '请检查服务是否运行'}`);
     } finally {
       setLoading(false);
     }
@@ -409,8 +309,6 @@ export default function SettingsScreen() {
       // 获取当天的导出序号（按天递增）
       const todayCount = await incrementExportCount('inbound');
       const seqNo = String(todayCount).padStart(2, '0');
-
-      const wb = XLSX.utils.book_new();
 
       // 入库明细表
       const detailHeaders = [
@@ -436,65 +334,18 @@ export default function SettingsScreen() {
         r.created_at ? formatDateTime(r.created_at) : '',
       ]);
 
-      const ws = XLSX.utils.aoa_to_sheet([detailHeaders, ...detailRows]);
-
-      // 自动列宽
-      const colWidths = detailHeaders.map((header, colIdx) => {
-        let maxWidth = header.length;
-        detailRows.forEach(row => {
-          const cellValue = String(row[colIdx] || '');
-          const width = cellValue.split('').reduce((acc, char) => {
-            return acc + (char.charCodeAt(0) > 127 ? 2 : 1);
-          }, 0);
-          if (width > maxWidth) maxWidth = width;
-        });
-        return { wch: Math.min(maxWidth + 2, 50) };
-      });
-      ws['!cols'] = colWidths;
-
-      XLSX.utils.book_append_sheet(wb, ws, '入库明细');
-
-      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-
-      const binaryString = atob(wbout);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
       // 获取唯一仓库名称列表
       const warehouses = [...new Set(records.map(r => r.warehouse_name).filter(Boolean))];
       const nameSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
 
-      const baseUrl = `http://${syncConfig.ip}:${syncConfig.port || '8080'}/inbound`;
-      const url = nameSuffix ? `${baseUrl}?name_suffix=${encodeURIComponent(nameSuffix)}` : baseUrl;
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        },
-        body: bytes,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert.showSuccess(`同步成功！\n路径: ${result.path || ''}`);
-      } else {
-        alert.showError('同步失败: ' + (result.message || '未知错误'));
-      }
+      await syncToComputerMultiSheet(
+        [{ name: '入库明细', headers: detailHeaders, rows: detailRows }],
+        '/inbound',
+        setSyncingInbound,
+        nameSuffix
+      );
     } catch (error: any) {
-      const errorMsg = error.name === 'AbortError'
-        ? '同步超时（30秒）'
-        : `同步失败: ${error.message || '请检查服务是否运行'}`;
-      alert.showError(errorMsg);
-    } finally {
+      alert.showError(`同步失败: ${error.message || '请检查服务是否运行'}`);
       setSyncingInbound(false);
     }
   };
@@ -883,7 +734,7 @@ export default function SettingsScreen() {
     }
     
     try {
-      await AsyncStorage.setItem(UPDATE_SERVER_KEY, updateServerDisplayUrl.trim());
+      await AsyncStorage.setItem(STORAGE_KEYS.UPDATE_SERVER_URL, updateServerDisplayUrl.trim());
       setUpdateServerUrl(updateServerDisplayUrl.trim());
       setUpdateServerEditing(false);
       alert.showSuccess('更新服务器地址已保存');
