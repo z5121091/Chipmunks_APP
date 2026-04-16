@@ -33,6 +33,7 @@ import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, feedbackConfirm, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 import { Str } from '@/resources/strings';
+import { formatDateTime, formatDate } from '@/utils/time';
 
 // 扫描记录类型
 interface ScanRecord {
@@ -281,7 +282,7 @@ export default function InboundScreen() {
         model: parsed.model,
         batch: parsed.batch,
         quantity,
-        scanTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        scanTime: formatDateTime(new Date().toISOString()),
         rawContent: code,
         inventoryCode: inventoryCode || undefined,
         supplier: supplier || undefined,
@@ -437,7 +438,7 @@ export default function InboundScreen() {
 
     setSaving(true);
     try {
-      const today = new Date().toLocaleDateString('zh-CN');
+      const today = formatDate(new Date().toISOString());
 
       // 保存每条扫描记录
       for (const record of scanRecords) {

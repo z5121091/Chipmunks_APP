@@ -35,6 +35,7 @@ import { Spacing } from '@/constants/theme';
 import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, feedbackConfirm, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { formatDateTime, formatDate } from '@/utils/time';
 
 // 盘点类型
 type CheckType = 'whole' | 'partial';
@@ -333,7 +334,7 @@ export default function InventoryScreen() {
         quantity,
         actualQuantity: checkType === 'partial' ? quantity : undefined,
         inventoryCode: inventoryCode || undefined,
-        scanTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        scanTime: formatDateTime(new Date().toISOString()),
         // 扩展字段
         package: standardFields.package || undefined,
         version: version || undefined,
@@ -520,7 +521,7 @@ export default function InventoryScreen() {
 
     try {
       const checkNo = await generateCheckNo();
-      const today = new Date().toLocaleDateString('zh-CN');
+      const today = formatDate(new Date().toISOString());
 
       for (const record of scanRecords) {
         await addInventoryCheckRecord({
