@@ -18,7 +18,7 @@ const INVENTORY_RECORDS_KEY = '@warehouse_inventory_records';
 
 // 数据版本管理
 const DATA_VERSION_KEY = '@warehouse_data_version';
-const CURRENT_DATA_VERSION = 10; // 更新此版本号触发迁移
+const CURRENT_DATA_VERSION = 11; // 更新此版本号触发迁移
 
 // 匹配条件接口（简化版：指定位置字段包含指定关键字）
 export interface MatchCondition {
@@ -366,6 +366,10 @@ const runMigrations = async (): Promise<void> => {
           // v10: 为拆包记录添加仓库字段
           await migrateToV10();
           break;
+        case 11:
+          // v11: 重新解析二维码内容，修复 productionDate 字段
+          await migrateToV11();
+          break;
         default:
           break;
       }
@@ -645,6 +649,69 @@ const migrateToV10 = async (): Promise<void> => {
     if (updated) {
       await AsyncStorage.setItem(UNPACK_RECORDS_KEY, JSON.stringify(unpackRecords));
       console.log('v10 迁移完成：拆包记录添加仓库字段');
+    }
+  }
+};
+
+// v11 迁移：重新解析二维码内容，修复 productionDate 字段
+const migrateToV11 = async (): Promise<void> => {
+  console.log('v11 迁移：重新解析二维码内容，修复 productionDate 字段');
+  
+  const materialsData = await AsyncStorage.getItem(MATERIALS_KEY);
+  if (materialsData) {
+    const materials: MaterialRecord[] = JSON.parse(materialsData);
+    let updatedCount = 0;
+    
+    for (const material of materials) {
+      // 如果有原始二维码内容，尝试重新解析
+      if (material.raw_content && material.raw_content.trim()) {
+        try {
+          // 检测规则
+          const rule = await detectRule(material.raw_content);
+          if (rule) {
+            // 使用规则解析
+            const { standardFields } = parseWithRule(material.raw_content, rule);
+            
+            // 如果解析出的生产日期有值，且当前物料的生产日期为空或无效，则更新
+            if (standardFields.productionDate && standardFields.productionDate.trim()) {
+              if (!material.productionDate || !material.productionDate.trim()) {
+                material.productionDate = standardFields.productionDate.trim();
+                updatedCount++;
+                console.log(`修复物料 ${material.id} 的生产日期: ${material.productionDate}`);
+              }
+            }
+            
+            // 同时修复其他可能为空的字段
+            if (!material.batch && standardFields.batch) {
+              material.batch = standardFields.batch;
+            }
+            if (!material.package && standardFields.package) {
+              material.package = standardFields.package;
+            }
+            if (!material.version && standardFields.version) {
+              material.version = standardFields.version;
+            }
+            if (!material.quantity && standardFields.quantity) {
+              material.quantity = standardFields.quantity;
+            }
+            if (!material.traceNo && standardFields.traceNo) {
+              material.traceNo = standardFields.traceNo;
+            }
+            if (!material.sourceNo && standardFields.sourceNo) {
+              material.sourceNo = standardFields.sourceNo;
+            }
+          }
+        } catch (e) {
+          console.log(`解析物料 ${material.id} 失败:`, e);
+        }
+      }
+    }
+    
+    if (updatedCount > 0) {
+      await AsyncStorage.setItem(MATERIALS_KEY, JSON.stringify(materials));
+      console.log(`v11 迁移完成：修复了 ${updatedCount} 条物料的生产日期`);
+    } else {
+      console.log('v11 迁移完成：没有需要修复的物料');
     }
   }
 };
