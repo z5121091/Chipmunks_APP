@@ -353,9 +353,11 @@ class Inventory:
             if not file_content:
                 return json.dumps({'success': False, 'message': '未收到文件内容'}, ensure_ascii=False)
             
-            # 生成带日期的文件名
+            # 生成文件名：拆包标签固定名称，其他带日期
             today = datetime.datetime.now().strftime('%Y-%m-%d')
-            if name_suffix:
+            if name_suffix == '拆包标签':
+                filename = '拆包标签.xlsx'
+            elif name_suffix:
                 filename = f'盘点单_{name_suffix}_{today}.xlsx'
             else:
                 filename = f'盘点单_{today}.xlsx'

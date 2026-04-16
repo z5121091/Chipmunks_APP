@@ -469,7 +469,7 @@ export default function SettingsScreen() {
       
       await syncToComputerMultiSheet(
         [{ name: '拆包标签', headers, rows }],
-        '/inbound',
+        '/inventory',
         setSyncingInventoryPartial,
         '拆包标签'
       );
