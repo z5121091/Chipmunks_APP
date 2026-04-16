@@ -176,6 +176,7 @@ export default function OrdersScreen() {
   });
   const [savingMaterial, setSavingMaterial] = useState(false);
   const quantityInputRef = useRef<TextInput>(null);
+  const editMaterialScrollRef = useRef<ScrollView>(null);
   
   // 同步配置
   const [syncConfig, setSyncConfig] = useState<SyncConfig>({ ip: '', port: '8080' });
@@ -856,6 +857,10 @@ export default function OrdersScreen() {
     // 延迟聚焦到数量输入框，等待 Modal 打开动画完成
     setTimeout(() => {
       quantityInputRef.current?.focus();
+      // 滚动到输入框位置
+      setTimeout(() => {
+        editMaterialScrollRef.current?.scrollTo({ y: 200, animated: true });
+      }, 100);
     }, 300);
   };
   
@@ -1594,8 +1599,10 @@ export default function OrdersScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+              </View>
+            </KeyboardAvoidingView>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
       
       {/* 编辑物料弹窗 */}
@@ -1605,16 +1612,25 @@ export default function OrdersScreen() {
         animationType="fade"
         onRequestClose={() => setEditMaterialModalVisible(false)}
       >
-        <View style={unpackModalStyles.modalOverlay}>
-          <View style={[unpackModalStyles.modalContent, { maxHeight: '90%' }]}>
-            <View style={unpackModalStyles.modalHeader}>
-              <Text style={unpackModalStyles.modalTitle}>编辑物料</Text>
-              <TouchableOpacity onPress={() => setEditMaterialModalVisible(false)}>
-                <Text style={unpackModalStyles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={unpackModalStyles.modalBody}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={unpackModalStyles.modalOverlay}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={{ flex: 1, justifyContent: 'center' }}
+            >
+              <View style={[unpackModalStyles.modalContent, { maxHeight: '90%' }]}>
+                <View style={unpackModalStyles.modalHeader}>
+                  <Text style={unpackModalStyles.modalTitle}>编辑物料</Text>
+                  <TouchableOpacity onPress={() => setEditMaterialModalVisible(false)}>
+                    <Text style={unpackModalStyles.modalClose}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <ScrollView
+                  ref={editMaterialScrollRef}
+                  style={unpackModalStyles.modalBody}
+                  keyboardShouldPersistTaps="handled"
+                >
               {/* 原始扫码数量（只读） */}
               <Text style={unpackModalStyles.inputLabel}>原始扫码数量</Text>
               <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
