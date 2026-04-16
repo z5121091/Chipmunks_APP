@@ -494,16 +494,30 @@ export default function OrdersScreen() {
       const ws = XLSX.utils.json_to_sheet(records);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, '拆包记录');
-      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+      const base64String = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
 
-      const formData = new FormData();
-      formData.append('file', { uri: 'data:application/vnd.ms-excel;base64,' + wbout, name: `unpack_${Date.now()}.xlsx`, type: 'application/vnd.ms-excel' } as any);
-      formData.append('orderNo', shippedRecord.order_no);
+      // 转换为二进制数据（与 syncExcelToComputer 保持一致）
+      const binaryString = atob(base64String);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
 
-      const response = await fetch(`http://${syncConfig.ip}:${syncConfig.port || NETWORK_CONFIG.DEFAULT_PORT}/unpack`, {
+      const fileName = `unpack_${shippedRecord.order_no}_${Date.now()}.xlsx`;
+      const url = `http://${syncConfig.ip}:${syncConfig.port || NETWORK_CONFIG.DEFAULT_PORT}/unpack?name_suffix=${encodeURIComponent(fileName)}`;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(url, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
+        body: bytes,
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         showCustomAlert('同步成功', '拆包记录已同步到电脑', [{ text: '确定' }], 'success');
