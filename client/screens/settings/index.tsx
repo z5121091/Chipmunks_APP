@@ -35,6 +35,8 @@ import {
   importBackupData,
   getConfigStats,
   clearAllBusinessData,
+  getTodayExportCount,
+  incrementExportCount,
   CustomField,
   BackupData,
 } from '@/utils/database';
@@ -404,16 +406,11 @@ export default function SettingsScreen() {
 
     setSyncingInbound(true);
     try {
-      const wb = XLSX.utils.book_new();
+      // 获取当天的导出序号（按天递增）
+      const todayCount = await incrementExportCount('inbound');
+      const seqNo = String(todayCount).padStart(2, '0');
 
-      // 为每个日期生成序号
-      const dateIndexMap = new Map<string, number>();
-      const recordsWithIndex = records.map(r => {
-        const date = r.in_date || '';
-        const count = (dateIndexMap.get(date) || 0) + 1;
-        dateIndexMap.set(date, count);
-        return { ...r, seqNo: count };
-      });
+      const wb = XLSX.utils.book_new();
 
       // 入库明细表
       const detailHeaders = [
@@ -421,7 +418,7 @@ export default function SettingsScreen() {
         '生产日期', '追溯码', '箱号', '入库日期', '序号', '备注', '创建时间'
       ];
 
-      const detailRows = recordsWithIndex.map(r => [
+      const detailRows = records.map(r => [
         r.inbound_no || '',
         r.warehouse_name || '',
         r.inventory_code || '',
@@ -434,7 +431,7 @@ export default function SettingsScreen() {
         r.traceNo || '',
         r.sourceNo || '',
         r.in_date || '',
-        `-${String(r.seqNo).padStart(2, '0')}`,
+        `-${seqNo}`,
         r.notes || '',
         r.created_at ? formatDateTime(r.created_at) : '',
       ]);
@@ -506,14 +503,9 @@ export default function SettingsScreen() {
   const handleSyncOutbound = async () => {
     const records = await getAllMaterials();
     
-    // 为每个日期生成序号（基于 scanned_at 的日期部分）
-    const dateIndexMap = new Map<string, number>();
-    const recordsWithIndex = records.map(r => {
-      const date = r.scanned_at ? formatDate(r.scanned_at) : '';
-      const count = (dateIndexMap.get(date) || 0) + 1;
-      dateIndexMap.set(date, count);
-      return { ...r, seqDate: date, seqNo: count };
-    });
+    // 获取当天的导出序号（按天递增）
+    const todayCount = await incrementExportCount('outbound');
+    const seqNo = String(todayCount).padStart(2, '0');
     
     // 调整列顺序：生产日期放在封装后面（与入库单一致）
     const headers = [
@@ -521,7 +513,7 @@ export default function SettingsScreen() {
       '数量', '追踪码', '箱号', '扫描日期', '序号', '扫描时间'
     ];
     
-    const rows = recordsWithIndex.map(r => [
+    const rows = records.map(r => [
       r.order_no || '',
       r.customer_name || '',
       r.warehouse_name || '',
@@ -534,8 +526,8 @@ export default function SettingsScreen() {
       parseInt(r.quantity, 10) || 0,
       r.traceNo || '',
       r.sourceNo || '',
-      r.seqDate || '',
-      `-${String(r.seqNo).padStart(2, '0')}`,
+      formatDate(r.scanned_at) || '',
+      `-${seqNo}`,
       formatTime(r.scanned_at) || '',
     ]);
     

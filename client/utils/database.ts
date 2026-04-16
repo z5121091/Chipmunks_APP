@@ -20,6 +20,9 @@ const INVENTORY_RECORDS_KEY = '@warehouse_inventory_records';
 const DATA_VERSION_KEY = '@warehouse_data_version';
 const CURRENT_DATA_VERSION = 12; // 更新此版本号触发迁移
 
+// 导出计数器存储键
+const EXPORT_COUNT_KEY = '@warehouse_export_count';
+
 // 匹配条件接口（简化版：指定位置字段包含指定关键字）
 export interface MatchCondition {
   fieldIndex: number;           // 字段位置（从0开始）
@@ -2742,3 +2745,62 @@ export const clearAllDataV3 = async (): Promise<void> => {
     throw error;
   }
 };
+
+// ============== 导出计数器 ==============
+
+interface ExportCountData {
+  date: string;       // 日期 YYYY-MM-DD
+  inboundCount: number;  // 入库导出次数
+  outboundCount: number; // 出库导出次数
+}
+
+// 获取当天的导出序号（入库/出库）
+// 返回格式：01, 02, 03...
+export const getTodayExportCount = async (type: 'inbound' | 'outbound'): Promise<number> => {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const dataStr = await AsyncStorage.getItem(EXPORT_COUNT_KEY);
+    const data: ExportCountData = dataStr ? JSON.parse(dataStr) : { date: '', inboundCount: 0, outboundCount: 0 };
+    
+    // 如果日期不是今天，重置计数器
+    if (data.date !== today) {
+      return 0;
+    }
+    
+    return type === 'inbound' ? data.inboundCount : data.outboundCount;
+  } catch (error) {
+    console.error('获取导出计数失败:', error);
+    return 0;
+  }
+};
+
+// 增加导出计数并返回新的序号
+export const incrementExportCount = async (type: 'inbound' | 'outbound'): Promise<number> => {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const dataStr = await AsyncStorage.getItem(EXPORT_COUNT_KEY);
+    let data: ExportCountData = dataStr ? JSON.parse(dataStr) : { date: '', inboundCount: 0, outboundCount: 0 };
+    
+    // 如果日期不是今天，重置计数器
+    if (data.date !== today) {
+      data = { date: today, inboundCount: 0, outboundCount: 0 };
+    }
+    
+    // 增加计数
+    const newCount = (type === 'inbound' ? data.inboundCount : data.outboundCount) + 1;
+    if (type === 'inbound') {
+      data.inboundCount = newCount;
+    } else {
+      data.outboundCount = newCount;
+    }
+    
+    await AsyncStorage.setItem(EXPORT_COUNT_KEY, JSON.stringify(data));
+    return newCount;
+  } catch (error) {
+    console.error('增加导出计数失败:', error);
+    return 1;
+  }
+};
+
+// 导出导出计数器存储键（供外部使用）
+export { EXPORT_COUNT_KEY };
