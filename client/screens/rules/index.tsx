@@ -54,13 +54,6 @@ export default function RulesScreen() {
   // 规则名称输入框 ref
   const ruleNameInputRef = useRef<TextInput>(null);
   
-  // 弹窗打开时聚焦输入框
-  useEffect(() => {
-    if (modalVisible && ruleNameInputRef.current) {
-      setTimeout(() => ruleNameInputRef.current?.focus(), 300);
-    }
-  }, [modalVisible]);
-  
   // 表单状态
   const [ruleName, setRuleName] = useState('');
   const [ruleDescription, setRuleDescription] = useState('');
@@ -460,7 +453,7 @@ export default function RulesScreen() {
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.modalOverlay}>
