@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -231,9 +230,8 @@ export default function WarehouseManagementScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
               {editingWarehouse ? '编辑仓库' : '添加仓库'}
             </Text>
@@ -248,7 +246,7 @@ export default function WarehouseManagementScreen() {
               }}
               placeholder="请输入仓库名称"
               placeholderTextColor={theme.textMuted}
-              showSoftInputOnFocus={true}
+              
             />
 
             <Text style={styles.inputLabel}>仓库描述</Text>
@@ -258,7 +256,7 @@ export default function WarehouseManagementScreen() {
               onChangeText={(text) => setFormData({ ...formData, description: text })}
               placeholder="可选，用于备注仓库信息"
               placeholderTextColor={theme.textMuted}
-              showSoftInputOnFocus={true}
+              
             />
 
             <TouchableOpacity
@@ -294,7 +292,6 @@ export default function WarehouseManagementScreen() {
             </View>
           </View>
         </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
 

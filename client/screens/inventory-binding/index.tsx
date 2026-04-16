@@ -11,7 +11,6 @@ import {
   Linking,
   Keyboard,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
@@ -493,9 +492,8 @@ export default function InventoryBindingScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingBinding ? '编辑绑定' : '添加绑定'}
@@ -516,7 +514,7 @@ export default function InventoryBindingScreen() {
                 onChangeText={(text) => setFormData({ ...formData, scan_model: text })}
                 placeholder="二维码解析后的型号"
                 placeholderTextColor={theme.textMuted}
-                showSoftInputOnFocus={true}
+                
               />
             </View>
 
@@ -528,7 +526,7 @@ export default function InventoryBindingScreen() {
                 onChangeText={(text) => setFormData({ ...formData, inventory_code: text })}
                 placeholder="ERP系统中的编码"
                 placeholderTextColor={theme.textMuted}
-                showSoftInputOnFocus={true}
+                
               />
             </View>
 
@@ -540,7 +538,7 @@ export default function InventoryBindingScreen() {
                 onChangeText={(text) => setFormData({ ...formData, supplier: text })}
                 placeholder="供应商名称（选填）"
                 placeholderTextColor={theme.textMuted}
-                showSoftInputOnFocus={true}
+                
               />
             </View>
 
@@ -552,7 +550,7 @@ export default function InventoryBindingScreen() {
                 onChangeText={(text) => setFormData({ ...formData, description: text })}
                 placeholder="备注说明（选填）"
                 placeholderTextColor={theme.textMuted}
-                showSoftInputOnFocus={true}
+                
               />
             </View>
 
@@ -574,7 +572,6 @@ export default function InventoryBindingScreen() {
             </View>
           </View>
         </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
     </Screen>

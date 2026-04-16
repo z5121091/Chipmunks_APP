@@ -10,7 +10,6 @@ import {
   Platform,
   Keyboard,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
@@ -448,16 +447,15 @@ export default function RulesScreen() {
       <Modal
         visible={modalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingRule ? '编辑规则' : '添加规则'}
@@ -470,8 +468,8 @@ export default function RulesScreen() {
             <ScrollView 
               style={styles.modalBody}
               contentContainerStyle={styles.modalBodyContent}
-              showsVerticalScrollIndicator={true}
               keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
             >
               {/* 规则名称 */}
               <Text style={styles.inputLabel}>规则名称 *</Text>
@@ -482,7 +480,6 @@ export default function RulesScreen() {
                 placeholderTextColor={theme.textMuted}
                 value={ruleName}
                 onChangeText={setRuleName}
-                showSoftInputOnFocus={true}
               />
               
               {/* 分隔符 */}
@@ -562,7 +559,6 @@ export default function RulesScreen() {
                   value={customSeparator}
                   onChangeText={setCustomSeparator}
                   maxLength={3}
-                  showSoftInputOnFocus={true}
                 />
               )}
               
@@ -578,7 +574,6 @@ export default function RulesScreen() {
                       value={customLeftBracket}
                       onChangeText={setCustomLeftBracket}
                       maxLength={1}
-                      showSoftInputOnFocus={true}
                     />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -590,7 +585,6 @@ export default function RulesScreen() {
                       value={customRightBracket}
                       onChangeText={setCustomRightBracket}
                       maxLength={1}
-                      showSoftInputOnFocus={true}
                     />
                   </View>
                   {customLeftBracket && customRightBracket && (
@@ -701,7 +695,6 @@ export default function RulesScreen() {
                     placeholderTextColor={theme.textMuted}
                     value={supplierName}
                     onChangeText={setSupplierName}
-                    showSoftInputOnFocus={true}
                   />
                 </View>
                 
@@ -764,7 +757,6 @@ export default function RulesScreen() {
                           placeholderTextColor={theme.textMuted}
                           value={newConditionKeyword}
                           onChangeText={setNewConditionKeyword}
-                          showSoftInputOnFocus={true}
                         />
                         <TouchableOpacity
                           style={styles.addConditionBtn}
@@ -794,7 +786,6 @@ export default function RulesScreen() {
             </View>
           </View>
         </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
       

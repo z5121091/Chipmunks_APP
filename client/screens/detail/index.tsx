@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, Clipboard, Modal, TextInput, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Clipboard, Modal, TextInput, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useSafeRouter, useSafeSearchParams } from '@/hooks/useSafeRouter';
@@ -426,16 +426,15 @@ export default function DetailScreen() {
       <Modal
         visible={editModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setEditModalVisible(false)}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>编辑自定义字段</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
@@ -489,7 +488,7 @@ export default function DetailScreen() {
                       placeholder={`请输入${field.name}`}
                       placeholderTextColor={theme.textMuted}
                       keyboardType={field.type === 'number' ? 'numeric' : 'default'}
-                      showSoftInputOnFocus={true}
+                      
                     />
                   )}
                 </View>
@@ -512,7 +511,6 @@ export default function DetailScreen() {
             </View>
           </View>
         </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
       

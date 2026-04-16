@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
@@ -935,7 +935,7 @@ export default function OrdersScreen() {
             placeholderTextColor={theme.textMuted}
             value={searchText}
             onChangeText={handleSearch}
-            showSoftInputOnFocus={true}
+            
           />
           {searchText.length > 0 && (
             <TouchableOpacity onPress={() => handleSearch('')} style={styles.searchClear}>
@@ -1142,7 +1142,7 @@ export default function OrdersScreen() {
       <Modal
         visible={editModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setEditModalVisible(false)}
         hardwareAccelerated
       >
@@ -1150,7 +1150,6 @@ export default function OrdersScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>设置客户名称</Text>
@@ -1162,7 +1161,7 @@ export default function OrdersScreen() {
                 placeholderTextColor={theme.textMuted}
                 value={editCustomerName}
                 onChangeText={setEditCustomerName}
-                showSoftInputOnFocus={true}
+                
                 autoFocus
               />
               <View style={styles.modalButtons}>
@@ -1185,7 +1184,6 @@ export default function OrdersScreen() {
             </View>
             </View>
           </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
       
@@ -1193,7 +1191,7 @@ export default function OrdersScreen() {
       <Modal
         visible={allOrdersModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setAllOrdersModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -1272,7 +1270,7 @@ export default function OrdersScreen() {
       <Modal
         visible={materialsModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setMaterialsModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -1355,7 +1353,7 @@ export default function OrdersScreen() {
       <Modal
         visible={materialDetailModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setMaterialDetailModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -1548,7 +1546,7 @@ export default function OrdersScreen() {
                   setUnpackNewQuantity(numeric);
                 }}
                 keyboardType="number-pad"
-                showSoftInputOnFocus={true}
+                
               />
               
               {/* 剩余数量预览 */}
@@ -1578,7 +1576,7 @@ export default function OrdersScreen() {
                 value={unpackNotes}
                 onChangeText={setUnpackNotes}
                 multiline
-                showSoftInputOnFocus={true}
+                
               />
             </ScrollView>
             
@@ -1610,12 +1608,11 @@ export default function OrdersScreen() {
         animationType="fade"
         onRequestClose={() => setEditMaterialModalVisible(false)}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={unpackModalStyles.modalOverlay}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-              style={{ flex: 1, justifyContent: 'center' }}
-            >
+        <View style={unpackModalStyles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+            style={{ flex: 1, justifyContent: 'center' }}
+          >
               <View style={[unpackModalStyles.modalContent, { maxHeight: '90%' }]}>
                 <View style={unpackModalStyles.modalHeader}>
                   <Text style={unpackModalStyles.modalTitle}>编辑物料</Text>
@@ -1675,7 +1672,7 @@ export default function OrdersScreen() {
                   setEditMaterialData(prev => ({ ...prev, quantity: numeric }));
                 }}
                 keyboardType="number-pad"
-                showSoftInputOnFocus={true}
+                
               />
               {/* 底部留空，避免内容被键盘遮挡 */}
               <View style={{ height: 40 }} />
@@ -1701,7 +1698,6 @@ export default function OrdersScreen() {
           </View>
           </KeyboardAvoidingView>
         </View>
-        </TouchableWithoutFeedback>
       </Modal>
       
       {/* 自定义弹窗 */}

@@ -570,7 +570,7 @@ export default function PDAScanScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             autoFocus={false}
-            showSoftInputOnFocus={true}
+            
           />
           
           {/* Toast */}

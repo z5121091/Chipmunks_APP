@@ -14,7 +14,6 @@ import {
   Linking,
   Keyboard,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -1136,7 +1135,7 @@ export default function SettingsScreen() {
               placeholderTextColor={theme.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
-              showSoftInputOnFocus={true}
+              
             />
           </View>
           <View style={styles.syncConfigRow}>
@@ -1148,7 +1147,7 @@ export default function SettingsScreen() {
               placeholder="默认: 8080"
               placeholderTextColor={theme.textMuted}
               keyboardType="numeric"
-              showSoftInputOnFocus={true}
+              
             />
           </View>
           <View style={styles.syncConfigButtons}>
@@ -1384,9 +1383,8 @@ export default function SettingsScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.updateModalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.updateModalOverlay}>
+            <View style={styles.modalContent}>
             {/* Header */}
             <View style={styles.updateModalHeader}>
               <Text style={styles.updateModalTitle}>发现新版本</Text>
@@ -1509,7 +1507,6 @@ export default function SettingsScreen() {
             )}
           </View>
         </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
       

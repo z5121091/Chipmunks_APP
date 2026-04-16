@@ -708,7 +708,7 @@ export default function InventoryScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             autoFocus={false}
-            showSoftInputOnFocus={true}
+            
           />
           
           {/* Toast */}
@@ -876,7 +876,7 @@ export default function InventoryScreen() {
                     placeholderTextColor={theme.textMuted}
                     keyboardType="numeric"
                     autoFocus={false}
-                    showSoftInputOnFocus={true}
+                    
                     returnKeyType="done"
                     blurOnSubmit={false}
                   />

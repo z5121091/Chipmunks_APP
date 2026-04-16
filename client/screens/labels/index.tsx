@@ -413,7 +413,7 @@ export default function LabelsScreen() {
             placeholderTextColor={theme.textMuted}
             value={searchText}
             onChangeText={setSearchText}
-            showSoftInputOnFocus={true}
+            
           />
           {searchText.length > 0 && (
             <TouchableOpacity onPress={() => setSearchText('')}>

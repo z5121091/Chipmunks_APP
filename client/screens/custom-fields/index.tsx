@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
@@ -247,9 +247,8 @@ export default function CustomFieldsScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingField ? '编辑字段' : '添加字段'}
@@ -277,7 +276,7 @@ export default function CustomFieldsScreen() {
                   onChangeText={setFieldName}
                   placeholder="如：供应商、库位等"
                   placeholderTextColor={theme.textMuted}
-                  showSoftInputOnFocus={true}
+                  
                 />
               </View>
 
@@ -296,7 +295,7 @@ export default function CustomFieldsScreen() {
                     onChangeText={setOptionsText}
                     placeholder="如：选项1, 选项2, 选项3"
                     placeholderTextColor={theme.textMuted}
-                    showSoftInputOnFocus={true}
+                    
                   />
                 </View>
               )}
@@ -337,7 +336,6 @@ export default function CustomFieldsScreen() {
             </View>
           </View>
         </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
       
