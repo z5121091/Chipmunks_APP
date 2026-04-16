@@ -1902,7 +1902,7 @@ export interface BackupData {
 }
 
 // 同步配置存储键（需要与设置页面保持一致）
-const SYNC_CONFIG_KEY = '@sync_config';
+
 
 // 导出配置数据（用于备份）
 export const exportBackupData = async (): Promise<BackupData> => {
@@ -1912,7 +1912,7 @@ export const exportBackupData = async (): Promise<BackupData> => {
       AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_FIELDS),
       AsyncStorage.getItem(STORAGE_KEYS.INVENTORY_BINDINGS),
       AsyncStorage.getItem(STORAGE_KEYS.WAREHOUSES),
-      AsyncStorage.getItem(SYNC_CONFIG_KEY),
+      AsyncStorage.getItem(STORAGE_KEYS.SYNC_CONFIG),
     ]);
 
     const backup: BackupData = {

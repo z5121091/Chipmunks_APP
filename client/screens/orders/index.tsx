@@ -28,18 +28,11 @@ import {
   MaterialRecord,
   UnpackRecord 
 } from '@/utils/database';
+import { STORAGE_KEYS, SyncConfig } from '@/constants/config';
 import { formatDate, formatDateTime, formatTime, getToday } from '@/utils/time';
 import { useSafeRouter, useSafeSearchParams } from '@/hooks/useSafeRouter';
 import { Spacing, BorderRadius, BorderWidth } from '@/constants/theme';
 import { rf } from '@/utils/responsive';
-
-// 电脑同步配置存储键
-const SYNC_CONFIG_KEY = '@sync_config';
-
-interface SyncConfig {
-  ip: string;
-  port: string;
-}
 
 // 物料汇总接口
 interface MaterialSummary {
@@ -189,7 +182,7 @@ export default function OrdersScreen() {
   
   // 加载同步配置
   const loadSyncConfig = useCallback(async () => {
-    const savedSyncConfig = await AsyncStorage.getItem(SYNC_CONFIG_KEY);
+    const savedSyncConfig = await AsyncStorage.getItem(STORAGE_KEYS.SYNC_CONFIG);
     if (savedSyncConfig) {
       setSyncConfig(JSON.parse(savedSyncConfig));
     }
