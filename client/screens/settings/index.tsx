@@ -432,7 +432,55 @@ export default function SettingsScreen() {
     );
   };
   
-  // 同步标签数据
+  // 导出盘点拆包标签
+  const [syncingInventoryPartial, setSyncingInventoryPartial] = useState(false);
+  const handleSyncInventoryPartial = async () => {
+    // 只获取拆包类型的盘点记录
+    const allRecords = await getAllInventoryCheckRecords();
+    const records = allRecords.filter(r => r.check_type === 'partial');
+    
+    if (records.length === 0) {
+      alert.showWarning('暂无盘点拆包记录');
+      return;
+    }
+    
+    setSyncingInventoryPartial(true);
+    try {
+      const headers = [
+        '盘点单号', '仓库名称', '存货编码', '扫描型号', '批次', '封装', '版本',
+        '扫描数量', '实际数量', '生产日期', '盘点日期', '追踪码', '箱号', '创建时间'
+      ];
+      
+      const rows = records.map(r => [
+        r.check_no || '',
+        r.warehouse_name || '',
+        r.inventory_code || '',
+        r.scan_model || '',
+        r.batch || '',
+        r.package || '',
+        r.version || '',
+        r.quantity || 0,
+        r.actual_quantity || '',
+        r.productionDate || '',
+        r.check_date || '',
+        r.traceNo || '',
+        r.sourceNo || '',
+        formatDateTimeExport(r.created_at),
+      ]);
+      
+      await syncToComputerMultiSheet(
+        [{ name: '拆包标签', headers, rows }],
+        '/labels',
+        setSyncingInventoryPartial,
+        '拆包标签'
+      );
+    } catch (error: any) {
+      alert.showError(`导出失败: ${error.message || '请检查服务是否运行'}`);
+      setSyncingInventoryPartial(false);
+    }
+  };
+  
+  // 同步标签数据（原有拆包记录）
   const handleSyncLabels = async () => {
     const records = await getAllUnpackRecords();
     
@@ -1174,6 +1222,16 @@ export default function SettingsScreen() {
             handleSyncInventory,
             !canSync,
             syncingInventory
+          )}
+          
+          {renderMenuCard(
+            '导出盘点拆包标签',
+            '盘点拆包记录导出到电脑打印',
+            'tag',
+            theme.purple,
+            handleSyncInventoryPartial,
+            !canSync,
+            syncingInventoryPartial
           )}
           
           {renderMenuCard(
