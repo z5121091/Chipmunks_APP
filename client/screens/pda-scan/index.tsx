@@ -258,7 +258,7 @@ export default function PDAScanScreen() {
         version: parsed.version,
         productionDate: parsed.productionDate,
         raw_content: code,
-        scanned_at: new Date().toLocaleString('zh-CN', { hour12: false }),
+        scanned_at: new Date().toISOString(),
         warehouse_id: currentWarehouse.id,
         warehouse_name: currentWarehouse.name,
         inventory_code: inventoryCode || '',
