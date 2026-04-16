@@ -30,7 +30,6 @@ import {
   getAllUnpackRecords,
   getAllCustomFields,
   getAllInboundRecords,
-  formatDateTimeMinute,
   getAllInventoryCheckRecords,
   exportBackupData,
   importBackupData,
@@ -39,6 +38,7 @@ import {
   CustomField,
   BackupData,
 } from '@/utils/database';
+import { formatDateTime } from '@/utils/time';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
@@ -426,7 +426,7 @@ export default function SettingsScreen() {
         r.sourceNo || '',
         r.in_date || '',
         r.notes || '',
-        r.created_at ? formatDateTimeMinute(r.created_at) : '',
+        r.created_at ? formatDateTime(r.created_at) : '',
       ]);
 
       const ws = XLSX.utils.aoa_to_sheet([detailHeaders, ...detailRows]);

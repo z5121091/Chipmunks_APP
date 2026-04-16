@@ -6,7 +6,7 @@ import { useSafeRouter, useSafeSearchParams } from '@/hooks/useSafeRouter';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
 import { initDatabase, getMaterial, deleteMaterial, getOrder, MaterialRecord, getAllCustomFields, CustomField, updateMaterialCustomFields, getRuleById, QRCodeRule } from '@/utils/database';
-import { formatDateTime } from '@/utils/qrcodeParser';
+import { formatDateTime } from '@/utils/time';
 import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
 import { rf } from '@/utils/responsive';
@@ -103,7 +103,7 @@ export default function DetailScreen() {
 数量: ${record.quantity}
 生产日期: ${record.productionDate || '-'}
 箱号: ${record.sourceNo || '-'}
-扫描时间: ${formatDateTime(new Date(record.scanned_at))}
+扫描时间: ${formatDateTime(record.scanned_at)}
 原始内容: ${record.raw_content}`;
     
     if (Platform.OS === 'web') {
@@ -221,7 +221,7 @@ export default function DetailScreen() {
           <View style={styles.fieldRow}>
             <Text style={styles.fieldLabel}>扫描时间</Text>
             <Text style={styles.fieldValue}>
-              {formatDateTime(new Date(record.scanned_at))}
+              {formatDateTime(record.scanned_at)}
             </Text>
           </View>
         </View>
