@@ -62,10 +62,13 @@ export default function DetailScreen() {
         setCustomFields(allFields);
         
         // 如果有规则ID，加载规则关联的自定义字段
-        if (result.rule_id) {
+        if (result.separator) {
+          // 优先使用记录中存储的分隔符
+          setRuleSeparator(result.separator);
+        } else if (result.rule_id) {
+          // 兼容旧记录：从规则中获取分隔符
           const rule = await getRuleById(result.rule_id);
           if (rule) {
-            // 保存规则的分隔符
             setRuleSeparator(rule.separator || '/');
             // 兼容新旧格式
             const hasCustomFieldsInOrder = rule.fieldOrder?.some((f: string) => f.startsWith('custom:'));

@@ -210,11 +210,16 @@ export default function PDAScanScreen() {
         package?: string;
         version?: string;
         productionDate?: string;
+        separator?: string;
       } | null = null;
+
+      // 保存扫码时使用的分隔符
+      let separator = ',';
 
       try {
         const rule = await detectRule(code);
         if (rule) {
+          separator = rule.separator || ',';
           const { standardFields } = parseWithRule(code, rule);
           parsed = {
             model: standardFields.model || '',
@@ -263,6 +268,7 @@ export default function PDAScanScreen() {
         version: parsed.version,
         productionDate: parsed.productionDate,
         raw_content: code,
+        separator: separator,
         scanned_at: getISODateTime(),
         warehouse_id: currentWarehouse.id,
         warehouse_name: currentWarehouse.name,

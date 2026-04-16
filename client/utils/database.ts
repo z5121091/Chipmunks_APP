@@ -111,6 +111,7 @@ export interface MaterialRecord {
   // 系统字段
   scanned_at: string;
   raw_content: string;
+  separator?: string;       // 扫码时使用的分隔符（用于显示拆分结果）
   // 自定义字段
   customFields?: Record<string, string>;  // 自定义字段值，key为字段ID
   // 拆包相关
@@ -842,6 +843,7 @@ export const addMaterial = async (material: {
   sourceNo?: string;
   scanned_at?: string;
   raw_content: string;
+  separator?: string;      // 扫码时使用的分隔符
   rule_id?: string;
   rule_name?: string;
   customFields?: Record<string, string>;
@@ -870,6 +872,7 @@ export const addMaterial = async (material: {
       sourceNo: material.sourceNo || '',
       scanned_at: material.scanned_at || getISODateTime(),
       raw_content: material.raw_content,
+      separator: material.separator,
       customFields: material.customFields,
       // V3.0 新增字段
       warehouse_id: material.warehouse_id,
