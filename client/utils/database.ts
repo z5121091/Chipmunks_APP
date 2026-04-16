@@ -53,6 +53,19 @@ export const FIELD_LABELS: Record<string, string> = {
   sourceNo: '箱号',
 };
 
+// 固定字段顺序（极海半导体标准格式：型号/批次/封装/版本/数量/生产日期/追踪码/箱号）
+// 这个顺序是固定的，无论用户用什么分隔符，都会按这个顺序提取值
+export const STANDARD_FIELD_ORDER = [
+  'model',          // 0: 型号
+  'batch',          // 1: 批次
+  'package',        // 2: 封装
+  'version',        // 3: 版本号
+  'quantity',       // 4: 数量
+  'productionDate', // 5: 生产日期
+  'traceNo',        // 6: 追踪码
+  'sourceNo',       // 7: 箱号
+];
+
 // 可用字段列表
 export const AVAILABLE_FIELDS = [
   'model',
@@ -1676,46 +1689,27 @@ export const parseWithRule = (
   console.log('规则字段数量:', rule.fieldOrder?.length || 0);
   console.log('旧格式自定义字段IDs:', rule.customFieldIds);
   
-  if (hasCustomFieldsInOrder) {
-    // 新格式：fieldOrder 已包含自定义字段，统一解析
-    rule.fieldOrder.forEach((field, index) => {
-      const value = parts[index]?.trim() || '';
-      
-      const fieldName = isCustomField(field) 
-        ? `自定义字段(${getCustomFieldId(field)})` 
-        : FIELD_LABELS[field] || field;
-      console.log(`字段[${index}] ${fieldName}: "${value}"`);
-      
-      if (isCustomField(field)) {
-        const fieldId = getCustomFieldId(field);
+  // 【核心修改】使用固定字段顺序提取值，不再依赖 rule.fieldOrder
+  // 无论用户用什么分隔符，都按固定顺序：型号/批次/封装/版本/数量/生产日期/追踪码/箱号
+  STANDARD_FIELD_ORDER.forEach((field, index) => {
+    const value = parts[index]?.trim() || '';
+    console.log(`字段[${index}] ${FIELD_LABELS[field] || field}: "${value}"`);
+    standardFields[field] = value;
+  });
+  
+  // 如果有自定义字段（用户额外定义的字段），继续解析
+  // 对于自定义字段，需要知道它们在拆分结果中的位置
+  // 这里兼容旧格式：customFieldIds 接在标准字段后面
+  if (rule.customFieldIds && rule.customFieldIds.length > 0) {
+    const customFieldStartIndex = STANDARD_FIELD_ORDER.length;
+    rule.customFieldIds.forEach((fieldId, index) => {
+      const partIndex = customFieldStartIndex + index;
+      if (partIndex < parts.length) {
+        const value = parts[partIndex]?.trim() || '';
+        console.log(`自定义字段[${partIndex}] ${fieldId}: "${value}"`);
         customFields[fieldId] = value;
-      } else {
-        standardFields[field] = value;
       }
     });
-  } else {
-    // 旧格式或纯标准字段：fieldOrder 只有标准字段，customFieldIds 可能有自定义字段
-    const fieldOrder = rule.fieldOrder || [];
-    
-    // 先解析标准字段
-    fieldOrder.forEach((field, index) => {
-      const value = parts[index]?.trim() || '';
-      console.log(`字段[${index}] ${FIELD_LABELS[field] || field}: "${value}"`);
-      standardFields[field] = value;
-    });
-    
-    // 如果有旧格式的 customFieldIds，接在标准字段后面解析
-    if (rule.customFieldIds && rule.customFieldIds.length > 0) {
-      const customFieldStartIndex = fieldOrder.length;
-      rule.customFieldIds.forEach((fieldId, index) => {
-        const partIndex = customFieldStartIndex + index;
-        if (partIndex < parts.length) {
-          const value = parts[partIndex]?.trim() || '';
-          console.log(`自定义字段[${partIndex}] ${fieldId}: "${value}"`);
-          customFields[fieldId] = value;
-        }
-      });
-    }
   }
   
   console.log('===== 解析完成 =====');
