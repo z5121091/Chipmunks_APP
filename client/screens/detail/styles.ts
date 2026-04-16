@@ -196,7 +196,7 @@ export const createStyles = (theme: Theme) => {
       padding: Spacing.md,
     },
     modalBodyContent: {
-      paddingBottom: Spacing.lg,
+      paddingBottom: Spacing['3xl'],
     },
     formGroup: {
       marginBottom: Spacing.md,
