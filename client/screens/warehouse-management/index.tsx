@@ -81,6 +81,16 @@ export default function WarehouseManagementScreen() {
       return;
     }
 
+    // 检查名称唯一性（排除当前编辑的仓库）
+    const existingWarehouse = warehouses.find(
+      w => w.name.trim() === formData.name.trim() && 
+           (!editingWarehouse || w.id !== editingWarehouse.id)
+    );
+    if (existingWarehouse) {
+      alert.showWarning('该仓库名称已存在，请使用其他名称');
+      return;
+    }
+
     try {
       if (editingWarehouse) {
         await updateWarehouse(editingWarehouse.id, formData);

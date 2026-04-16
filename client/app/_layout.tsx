@@ -9,6 +9,7 @@ import { initDatabase } from '@/utils/database';
 
 LogBox.ignoreLogs([
   "TurboModuleRegistry.getEnforcing(...): 'RNMapsAirModule' could not be found",
+  "Unexpected text node: . A text node cannot be a child of a <View>",
   // 添加其它想暂时忽略的错误或警告信息
 ]);
 

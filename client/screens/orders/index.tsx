@@ -1052,7 +1052,7 @@ export default function OrdersScreen() {
                       <View style={styles.orderInfo}>
                         {order.customer_name ? (
                           <Text style={styles.customerName}>
-                            <Feather name="user" size={14} color={theme.textMuted} /> {order.customer_name}
+                            {order.customer_name}
                           </Text>
                         ) : (
                           <Text style={styles.noCustomer}>点击设置客户名称</Text>
