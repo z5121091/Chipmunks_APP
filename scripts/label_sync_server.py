@@ -152,7 +152,7 @@ class Health:
         return json.dumps({
             'status': 'ok',
             'service': '掌上仓库同步服务',
-            'version': '3.2.0'
+            'version': '3.2.1'
         }, ensure_ascii=False)
 
 
@@ -238,11 +238,9 @@ class Inbound:
             if not file_content:
                 return json.dumps({'success': False, 'message': '未收到文件内容'}, ensure_ascii=False)
             
-            # 生成文件名：拆包标签固定名称，其他带日期
+            # 生成带日期的文件名
             today = datetime.datetime.now().strftime('%Y-%m-%d')
-            if name_suffix == '拆包标签':
-                filename = '拆包标签.xlsx'
-            elif name_suffix:
+            if name_suffix:
                 filename = f'入库单_{name_suffix}_{today}.xlsx'
             else:
                 filename = f'入库单_{today}.xlsx'
@@ -690,7 +688,7 @@ def start_server():
     cherrypy.config.update(conf)
     
     log("=" * 50)
-    log("  掌上仓库 - 数据同步服务 V3.2.0")
+    log("  掌上仓库 - 数据同步服务 V3.2.1")
     log("=" * 50)
     log(f"  本机IP: {ip_address}")
     log(f"  服务端口: {SERVER_PORT}")
