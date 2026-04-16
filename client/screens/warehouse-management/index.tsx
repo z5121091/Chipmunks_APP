@@ -239,15 +239,21 @@ export default function WarehouseManagementScreen() {
               style={styles.input}
               value={formData.name}
               onChangeText={(text) => {
-                // 限制总字符数不超过4
-                if (text.length > 4) return;
+                // 实时更新输入值，不限制长度（让输入法正常选字）
                 setFormData({ ...formData, name: text });
+              }}
+              onEndEditing={(e) => {
+                // 选字完成后检查，超过4个字符则截断
+                const finalText = e.nativeEvent.text;
+                if (finalText.length > 4) {
+                  setFormData({ ...formData, name: finalText.slice(0, 4) });
+                }
               }}
               placeholder="请输入仓库名称"
               placeholderTextColor={theme.textMuted}
               showSoftInputOnFocus={true}
               autoFocus={true}
-              maxLength={4}
+              maxLength={20}
             />
 
             <Text style={styles.inputLabel}>仓库描述</Text>
