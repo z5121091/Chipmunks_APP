@@ -281,6 +281,9 @@ export default function WarehouseManagementScreen() {
         </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* 全局提示组件 */}
+      {alert.AlertComponent}
     </Screen>
   );
 }

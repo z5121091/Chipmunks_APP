@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -192,8 +192,6 @@ export function CustomAlert({
 }
 
 // Hook for easy usage
-import { useState, useCallback, useMemo } from 'react';
-
 export interface AlertConfig {
   title: string;
   message?: string;
