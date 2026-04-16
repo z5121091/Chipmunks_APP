@@ -1745,7 +1745,6 @@ export const parseWithRule = (
   console.log('字段数量:', parts.length);
   console.log('规则字段顺序:', rule.fieldOrder);
   console.log('规则字段数量:', rule.fieldOrder?.length || 0);
-  console.log('旧格式自定义字段IDs:', rule.customFieldIds);
   
   // 使用用户配置的字段顺序（rule.fieldOrder），如果不存在则使用标准顺序
   const fieldOrder = rule.fieldOrder?.length > 0 ? rule.fieldOrder : STANDARD_FIELD_ORDER;
