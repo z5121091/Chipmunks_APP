@@ -49,6 +49,7 @@ interface MaterialItem {
   traceNo?: string;
   sourceNo?: string;
   package?: string;
+  productionDate?: string;
 }
 
 interface AggregatedGroup {
@@ -139,6 +140,7 @@ export default function PDAScanScreen() {
         traceNo: m.traceNo,
         sourceNo: m.sourceNo,
         package: m.package,
+        productionDate: m.productionDate,
       }))
     );
   };
@@ -278,6 +280,7 @@ export default function PDAScanScreen() {
         traceNo: parsed.traceNo,
         sourceNo: parsed.sourceNo,
         package: parsed.package,
+        productionDate: parsed.productionDate,
       };
       setMaterials(prev => [newItem, ...prev].slice(0, 10));
       setMaterialCount(prev => prev + 1);
