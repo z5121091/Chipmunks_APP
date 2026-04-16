@@ -314,7 +314,7 @@ export default function SettingsScreen() {
       // 入库明细表
       const detailHeaders = [
         '入库单号', '仓库名称', '存货编码', '扫描型号', '批次', '数量', '版本号', '封装',
-        '生产日期', '追溯码', '箱号', '入库日期', '序号', '备注', '创建时间'
+        '生产日期', '追溯码', '箱号', '入库日期', '备注', '创建时间'
       ];
 
       const detailRows = records.map(r => [
@@ -330,14 +330,14 @@ export default function SettingsScreen() {
         r.traceNo || '',
         r.sourceNo || '',
         r.in_date || '',
-        `-${seqNo}`,
         r.notes || '',
-        r.created_at ? formatDateTime(r.created_at) : '',
+        formatDateTimeExport(r.created_at),
       ]);
 
-      // 获取唯一仓库名称列表
+      // 获取唯一仓库名称列表，文件名加入序号
       const warehouses = [...new Set(records.map(r => r.warehouse_name).filter(Boolean))];
-      const nameSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+      const warehouseSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+      const nameSuffix = warehouseSuffix ? `${warehouseSuffix}_${seqNo}` : seqNo;
 
       await syncToComputerMultiSheet(
         [{ name: '入库明细', headers: detailHeaders, rows: detailRows }],
@@ -362,7 +362,7 @@ export default function SettingsScreen() {
     // 调整列顺序：生产日期放在封装后面（与入库单一致）
     const headers = [
       '订单号', '客户', '仓库名称', '存货编码', '型号', '批次', '封装', '生产日期', '版本',
-      '数量', '追踪码', '箱号', '扫描日期', '序号', '扫描时间'
+      '数量', '追踪码', '箱号', '扫描日期', '扫描时间'
     ];
     
     const rows = records.map(r => [
@@ -379,13 +379,13 @@ export default function SettingsScreen() {
       r.traceNo || '',
       r.sourceNo || '',
       formatDate(r.scanned_at) || '',
-      `-${seqNo}`,
       formatTime(r.scanned_at) || '',
     ]);
     
-    // 获取唯一仓库名称列表
+    // 获取唯一仓库名称列表，文件名加入序号
     const warehouses = [...new Set(records.map(r => r.warehouse_name).filter(Boolean))];
-    const nameSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+    const warehouseSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+    const nameSuffix = warehouseSuffix ? `${warehouseSuffix}_${seqNo}` : seqNo;
 
     await syncToComputerMultiSheet(
       [{ name: '出库明细', headers, rows }],
@@ -398,6 +398,10 @@ export default function SettingsScreen() {
   // 同步盘点单
   const handleSyncInventory = async () => {
     const records = await getAllInventoryCheckRecords();
+    
+    // 获取当天的导出序号（按天递增）
+    const todayCount = await incrementExportCount('inventory');
+    const seqNo = String(todayCount).padStart(2, '0');
     
     const headers = [
       '盘点单号', '仓库名称', '存货编码', '扫描型号', '数量', '盘点类型', '实际数量', '盘点日期', '创建时间'
@@ -415,9 +419,10 @@ export default function SettingsScreen() {
       formatDateTimeExport(r.created_at),
     ]);
     
-    // 获取唯一仓库名称列表
+    // 获取唯一仓库名称列表，文件名加入序号
     const warehouses = [...new Set(records.map(r => r.warehouse_name).filter(Boolean))];
-    const nameSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+    const warehouseSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+    const nameSuffix = warehouseSuffix ? `${warehouseSuffix}_${seqNo}` : seqNo;
     
     await syncToComputerMultiSheet(
       [{ name: '盘点明细', headers, rows }],
