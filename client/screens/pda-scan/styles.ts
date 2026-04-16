@@ -22,6 +22,10 @@ export const createStyles = (theme: Theme) => StyleSheet.create({
   backButton: {
     padding: Spacing.sm,
     marginRight: Spacing.sm,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   headerTitle: {

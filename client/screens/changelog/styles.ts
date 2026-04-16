@@ -18,8 +18,12 @@ export const createStyles = (theme: Theme) => {
       marginBottom: Spacing.lg,
     },
     backButton: {
-      padding: Spacing.xs,
+      padding: Spacing.sm,
       marginRight: Spacing.sm,
+      minWidth: 44,
+      minHeight: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     title: {
       fontSize: 20,

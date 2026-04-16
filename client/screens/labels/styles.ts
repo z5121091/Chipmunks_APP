@@ -45,9 +45,13 @@ export const createStyles = (theme: Theme) => {
       alignItems: 'flex-start',
     },
     backButton: {
-      padding: Spacing.xs,
+      padding: Spacing.sm,
       marginRight: Spacing.sm,
       marginTop: Spacing.xs,
+      minWidth: 44,
+      minHeight: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     headerContent: {
       flex: 1,

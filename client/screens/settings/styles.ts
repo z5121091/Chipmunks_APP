@@ -38,8 +38,12 @@ export const createStyles = (theme: Theme, screenHeight?: number, insets?: { top
       marginBottom: Spacing.lg,
     },
     backButton: {
-      padding: Spacing.xs,
+      padding: Spacing.sm,
       marginRight: Spacing.sm,
+      minWidth: 44,
+      minHeight: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     title: {
       fontSize: rf(20),
