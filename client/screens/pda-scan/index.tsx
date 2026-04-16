@@ -580,7 +580,7 @@ export default function PDAScanScreen() {
                           delayLongPress={500}
                         >
                           <Text style={styles.detailText}>
-                            批次: {item.batch || '-'}  |  生产日期: {item.sourceNo || '-'}  |  数量: {parseInt(item.quantity, 10) || 0}个
+                            批次: {item.batch || '-'}  |  生产日期: {item.productionDate || '-'}  |  数量: {parseInt(item.quantity, 10) || 0}个
                           </Text>
                         </TouchableOpacity>
                       ))}
