@@ -28,26 +28,6 @@ interface SyncSettingsProps {
   };
 }
 
-const getStatusText = (status: ConnectionStatus): string => {
-  switch (status) {
-    case 'success': return '已连接 ✓';
-    case 'error': return '连接失败 ✗';
-    case 'disconnected': return '断开连接 ✗';
-    case 'testing': return '测试中...';
-    default: return '未连接';
-  }
-};
-
-const getStatusIcon = (status: ConnectionStatus): { name: keyof typeof Feather.glyphMap; color: string } => {
-  switch (status) {
-    case 'success': return { name: 'check-circle', color: '#10B981' };
-    case 'error': return { name: 'x-circle', color: '#EF4444' };
-    case 'disconnected': return { name: 'slash', color: '#6B7280' };
-    case 'testing': return { name: 'loader', color: '#3B82F6' };
-    default: return { name: 'circle', color: '#6B7280' };
-  }
-};
-
 const getButtonConfig = (status: ConnectionStatus): { text: string; bgColor: string; textColor: string } => {
   switch (status) {
     case 'success': return { text: '已连接 ✓', bgColor: '#10B981', textColor: '#FFFFFF' };
@@ -58,6 +38,14 @@ const getButtonConfig = (status: ConnectionStatus): { text: string; bgColor: str
   }
 };
 
+const getHintText = (status: ConnectionStatus, hasIp: boolean): string | null => {
+  if (status === 'success') return '连接成功，配置已自动保存';
+  if (status === 'error') return '请检查服务器地址和状态后重试';
+  if (status === 'disconnected') return '网络连接已断开，请检查网络后重新连接';
+  if (status === 'idle' && !hasIp) return '支持局域网IP、公网IP或域名';
+  return null;
+};
+
 export const SyncSettings: React.FC<SyncSettingsProps> = ({
   syncConfig,
   connectionStatus,
@@ -66,9 +54,8 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
   onTestConnection,
   theme,
 }) => {
-  const statusIcon = getStatusIcon(connectionStatus);
-  const statusText = getStatusText(connectionStatus);
   const buttonConfig = getButtonConfig(connectionStatus);
+  const hintText = getHintText(connectionStatus, !!syncConfig.ip);
   const isTesting = connectionStatus === 'testing';
 
   return (
@@ -96,34 +83,26 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
           keyboardType="numeric"
         />
       </View>
-      <View style={styles.statusRow}>
-        <Feather name={statusIcon.name} size={16} color={statusIcon.color} style={statusIcon.name === 'loader' && isTesting ? styles.spinning : undefined} />
-        <Text style={[styles.statusText, { color: statusIcon.color }]}>{statusText}</Text>
-      </View>
-      <TouchableOpacity
-        style={[styles.testButton, { backgroundColor: buttonConfig.bgColor }]}
-        onPress={onTestConnection}
-        disabled={isTesting}
-      >
-        {isTesting ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
-        ) : (
-          <>
-            <Feather name="zap" size={14} color={buttonConfig.textColor} />
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.testButton, { backgroundColor: buttonConfig.bgColor }]}
+          onPress={onTestConnection}
+          disabled={isTesting}
+        >
+          {isTesting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
             <Text style={[styles.testButtonText, { color: buttonConfig.textColor }]}>{buttonConfig.text}</Text>
-          </>
-        )}
-      </TouchableOpacity>
-      {connectionStatus === 'success' && (
-        <Text style={[styles.hintText, { color: '#10B981' }]}>连接成功，配置已自动保存</Text>
-      )}
-      {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
-        <Text style={[styles.hintText, { color: '#EF4444' }]}>
-          {connectionStatus === 'disconnected' ? '网络连接已断开，请检查网络后重新连接' : '请检查服务器地址和状态后重试'}
+          )}
+        </TouchableOpacity>
+      </View>
+      {hintText && (
+        <Text style={[
+          styles.hintText, 
+          { color: connectionStatus === 'success' ? '#10B981' : connectionStatus === 'error' || connectionStatus === 'disconnected' ? '#EF4444' : theme.textMuted }
+        ]}>
+          {hintText}
         </Text>
-      )}
-      {connectionStatus === 'idle' && !syncConfig.ip && (
-        <Text style={[styles.hintText, { color: theme.textMuted }]}>支持局域网IP、公网IP或域名</Text>
       )}
     </View>
   );
@@ -153,24 +132,17 @@ const styles = {
     borderWidth: BorderWidth.normal,
     marginLeft: Spacing.md,
   },
-  statusRow: {
+  buttonRow: {
     flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    marginBottom: Spacing.md,
-    gap: Spacing.sm,
-  },
-  statusText: {
-    fontSize: rf(13),
-  },
-  spinning: {
-    transform: [{ rotate: '360deg' }],
+    justifyContent: 'center' as const,
+    marginBottom: Spacing.sm,
   },
   testButton: {
+    flex: 1,
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.md,
     gap: Spacing.sm,
   },
@@ -180,7 +152,7 @@ const styles = {
   },
   hintText: {
     fontSize: rf(12),
-    marginTop: Spacing.sm,
     textAlign: 'center' as const,
+    marginTop: Spacing.xs,
   },
 };
