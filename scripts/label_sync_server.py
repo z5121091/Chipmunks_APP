@@ -691,12 +691,6 @@ def start_server():
     log(f"  本机IP: {ip_address}")
     log(f"  服务端口: {SERVER_PORT}")
     log(f"  数据目录: {DATA_ROOT}")
-    log(f"  发货序列号: {SCAN_FILE}")
-    log(f"  入库单: {INBOUND_FILE}")
-    log(f"  出库单: {OUTBOUND_FILE}")
-    log(f"  盘点单: {INVENTORY_FILE}")
-    log(f"  标签打印: {LABELS_FILE}")
-    log(f"  物料数据: {MATERIALS_FILE}")
     log("=" * 50)
     
     cherrypy.engine.start()
