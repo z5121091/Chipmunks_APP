@@ -74,4 +74,4 @@ export interface ExportCountData {
 }
 
 /** 导出类型 */
-export type ExportType = 'inbound' | 'outbound';
+export type ExportType = 'inbound' | 'outbound' | 'inventory';
