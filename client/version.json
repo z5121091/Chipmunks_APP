@@ -1,7 +1,7 @@
 {
-  "version": "V3.3.7",
-  "versionCode": 88,
-  "buildNumber": 88,
+  "version": "V3.3.0",
+  "versionCode": 87,
+  "buildNumber": 87,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
   "forceUpdate": false,
   "appName": "掌上仓库",
@@ -10,70 +10,46 @@
   "author": "zx5121091",
   "changelog": [
     {
-      "version": "V3.3.7",
+      "version": "V3.3.0",
       "date": "2026-04-17",
       "changes": [
-        { "type": "fix", "text": "输入法：Modal内移除showSoftInputOnFocus属性" },
-        { "type": "fix", "text": "Modal动画：从slide改为fade" },
-        { "type": "fix", "text": "Modal交互：移除包裹TextInput的TouchableWithoutFeedback" },
-        { "type": "fix", "text": "键盘遮挡：detail页面增加paddingBottom" },
-        { "type": "fix", "text": "扫码页面：PDA扫码时阻止输入法弹出" },
-        { "type": "fix", "text": "存储时间格式：改为YYYY/M/D HH:mm" }
-      ]
-    },
-    {
-      "version": "V3.3.6",
-      "date": "2026-04-16",
-      "changes": [
-        { "type": "fix", "text": "规则解析：修复忽略用户配置的字段顺序问题" },
-        { "type": "fix", "text": "键盘抖动：Modal的KeyboardAvoidingView统一为padding模式" },
-        { "type": "fix", "text": "输入法冲突：移除warehouse-management的autoFocus" },
-        { "type": "fix", "text": "订单拆分显示：改用实际的分隔符" },
-        { "type": "fix", "text": "打包错误：修复JSX标签未闭合问题" },
-        { "type": "fix", "text": "拆包标签：文件名固定为「拆包标签.xlsx」" },
-        { "type": "fix", "text": "拆包标签：导出端点改为/inventory" },
-        { "type": "fix", "text": "pnpm ENOTEMPTY错误：prefer-frozen-lockfile改为false" }
-      ]
-    },
-    {
-      "version": "V3.3.5",
-      "date": "2026-04-15",
-      "changes": [
-        { "type": "fix", "text": "数据同步：修复心跳检测路径" },
-        { "type": "fix", "text": "数据同步：修复SYNC_CONFIG_KEY未定义问题" },
+        { "type": "improve", "text": "输入法：Modal内移除showSoftInputOnFocus属性" },
+        { "type": "improve", "text": "Modal动画：从slide改为fade，更流畅" },
+        { "type": "improve", "text": "Modal交互：优化TextInput事件传递" },
+        { "type": "improve", "text": "键盘遮挡：detail页面增加底部间距" },
+        { "type": "improve", "text": "扫码页面：PDA扫码时阻止输入法弹出" },
+        { "type": "improve", "text": "存储时间格式：改为YYYY/M/D HH:mm" },
+        { "type": "improve", "text": "扫码出库：聚合项展开后显示所有数据" },
+        { "type": "improve", "text": "数据同步：修复心跳检测路径" },
+        { "type": "improve", "text": "数据同步：修复SYNC_CONFIG_KEY未定义问题" },
         { "type": "improve", "text": "编辑物料：优化显示字段，打开时自动聚焦" },
         { "type": "improve", "text": "盘点导出：移除备注列，时间格式改为YYYY/M/D HH:mm" },
         { "type": "improve", "text": "备份恢复：显示格式化后的备份时间" },
         { "type": "improve", "text": "导出序号：序号移到文件名（入库单/出库单/盘点单）" },
-        { "type": "feat", "text": "新增导出盘点拆包标签功能" }
-      ]
-    },
-    {
-      "version": "V3.3.3",
-      "date": "2026-04-14",
-      "changes": [
-        { "type": "fix", "text": "扫码出库：聚合项展开后显示所有数据" }
-      ]
-    },
-    {
-      "version": "V3.3.0",
-      "date": "2026-04-13",
-      "changes": [
+        { "type": "improve", "text": "键盘抖动：Modal的KeyboardAvoidingView统一为padding模式" },
+        { "type": "improve", "text": "输入法冲突：移除warehouse-management的autoFocus" },
+        { "type": "improve", "text": "订单拆分显示：改用实际的分隔符" },
         { "type": "improve", "text": "聚合项显示格式统一：批次 | 生产日期 | 数量" },
         { "type": "improve", "text": "语音反馈优化：成功播报「扫码成功」，重复播报「扫码重复」" },
         { "type": "improve", "text": "扫码出库：新增订单播报「新订单」，切换订单播报「切换订单」" },
         { "type": "improve", "text": "时间显示统一：日期 YYYY-MM-DD，日期时间 YYYY-MM-DD HH:mm" },
+        { "type": "improve", "text": "全局：硬编码字体统一为 rf()" },
+        { "type": "improve", "text": "拆包标签：文件名固定为「拆包标签.xlsx」" },
+        { "type": "improve", "text": "拆包标签：导出端点改为/inventory" },
+        { "type": "improve", "text": "pnpm ENOTEMPTY错误：prefer-frozen-lockfile改为false" },
+        { "type": "feat", "text": "新增导出盘点拆包标签功能" },
         { "type": "feat", "text": "仓库管理：仓库名称唯一性校验" },
         { "type": "feat", "text": "订单编辑：数量输入只允许数字" },
         { "type": "feat", "text": "拆包数量：只允许输入数字" },
         { "type": "feat", "text": "全局时间格式化工具" },
+        { "type": "fix", "text": "规则解析：修复忽略用户配置的字段顺序问题" },
         { "type": "fix", "text": "仓库管理：添加仓库报错、删除仓库无响应" },
         { "type": "fix", "text": "订单详情：扫码时间 NaN 问题" },
         { "type": "fix", "text": "仓库名称：中文4字/英文4字符限制，打断拼音输入" },
         { "type": "fix", "text": "聚合项删除：明细项删除只删除选中项" },
         { "type": "fix", "text": "生产日期：字段抓取失败问题" },
         { "type": "fix", "text": "入库/出库/盘点：聚合项明细删除 BUG" },
-        { "type": "fix", "text": "全局：硬编码字体统一为 rf()" }
+        { "type": "fix", "text": "打包错误：修复JSX标签未闭合问题" }
       ]
     },
     {
