@@ -1,14 +1,13 @@
 /**
- * 编辑物料弹窗组件
+ * 编辑物料弹窗组件 - 仅修改数量
  */
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
   TextInput,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -19,18 +18,9 @@ import { rf } from '@/utils/responsive';
 interface EditMaterialModalProps {
   visible: boolean;
   material: MaterialRecord | null;
-  formData: {
-    model: string;
-    batch: string;
-    quantity: string;
-    package: string;
-    version: string;
-    productionDate: string;
-    traceNo: string;
-    sourceNo: string;
-  };
+  quantity: string;
   saving: boolean;
-  onChange: (field: string, value: string) => void;
+  onQuantityChange: (value: string) => void;
   onSave: () => void;
   onClose: () => void;
   theme: {
@@ -43,55 +33,26 @@ interface EditMaterialModalProps {
   };
 }
 
-interface InputFieldProps {
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-  editable?: boolean;
-  theme: {
-    textPrimary: string;
-    textSecondary: string;
-    backgroundTertiary: string;
-    border: string;
-  };
-}
-
-const InputField: React.FC<InputFieldProps> = ({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  editable = true,
-  theme,
-}) => (
-  <>
-    <Text style={[styles.label, { color: theme.textPrimary }]}>{label}</Text>
-    <TextInput
-      style={[
-        styles.input,
-        { backgroundColor: theme.backgroundTertiary, color: theme.textPrimary, borderColor: theme.border },
-        !editable && { opacity: 0.6 },
-      ]}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={theme.textSecondary}
-      editable={editable}
-    />
-  </>
-);
-
 export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
   visible,
   material,
-  formData,
+  quantity,
   saving,
-  onChange,
+  onQuantityChange,
   onSave,
   onClose,
   theme,
 }) => {
+  const quantityRef = useRef<TextInput>(null);
+
+  // 弹窗打开时聚焦输入框
+  useEffect(() => {
+    if (visible && quantityRef.current) {
+      const timer = setTimeout(() => quantityRef.current?.focus(), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
+
   if (!material) return null;
 
   return (
@@ -110,16 +71,39 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
           </View>
 
           {/* Body */}
-          <ScrollView style={styles.body}>
-            <InputField label="型号" value={formData.model} onChangeText={(v) => onChange('model', v)} placeholder="请输入型号" theme={theme} />
-            <InputField label="批次" value={formData.batch} onChangeText={(v) => onChange('batch', v)} placeholder="请输入批次" theme={theme} />
-            <InputField label="封装" value={formData.package} onChangeText={(v) => onChange('package', v)} placeholder="请输入封装" theme={theme} />
-            <InputField label="版本" value={formData.version} onChangeText={(v) => onChange('version', v)} placeholder="请输入版本" theme={theme} />
-            <InputField label="数量" value={formData.quantity} onChangeText={(v) => onChange('quantity', v)} placeholder="请输入数量" theme={theme} />
-            <InputField label="生产日期" value={formData.productionDate} onChangeText={(v) => onChange('productionDate', v)} placeholder="YYYY-MM-DD" theme={theme} />
-            <InputField label="追溯码" value={formData.traceNo} onChangeText={(v) => onChange('traceNo', v)} placeholder="请输入追溯码" theme={theme} />
-            <InputField label="箱号" value={formData.sourceNo} onChangeText={(v) => onChange('sourceNo', v)} placeholder="请输入箱号" theme={theme} />
-          </ScrollView>
+          <View style={styles.body}>
+            {/* 物料信息 */}
+            <View style={[styles.infoBox, { backgroundColor: theme.backgroundTertiary }]}>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>型号</Text>
+                <Text style={[styles.infoValue, { color: theme.textPrimary }]}>{material.model}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>批次</Text>
+                <Text style={[styles.infoValue, { color: theme.textPrimary }]}>{material.batch}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>追溯码</Text>
+                <Text style={[styles.infoValue, { color: theme.textPrimary }]}>{material.trace_no || '-'}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>当前数量</Text>
+                <Text style={[styles.infoValue, { color: theme.primary }]}>{material.quantity}</Text>
+              </View>
+            </View>
+
+            {/* 数量编辑 */}
+            <Text style={[styles.label, { color: theme.textPrimary }]}>新数量</Text>
+            <TextInput
+              ref={quantityRef}
+              style={[styles.input, { backgroundColor: theme.backgroundTertiary, color: theme.textPrimary, borderColor: theme.border }]}
+              value={quantity}
+              onChangeText={onQuantityChange}
+              placeholder="输入数量"
+              placeholderTextColor={theme.textSecondary}
+              keyboardType="numeric"
+            />
+          </View>
 
           {/* Footer */}
           <View style={[styles.footer, { borderTopColor: theme.border }]}>
@@ -155,7 +139,6 @@ const styles = {
   content: {
     width: '90%' as any,
     maxWidth: 400,
-    maxHeight: '85%',
     borderRadius: BorderRadius.xl,
     overflow: 'hidden' as const,
   },
@@ -178,35 +161,51 @@ const styles = {
   body: {
     padding: Spacing.lg,
   },
+  infoBox: {
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  infoRow: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    marginBottom: Spacing.sm,
+  },
+  infoLabel: {
+    fontSize: rf(14),
+  },
+  infoValue: {
+    fontSize: rf(14),
+    fontWeight: '500' as const,
+  },
   label: {
     fontSize: rf(14),
     fontWeight: '500' as const,
     marginBottom: Spacing.sm,
-    marginTop: Spacing.md,
   },
   input: {
-    fontSize: rf(16),
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    height: rf(48),
     borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    fontSize: rf(16),
     borderWidth: BorderWidth.normal,
   },
   footer: {
     flexDirection: 'row' as const,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderTopWidth: BorderWidth.normal,
+    padding: Spacing.lg,
     gap: Spacing.md,
+    borderTopWidth: BorderWidth.normal,
   },
   button: {
     flex: 1,
-    paddingVertical: Spacing.md,
-    alignItems: 'center' as const,
+    height: rf(48),
     borderRadius: BorderRadius.md,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     borderWidth: BorderWidth.normal,
   },
   buttonText: {
     fontSize: rf(16),
-    fontWeight: '600' as const,
+    fontWeight: '500' as const,
   },
 };

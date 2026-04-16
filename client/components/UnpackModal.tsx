@@ -1,5 +1,5 @@
 /**
- * 拆包弹窗组件
+ * 拆包弹窗组件 - 仅输入拆包数量
  */
 import React, { useEffect, useRef } from 'react';
 import {
@@ -8,11 +8,10 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { MaterialRecord, UnpackRecord } from '@/utils/database';
+import { MaterialRecord } from '@/utils/database';
 import { Spacing, BorderRadius, BorderWidth } from '@/constants/theme';
 import { rf } from '@/utils/responsive';
 
@@ -20,14 +19,9 @@ interface UnpackModalProps {
   visible: boolean;
   material: MaterialRecord | null;
   newQuantity: string;
-  newTraceNo: string;
-  notes: string;
   unpacking: boolean;
-  history: UnpackRecord[];
   nextIndex: number;
   onQuantityChange: (value: string) => void;
-  onTraceNoChange: (value: string) => void;
-  onNotesChange: (value: string) => void;
   onConfirm: () => void;
   onClose: () => void;
   theme: {
@@ -35,10 +29,8 @@ interface UnpackModalProps {
     backgroundTertiary: string;
     textPrimary: string;
     textSecondary: string;
-    textTertiary: string;
     border: string;
     primary: string;
-    error: string;
   };
 }
 
@@ -46,14 +38,9 @@ export const UnpackModal: React.FC<UnpackModalProps> = ({
   visible,
   material,
   newQuantity,
-  newTraceNo,
-  notes,
   unpacking,
-  history,
   nextIndex,
   onQuantityChange,
-  onTraceNoChange,
-  onNotesChange,
   onConfirm,
   onClose,
   theme,
@@ -85,7 +72,8 @@ export const UnpackModal: React.FC<UnpackModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.body}>
+          {/* Body */}
+          <View style={styles.body}>
             {/* 物料信息 */}
             <View style={[styles.infoBox, { backgroundColor: theme.backgroundTertiary }]}>
               <View style={styles.infoRow}>
@@ -106,7 +94,7 @@ export const UnpackModal: React.FC<UnpackModalProps> = ({
               </View>
             </View>
 
-            {/* 拆包信息 */}
+            {/* 拆包数量输入 */}
             <Text style={[styles.label, { color: theme.textPrimary }]}>拆包数量</Text>
             <TextInput
               ref={quantityRef}
@@ -117,46 +105,7 @@ export const UnpackModal: React.FC<UnpackModalProps> = ({
               placeholderTextColor={theme.textSecondary}
               keyboardType="numeric"
             />
-
-            <Text style={[styles.label, { color: theme.textPrimary }]}>新追溯码</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.backgroundTertiary, color: theme.textPrimary, borderColor: theme.border }]}
-              value={newTraceNo}
-              onChangeText={onTraceNoChange}
-              placeholder="输入新追溯码"
-              placeholderTextColor={theme.textSecondary}
-            />
-
-            <Text style={[styles.label, { color: theme.textPrimary }]}>备注</Text>
-            <TextInput
-              style={[styles.input, styles.notesInput, { backgroundColor: theme.backgroundTertiary, color: theme.textPrimary, borderColor: theme.border }]}
-              value={notes}
-              onChangeText={onNotesChange}
-              placeholder="可选备注"
-              placeholderTextColor={theme.textSecondary}
-              multiline
-              numberOfLines={2}
-            />
-
-            {/* 历史记录 */}
-            {history.length > 0 && (
-              <>
-                <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>拆包历史</Text>
-                {history.map((record, index) => (
-                  <View key={index} style={[styles.historyItem, { borderColor: theme.border }]}>
-                    <View style={styles.historyRow}>
-                      <Text style={[styles.historyIndex, { color: theme.textSecondary }]}>#{record.unpack_index}</Text>
-                      <Text style={[styles.historyQty, { color: theme.error }]}>-{record.quantity}</Text>
-                      <Text style={[styles.historyTrace, { color: theme.textPrimary }]}>{record.new_trace_no}</Text>
-                    </View>
-                    {record.notes && (
-                      <Text style={[styles.historyNotes, { color: theme.textTertiary }]}>{record.notes}</Text>
-                    )}
-                  </View>
-                ))}
-              </>
-            )}
-          </ScrollView>
+          </View>
 
           {/* Footer */}
           <View style={[styles.footer, { borderTopColor: theme.border }]}>
@@ -192,7 +141,6 @@ const styles = {
   content: {
     width: '90%' as any,
     maxWidth: 400,
-    maxHeight: '85%',
     borderRadius: BorderRadius.xl,
     overflow: 'hidden' as const,
   },
@@ -222,14 +170,13 @@ const styles = {
   },
   infoRow: {
     flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
     marginBottom: Spacing.sm,
   },
   infoLabel: {
-    width: 60,
-    fontSize: rf(13),
+    fontSize: rf(14),
   },
   infoValue: {
-    flex: 1,
     fontSize: rf(14),
     fontWeight: '500' as const,
   },
@@ -237,67 +184,30 @@ const styles = {
     fontSize: rf(14),
     fontWeight: '500' as const,
     marginBottom: Spacing.sm,
-    marginTop: Spacing.md,
   },
   input: {
-    fontSize: rf(16),
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    height: rf(48),
     borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    fontSize: rf(16),
     borderWidth: BorderWidth.normal,
-  },
-  notesInput: {
-    minHeight: 60,
-    textAlignVertical: 'top' as const,
-  },
-  sectionTitle: {
-    fontSize: rf(14),
-    fontWeight: '600' as const,
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.md,
-  },
-  historyItem: {
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: BorderWidth.thin,
-  },
-  historyRow: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: Spacing.md,
-  },
-  historyIndex: {
-    fontSize: rf(12),
-    width: 24,
-  },
-  historyQty: {
-    fontSize: rf(14),
-    fontWeight: '600' as const,
-  },
-  historyTrace: {
-    flex: 1,
-    fontSize: rf(13),
-  },
-  historyNotes: {
-    fontSize: rf(12),
-    marginTop: 2,
-    marginLeft: 24 + Spacing.md,
   },
   footer: {
     flexDirection: 'row' as const,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderTopWidth: BorderWidth.normal,
+    padding: Spacing.lg,
     gap: Spacing.md,
+    borderTopWidth: BorderWidth.normal,
   },
   button: {
     flex: 1,
-    paddingVertical: Spacing.md,
-    alignItems: 'center' as const,
+    height: rf(48),
     borderRadius: BorderRadius.md,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     borderWidth: BorderWidth.normal,
   },
   buttonText: {
     fontSize: rf(16),
-    fontWeight: '600' as const,
+    fontWeight: '500' as const,
   },
 };

@@ -140,8 +140,6 @@ export default function OrdersScreen() {
   const [unpackModalVisible, setUnpackModalVisible] = useState(false);
   const [unpackingMaterial, setUnpackingMaterial] = useState<MaterialRecord | null>(null);
   const [unpackNewQuantity, setUnpackNewQuantity] = useState('');
-  const [unpackNewTraceNo, setUnpackNewTraceNo] = useState('');
-  const [unpackNotes, setUnpackNotes] = useState('');
   const [unpacking, setUnpacking] = useState(false);
   const [unpackHistory, setUnpackHistory] = useState<UnpackRecord[]>([]);
   const [nextUnpackIndex, setNextUnpackIndex] = useState(1);
@@ -149,16 +147,7 @@ export default function OrdersScreen() {
   // 编辑物料弹窗
   const [editMaterialModalVisible, setEditMaterialModalVisible] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<MaterialRecord | null>(null);
-  const [editMaterialData, setEditMaterialData] = useState({
-    model: '',
-    batch: '',
-    quantity: '',
-    package: '',
-    version: '',
-    productionDate: '',
-    traceNo: '',
-    sourceNo: '',
-  });
+  const [editQuantity, setEditQuantity] = useState('');
   const [savingMaterial, setSavingMaterial] = useState(false);
 
   // 同步配置
@@ -375,19 +364,16 @@ export default function OrdersScreen() {
   const handleOpenUnpack = async (material: MaterialRecord) => {
     setUnpackingMaterial(material);
     setUnpackNewQuantity('');
-    setUnpackNotes('');
 
     try {
       const history = await getUnpackHistoryByMaterialId(material.id!);
       setUnpackHistory(history);
       const nextIndex = await getNextUnpackIndex(material.traceNo);
       setNextUnpackIndex(nextIndex);
-      setUnpackNewTraceNo(material.traceNo ? `${material.traceNo}-${nextIndex}` : '');
     } catch (error) {
       console.error('获取拆包信息失败:', error);
       setUnpackHistory([]);
       setNextUnpackIndex(1);
-      setUnpackNewTraceNo(material.traceNo ? `${material.traceNo}-1` : '');
     }
 
     setUnpackModalVisible(true);
@@ -426,8 +412,6 @@ export default function OrdersScreen() {
         productionDate: unpackingMaterial.productionDate,
         traceNo: unpackingMaterial.traceNo,
         sourceNo: unpackingMaterial.sourceNo,
-        new_traceNo: unpackNewTraceNo,
-        notes: unpackNotes,
         warehouse_id: unpackingMaterial.warehouse_id,
         warehouse_name: unpackingMaterial.warehouse_name,
         inventory_code: unpackingMaterial.inventory_code,
@@ -451,33 +435,23 @@ export default function OrdersScreen() {
   // ============ 编辑物料操作 ============
   const handleEditMaterial = (material: MaterialRecord) => {
     setEditingMaterial(material);
-    setEditMaterialData({
-      model: material.model || '',
-      batch: material.batch || '',
-      quantity: material.quantity || '',
-      package: material.package || '',
-      version: material.version || '',
-      productionDate: material.productionDate || '',
-      traceNo: material.traceNo || '',
-      sourceNo: material.sourceNo || '',
-    });
+    setEditQuantity(material.quantity || '');
     setEditMaterialModalVisible(true);
   };
 
   const handleConfirmEditMaterial = async () => {
     if (!editingMaterial) return;
 
+    const newQty = parseInt(editQuantity, 10);
+    if (!editQuantity.trim() || isNaN(newQty) || newQty <= 0) {
+      showCustomAlert('错误', '请输入有效的数量', [{ text: '确定', style: 'destructive' }], 'error');
+      return;
+    }
+
     setSavingMaterial(true);
     try {
       await updateMaterial(editingMaterial.id!, {
-        model: editMaterialData.model,
-        batch: editMaterialData.batch,
-        quantity: editMaterialData.quantity,
-        package: editMaterialData.package,
-        version: editMaterialData.version,
-        productionDate: editMaterialData.productionDate,
-        traceNo: editMaterialData.traceNo,
-        sourceNo: editMaterialData.sourceNo,
+        quantity: editQuantity,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -803,9 +777,9 @@ export default function OrdersScreen() {
       <EditMaterialModal
         visible={editMaterialModalVisible}
         material={editingMaterial}
-        formData={editMaterialData}
+        quantity={editQuantity}
         saving={savingMaterial}
-        onChange={(field, value) => setEditMaterialData((prev) => ({ ...prev, [field]: value }))}
+        onQuantityChange={setEditQuantity}
         onSave={handleConfirmEditMaterial}
         onClose={() => setEditMaterialModalVisible(false)}
         theme={theme}
@@ -816,14 +790,10 @@ export default function OrdersScreen() {
         visible={unpackModalVisible}
         material={unpackingMaterial}
         newQuantity={unpackNewQuantity}
-        newTraceNo={unpackNewTraceNo}
-        notes={unpackNotes}
         unpacking={unpacking}
         history={unpackHistory}
         nextIndex={nextUnpackIndex}
         onQuantityChange={setUnpackNewQuantity}
-        onTraceNoChange={setUnpackNewTraceNo}
-        onNotesChange={setUnpackNotes}
         onConfirm={handleConfirmUnpack}
         onClose={() => setUnpackModalVisible(false)}
         theme={theme}
