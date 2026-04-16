@@ -1,7 +1,7 @@
 {
-  "version": "V3.3.4",
-  "versionCode": 85,
-  "buildNumber": 85,
+  "version": "V3.3.5",
+  "versionCode": 86,
+  "buildNumber": 86,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
   "forceUpdate": false,
   "appName": "掌上仓库",
@@ -10,14 +10,21 @@
   "author": "zx5121091",
   "changelog": [
     {
-      "version": "V3.3.4",
+      "version": "V3.3.5",
       "date": "2026-04-22",
       "changes": [
-        { "type": "improve", "text": "代码重构：提取存储键、网络配置到统一配置模块" },
-        { "type": "improve", "text": "代码重构：封装Excel导出工具函数" },
-        { "type": "improve", "text": "代码重构：封装心跳检测工具" },
-        { "type": "improve", "text": "代码重构：封装在线更新工具函数" },
-        { "type": "improve", "text": "导出序号：改为按天递增模式（当日导出01、02、03...）" }
+        { "type": "fix", "text": "数据同步：修复心跳检测路径（/api/v1/health 改为 /health）" },
+        { "type": "fix", "text": "数据同步：修复测试连接函数路径" },
+        { "type": "fix", "text": "备份恢复：修复 SYNC_CONFIG_KEY 未定义问题" },
+        { "type": "improve", "text": "编辑物料弹窗：优化显示字段（只保留核心字段）" },
+        { "type": "improve", "text": "编辑物料：打开时自动聚焦数量输入框" },
+        { "type": "improve", "text": "编辑物料弹窗：底部添加留空避免内容被遮挡" },
+        { "type": "improve", "text": "盘点导出：移除备注列，创建时间格式改为 YYYY/M/D HH:mm" },
+        { "type": "improve", "text": "备份恢复：显示格式化后的备份时间" },
+        { "type": "improve", "text": "导出序号：序号从内容移到文件名（入库单/出库单/盘点单）" },
+        { "type": "improve", "text": "拆包模式修改数量：提示音改为确认音" },
+        { "type": "feat", "text": "新增导出盘点拆包标签功能" },
+        { "type": "feat", "text": "时间格式化：新增导出专用格式 YYYY/M/D HH:mm" }
       ]
     },
     {
