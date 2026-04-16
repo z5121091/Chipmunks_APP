@@ -688,7 +688,7 @@ export default function InboundScreen() {
                           delayLongPress={500}
                         >
                           <Text style={styles.detailText}>
-                            批次: {record.batch || '-'}{record.productionDate ? `  |  生产日期: ${record.productionDate}` : ''}  |  数量: {record.quantity}PCS
+                            批次: {record.batch || '-'}{record.productionDate ? `  |  生产日期: ${record.productionDate}` : ''}  |  数量: {record.quantity} PCS
                           </Text>
                         </TouchableOpacity>
                       ))}
