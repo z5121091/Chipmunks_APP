@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-掌上仓库 - 数据同步服务 V3.1.0
+掌上仓库 - 数据同步服务 V3.2.0
 功能：接收手机发送的数据，自动保存为Excel文件
 支持：系统托盘、开机自启动、日志轮转
 """
@@ -152,7 +152,7 @@ class Health:
         return json.dumps({
             'status': 'ok',
             'service': '掌上仓库同步服务',
-            'version': '3.1.1'
+            'version': '3.2.0'
         }, ensure_ascii=False)
 
 
@@ -686,7 +686,7 @@ def start_server():
     cherrypy.config.update(conf)
     
     log("=" * 50)
-    log("  掌上仓库 - 数据同步服务 V3.1.0")
+    log("  掌上仓库 - 数据同步服务 V3.2.0")
     log("=" * 50)
     log(f"  本机IP: {ip_address}")
     log(f"  服务端口: {SERVER_PORT}")
