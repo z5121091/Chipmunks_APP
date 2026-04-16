@@ -9,10 +9,25 @@
 
 /**
  * 获取当前时间（用于存储）
- * 格式：YYYY-MM-DDTHH:mm:ss.SSSZ (ISO 8601)
+ * 格式：YYYY-MM-DDTHH:mm:ss.SSS+08:00 (本地时间，ISO 8601 带时区)
  */
 export const getISODateTime = (): string => {
-  return new Date().toISOString();
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const ms = String(now.getMilliseconds()).padStart(3, '0');
+  
+  // 获取本地时区偏移 (分钟)，转为 "+0800" 格式
+  const tzOffset = -now.getTimezoneOffset(); // 北京时间是 -480 分钟
+  const tzSign = tzOffset >= 0 ? '+' : '-';
+  const tzHours = String(Math.abs(Math.floor(tzOffset / 60))).padStart(2, '0');
+  const tzMinutes = String(Math.abs(tzOffset % 60)).padStart(2, '0');
+  
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${tzSign}${tzHours}:${tzMinutes}`;
 };
 
 // ============================================
