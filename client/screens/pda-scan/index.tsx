@@ -131,8 +131,9 @@ export default function PDAScanScreen() {
     const list = await searchMaterials({ orderNo: no });
     setMaterialCount(list.length);
     // 加载全部数据用于聚合，显示时限制10行
+    // 注意：使用 slice().reverse() 避免修改原数组
     setMaterials(
-      list.reverse().map(m => ({
+      list.slice().reverse().map(m => ({
         id: m.id,
         model: m.model,
         batch: m.batch,
@@ -284,7 +285,8 @@ export default function PDAScanScreen() {
         package: parsed.package,
         productionDate: parsed.productionDate,
       };
-      setMaterials(prev => [newItem, ...prev].slice(0, 10));
+      // 新增物料：追加到列表前面，不限制数量（聚合需要基于全部数据）
+      setMaterials(prev => [newItem, ...prev]);
       setMaterialCount(prev => prev + 1);
       showToast(`${parsed.model} +1`, 'success');
       feedbackSuccess();

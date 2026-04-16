@@ -94,6 +94,6 @@ export const getToday = (): string => {
  * 格式化时间 (YYYY-MM-DD HH:mm)
  * 与 formatDateTime 功能相同，提供别名兼容旧代码
  */
-export const formatTime = (dateString: string): string => {
+export const formatTime = (dateString: string | undefined | null): string => {
   return formatDateTime(dateString);
 };
