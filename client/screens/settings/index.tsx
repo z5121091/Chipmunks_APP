@@ -890,13 +890,13 @@ export default function SettingsScreen() {
       
       alert.showConfirm(
         '确认恢复配置',
-        `即将恢复以下配置:\n• 解析规则: ${backupData.rules?.length || 0} 条\n• 自定义字段: ${backupData.customFields?.length || 0} 个\n• 物料绑定: ${backupData.inventoryBindings?.length || 0} 条\n• 仓库: ${backupData.warehouses?.length || 0} 个\n• 同步服务器: ${backupData.syncConfig ? backupData.syncConfig.ip : '未配置'}\n\n[警告] 当前配置将被覆盖！`,
+        `备份时间: ${formatDateTimeExport(backupData.backupTime)}\n\n即将恢复以下配置:\n• 解析规则: ${backupData.rules?.length || 0} 条\n• 自定义字段: ${backupData.customFields?.length || 0} 个\n• 物料绑定: ${backupData.inventoryBindings?.length || 0} 条\n• 仓库: ${backupData.warehouses?.length || 0} 个\n• 同步服务器: ${backupData.syncConfig ? backupData.syncConfig.ip : '未配置'}\n\n[警告] 当前配置将被覆盖！`,
         async () => {
           setRestoreLoading(true);
           try {
             const result = await importBackupData(backupData);
             if (result.success) {
-              alert.showSuccess(`恢复成功:\n• 解析规则: ${result.stats.rules} 条\n• 自定义字段: ${result.stats.customFields} 个\n• 物料绑定: ${result.stats.inventoryBindings} 条\n• 仓库: ${result.stats.warehouses} 个\n• 同步服务器: ${result.stats.hasSyncConfig ? '已恢复' : '未配置'}`);
+              alert.showSuccess(`备份时间: ${formatDateTimeExport(backupData.backupTime)}\n\n恢复成功:\n• 解析规则: ${result.stats.rules} 条\n• 自定义字段: ${result.stats.customFields} 个\n• 物料绑定: ${result.stats.inventoryBindings} 条\n• 仓库: ${result.stats.warehouses} 个\n• 同步服务器: ${result.stats.hasSyncConfig ? '已恢复' : '未配置'}`);
               loadData();
             } else {
               alert.showError(result.message);
