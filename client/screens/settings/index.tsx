@@ -30,6 +30,7 @@ import {
   getAllUnpackRecords,
   getAllCustomFields,
   getAllInboundRecords,
+  formatDateTimeMinute,
   getAllInventoryCheckRecords,
   exportBackupData,
   importBackupData,
@@ -425,7 +426,7 @@ export default function SettingsScreen() {
         r.sourceNo || '',
         r.in_date || '',
         r.notes || '',
-        r.created_at || '',
+        r.created_at ? formatDateTimeMinute(r.created_at) : '',
       ]);
 
       const ws = XLSX.utils.aoa_to_sheet([detailHeaders, ...detailRows]);
