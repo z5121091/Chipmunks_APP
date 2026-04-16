@@ -1965,7 +1965,7 @@ export const importBackupData = async (backup: BackupData): Promise<{
 
     // 如果备份中包含同步配置，也恢复它
     if (backup.syncConfig) {
-      promises.push(AsyncStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(backup.syncConfig)));
+      promises.push(AsyncStorage.setItem(STORAGE_KEYS.SYNC_CONFIG, JSON.stringify(backup.syncConfig)));
     }
 
     await Promise.all(promises);
