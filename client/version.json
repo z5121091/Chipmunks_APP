@@ -26,7 +26,7 @@
         { "type": "fix", "text": "规则字段顺序：修复解析时忽略用户配置的字段顺序问题" },
         { "type": "fix", "text": "键盘抖动：所有Modal的KeyboardAvoidingView统一改为padding模式" },
         { "type": "fix", "text": "输入法冲突：移除warehouse-management的autoFocus" },
-        { "type": "fix", "text": "订单记录：修复拆分结果显示分隔符错误（改用逗号分隔）" },
+        { "type": "fix", "text": "订单记录：修复拆分结果显示分隔符错误（改用实际的分隔符）" },
         { "type": "fix", "text": "pnpm ENOTEMPTY错误：prefer-frozen-lockfile改为false" },
         { "type": "fix", "text": "JSX标签未闭合导致Android打包失败" },
         { "type": "fix", "text": "拆包标签导出：文件名固定为「拆包标签.xlsx」（不含日期）" },
