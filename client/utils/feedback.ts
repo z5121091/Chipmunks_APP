@@ -7,9 +7,7 @@ import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
-
-// 声音开关存储键
-export const SOUND_ENABLED_KEY = '@sound_enabled';
+import { STORAGE_KEYS } from '@/constants/config';
 
 // 声音开关状态缓存（同步访问）
 let soundEnabled: boolean = true;
@@ -19,7 +17,7 @@ let soundEnabled: boolean = true;
  */
 export async function initSoundSetting() {
   try {
-    const value = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.SOUND_ENABLED);
     soundEnabled = value === null || value === 'true';
     console.log('[Feedback] 声音开关状态:', soundEnabled);
   } catch {
@@ -32,7 +30,7 @@ export async function initSoundSetting() {
  */
 export function setSoundEnabled(enabled: boolean) {
   soundEnabled = enabled;
-  AsyncStorage.setItem(SOUND_ENABLED_KEY, String(enabled)).catch(console.error);
+  AsyncStorage.setItem(STORAGE_KEYS.SOUND_ENABLED, String(enabled)).catch(console.error);
   console.log('[Feedback] 设置声音开关:', enabled);
 }
 
