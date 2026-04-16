@@ -33,7 +33,7 @@ export const useHeartbeat = (
       const timeoutId = setTimeout(() => controller.abort(), NETWORK_CONFIG.HEARTBEAT_TIMEOUT);
 
       const response = await fetch(
-        `http://${syncConfig.ip}:${syncConfig.port || NETWORK_CONFIG.DEFAULT_PORT}/api/v1/health`,
+        `http://${syncConfig.ip}:${syncConfig.port || NETWORK_CONFIG.DEFAULT_PORT}/health`,
         {
           method: 'GET',
           signal: controller.signal,
