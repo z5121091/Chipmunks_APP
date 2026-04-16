@@ -227,7 +227,9 @@ export default function PDAScanScreen() {
             productionDate: standardFields.productionDate,
           };
         }
-      } catch (e) {}
+      } catch (err) {
+        console.error('解析标准格式失败:', err);
+      }
 
       if (!parsed) {
         parsed = parseQRCode(code);

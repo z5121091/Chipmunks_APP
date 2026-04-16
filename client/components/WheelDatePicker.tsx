@@ -119,6 +119,7 @@ export function WheelDatePicker({
       scrollToIndex(endMonthScrollRef, months.indexOf(endMonth));
       scrollToIndex(endDayScrollRef, Math.min(endDays.indexOf(endDay), endDays.length - 1));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, startYear, startMonth, startDay, endYear, endMonth, endDay]);
   
   // 快捷选择

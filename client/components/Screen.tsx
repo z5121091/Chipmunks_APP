@@ -183,7 +183,7 @@ export const Screen = ({
   const [keyboardShown, setKeyboardShown] = React.useState(false);
   const [isAndroid7OrBelow, setIsAndroid7OrBelow] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // 检测 Android 7.0 (API 24) 及以下版本，沉浸式状态栏会导致系统字体不可见
     if (Platform.OS === 'android') {
       const version = Platform.Version;

@@ -1,18 +1,30 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
-import { Feather, FontAwesome6 } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as XLSX from 'xlsx';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
 import { AnimatedCard } from '@/components/AnimatedCard';
-import { 
-  initDatabase, 
-  upsertOrder, 
-  getAllOrders, 
+import { CustomAlert } from '@/components/CustomAlert';
+import { EditMaterialModal } from '@/components/EditMaterialModal';
+import { UnpackModal } from '@/components/UnpackModal';
+import {
+  initDatabase,
+  upsertOrder,
+  getAllOrders,
   getStatistics,
   deleteOrder,
   getMaterialsByOrder,
@@ -26,26 +38,18 @@ import {
   updateMaterial,
   Order,
   MaterialRecord,
-  UnpackRecord 
+  UnpackRecord,
 } from '@/utils/database';
-import { STORAGE_KEYS, SyncConfig } from '@/constants/config';
-import { formatDate, formatDateTime, formatTime, getToday } from '@/utils/time';
+import { STORAGE_KEYS, SyncConfig, NETWORK_CONFIG } from '@/constants/config';
+import { formatDate, formatDateTime, getToday } from '@/utils/time';
 import { useSafeRouter, useSafeSearchParams } from '@/hooks/useSafeRouter';
 import { Spacing, BorderRadius, BorderWidth } from '@/constants/theme';
 import { rf } from '@/utils/responsive';
+import { summarizeMaterials, MaterialSummary } from '@/utils/orders';
 
-// 物料汇总接口
-interface MaterialSummary {
-  model: string;
-  count: number;
-  totalQuantity: number;
-  todayCount: number;
-}
-
-// 搜索类型
+// ============ 类型定义 ============
 type SearchType = 'order' | 'customer' | 'batch';
 
-// 自定义弹窗配置
 interface CustomAlertConfig {
   visible: boolean;
   title: string;
@@ -54,13 +58,15 @@ interface CustomAlertConfig {
   buttons: { text: string; style?: 'default' | 'cancel' | 'destructive'; onPress?: () => void }[];
 }
 
+// ============ 主组件 ============
 export default function OrdersScreen() {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const styles = createStyles(theme);
   const insets = useSafeAreaInsets();
   const router = useSafeRouter();
   const params = useSafeSearchParams<{ orderNo?: string; materialId?: number }>();
-  
+
+  // ============ 状态 ============
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -73,21 +79,20 @@ export default function OrdersScreen() {
     todayMaterials: 0,
     todayQuantity: 0,
   });
-  
+
   // 展开的订单
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [expandedMaterials, setExpandedMaterials] = useState<MaterialRecord[]>([]);
   const expandedOrderIdRef = useRef<string | null>(null);
-  
-  // 标记是否需要自动展开订单（从拆包跳转过来）
+
+  // 跳转到展开订单
   const pendingExpandOrderNo = useRef<string | null>(null);
   const pendingMaterialId = useRef<number | null>(null);
-  
-  // 同步 ref
+
   useEffect(() => {
     expandedOrderIdRef.current = expandedOrderId;
   }, [expandedOrderId]);
-  
+
   // 自定义弹窗
   const [customAlert, setCustomAlert] = useState<CustomAlertConfig>({
     visible: false,
@@ -95,50 +100,42 @@ export default function OrdersScreen() {
     message: '',
     buttons: [],
   });
-  
-  // 显示自定义弹窗
-  const showCustomAlert = (
-    title: string, 
-    message: string, 
-    buttons: CustomAlertConfig['buttons'],
-    icon?: 'success' | 'warning' | 'error' | 'info'
-  ) => {
+
+  const showCustomAlert = useCallback((title: string, message: string, buttons: CustomAlertConfig['buttons'], icon?: CustomAlertConfig['icon']) => {
     setCustomAlert({ visible: true, title, message, buttons, icon });
-  };
-  
-  // 关闭自定义弹窗
-  const closeCustomAlert = () => {
-    setCustomAlert(prev => ({ ...prev, visible: false }));
-  };
-  
+  }, []);
+
+  const closeCustomAlert = useCallback(() => {
+    setCustomAlert((prev) => ({ ...prev, visible: false }));
+  }, []);
+
   // 编辑客户名称弹窗
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [editCustomerName, setEditCustomerName] = useState('');
   const customerNameInputRef = useRef<TextInput>(null);
-  
-  // 客户名称弹窗打开时聚焦输入框
+
   useEffect(() => {
     if (editModalVisible && customerNameInputRef.current) {
       setTimeout(() => customerNameInputRef.current?.focus(), 300);
     }
   }, [editModalVisible]);
-  
+
   // 所有订单弹窗
   const [allOrdersModalVisible, setAllOrdersModalVisible] = useState(false);
-  const [showTodayOrdersOnly, setShowTodayOrdersOnly] = useState(false); // 是否只显示今日订单
-  
+  const [showTodayOrdersOnly, setShowTodayOrdersOnly] = useState(false);
+
   // 物料汇总弹窗
   const [materialsModalVisible, setMaterialsModalVisible] = useState(false);
   const [materialSummaries, setMaterialSummaries] = useState<MaterialSummary[]>([]);
   const [materialTotalQuantity, setMaterialTotalQuantity] = useState(0);
-  const [showTodayOnly, setShowTodayOnly] = useState(false); // 是否只显示今日物料
-  
-  // 物料详情弹窗（按型号筛选）
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
+
+  // 物料详情弹窗
   const [materialDetailModalVisible, setMaterialDetailModalVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedModelMaterials, setSelectedModelMaterials] = useState<MaterialRecord[]>([]);
-  
+
   // 拆包弹窗
   const [unpackModalVisible, setUnpackModalVisible] = useState(false);
   const [unpackingMaterial, setUnpackingMaterial] = useState<MaterialRecord | null>(null);
@@ -148,19 +145,7 @@ export default function OrdersScreen() {
   const [unpacking, setUnpacking] = useState(false);
   const [unpackHistory, setUnpackHistory] = useState<UnpackRecord[]>([]);
   const [nextUnpackIndex, setNextUnpackIndex] = useState(1);
-  
-  // 拆包数量输入框 ref
-  const unpackQuantityRef = useRef<TextInput>(null);
-  // 拆包备注输入框 ref
-  const unpackNotesRef = useRef<TextInput>(null);
-  
-  // 拆包弹窗打开后聚焦输入框
-  useEffect(() => {
-    if (unpackModalVisible && unpackQuantityRef.current) {
-      setTimeout(() => unpackQuantityRef.current?.focus(), 300);
-    }
-  }, [unpackModalVisible]);
-  
+
   // 编辑物料弹窗
   const [editMaterialModalVisible, setEditMaterialModalVisible] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<MaterialRecord | null>(null);
@@ -175,159 +160,30 @@ export default function OrdersScreen() {
     sourceNo: '',
   });
   const [savingMaterial, setSavingMaterial] = useState(false);
-  
+
   // 同步配置
   const [syncConfig, setSyncConfig] = useState<SyncConfig>({ ip: '', port: '8080' });
   const [syncing, setSyncing] = useState(false);
-  
-  // 加载同步配置
+
+  // ============ 数据加载 ============
   const loadSyncConfig = useCallback(async () => {
-    const savedSyncConfig = await AsyncStorage.getItem(STORAGE_KEYS.SYNC_CONFIG);
-    if (savedSyncConfig) {
-      setSyncConfig(JSON.parse(savedSyncConfig));
-    }
+    const saved = await AsyncStorage.getItem(STORAGE_KEYS.SYNC_CONFIG);
+    if (saved) setSyncConfig(JSON.parse(saved));
   }, []);
-  
-  // 页面加载时获取同步配置
-  useFocusEffect(
-    useCallback(() => {
-      loadSyncConfig();
-    }, [loadSyncConfig])
-  );
-  
-  // 拆包弹窗样式
-  const unpackModalStyles = useMemo(() => ({
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-    },
-    modalContent: {
-      backgroundColor: theme.backgroundDefault,
-      borderRadius: BorderRadius.xl,
-      width: '90%' as any,
-      maxWidth: 400,
-    },
-    modalHeader: {
-      flexDirection: 'row' as const,
-      justifyContent: 'space-between' as const,
-      alignItems: 'center' as const,
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.lg,
-      borderBottomWidth: BorderWidth.normal,
-      borderBottomColor: theme.border,
-    },
-    modalTitle: {
-      fontSize: rf(18),
-      fontWeight: '600' as const,
-      color: theme.textPrimary,
-    },
-    modalClose: {
-      fontSize: rf(20),
-      color: theme.textSecondary,
-    },
-    modalBody: {
-      padding: Spacing.lg,
-    },
-    modalBodyContent: {
-      paddingBottom: Spacing['2xl'],
-    },
-    inputLabel: {
-      fontSize: rf(14),
-      fontWeight: '500' as const,
-      color: theme.textPrimary,
-      marginBottom: Spacing.sm,
-      marginTop: Spacing.md,
-    },
-    textInput: {
-      fontSize: rf(16),
-      color: theme.textPrimary,
-      paddingVertical: Spacing.md,
-      paddingHorizontal: Spacing.lg,
-      backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.md,
-      borderWidth: BorderWidth.normal,
-      borderColor: theme.border,
-    },
-    infoBox: {
-      backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.md,
-      padding: Spacing.lg,
-      marginBottom: Spacing.lg,
-    },
-    infoRow: {
-      flexDirection: 'row' as const,
-      marginBottom: Spacing.sm,
-    },
-    infoLabel: {
-      width: 60,
-      fontSize: rf(13),
-      color: theme.textSecondary,
-    },
-    infoValue: {
-      flex: 1,
-      fontSize: rf(14),
-      color: theme.textPrimary,
-      fontWeight: '500' as const,
-    },
-    modalFooter: {
-      flexDirection: 'row' as const,
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.lg,
-      borderTopWidth: BorderWidth.normal,
-      borderTopColor: theme.border,
-      gap: Spacing.md,
-    },
-    cancelButton: {
-      flex: 1,
-      paddingVertical: Spacing.md,
-      alignItems: 'center' as const,
-      borderRadius: BorderRadius.md,
-      backgroundColor: theme.backgroundTertiary,
-      borderWidth: BorderWidth.normal,
-      borderColor: theme.border,
-    },
-    cancelButtonText: {
-      fontSize: rf(16),
-      fontWeight: '600' as const,
-      color: theme.textPrimary,
-    },
-    saveButton: {
-      flex: 1,
-      paddingVertical: Spacing.md,
-      alignItems: 'center' as const,
-      borderRadius: BorderRadius.md,
-      backgroundColor: theme.primary,
-    },
-    saveButtonText: {
-      fontSize: rf(16),
-      fontWeight: '600' as const,
-      color: theme.buttonPrimaryText,
-    },
-  }), [theme]);
-  
-  // 加载数据
+
+  useFocusEffect(useCallback(() => { loadSyncConfig(); }, [loadSyncConfig]));
+
   const loadData = useCallback(async () => {
     try {
-      const [ordersData, statsData] = await Promise.all([
-        getAllOrders(),
-        getStatistics(),
-      ]);
-      
-      // 按订单号从大到小排序（最近的日期在最上面）
-      const sortedOrders = [...ordersData].sort((a, b) => 
-        b.order_no.localeCompare(a.order_no, undefined, { numeric: true })
-      );
-      
+      const [ordersData, statsData] = await Promise.all([getAllOrders(), getStatistics()]);
+      const sortedOrders = [...ordersData].sort((a, b) => b.order_no.localeCompare(a.order_no, undefined, { numeric: true }));
       setOrders(sortedOrders);
       setFilteredOrders(sortedOrders);
       setStats(statsData);
-      
-      // 如果有展开的订单，刷新其物料列表（使用 ref 避免依赖问题）
+
       const currentExpandedId = expandedOrderIdRef.current;
       if (currentExpandedId) {
-        const expandedOrder = sortedOrders.find(o => o.id === currentExpandedId);
+        const expandedOrder = sortedOrders.find((o) => o.id === currentExpandedId);
         if (expandedOrder) {
           const materials = await getMaterialsByOrder(expandedOrder.order_no);
           setExpandedMaterials(materials);
@@ -337,93 +193,58 @@ export default function OrdersScreen() {
       console.error('加载数据失败:', error);
     }
   }, []);
-  
-  // 搜索过滤
+
+  const initDB = useCallback(async () => {
+    try { await initDatabase(); } catch (error) { console.error('数据库初始化失败:', error); }
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    initDB();
+    loadData();
+  }, [initDB, loadData]));
+
+  useEffect(() => {
+    if (params.orderNo && orders.length > 0) {
+      const targetOrder = orders.find((o) => o.order_no === params.orderNo);
+      if (targetOrder && targetOrder.id !== expandedOrderId) {
+        setExpandedOrderId(targetOrder.id);
+        getMaterialsByOrder(targetOrder.order_no).then(setExpandedMaterials);
+      }
+    }
+  }, [params.orderNo, orders]);
+
+  // ============ 搜索过滤 ============
   const handleSearch = useCallback(async (text: string) => {
     setSearchText(text);
-    if (!text.trim()) {
-      setFilteredOrders(orders);
-      return;
-    }
-    
+    if (!text.trim()) { setFilteredOrders(orders); return; }
+
     const lowerText = text.toLowerCase();
-    
+
     if (searchType === 'batch') {
-      // 按批次搜索物料，然后找到相关订单
       try {
         const materials = await searchMaterials({ batch: text });
-        const orderNos = new Set(materials.map(m => m.order_no));
-        const filtered = orders.filter(order => orderNos.has(order.order_no));
-        // 保持排序（从大到小）
-        setFilteredOrders(filtered.sort((a, b) => 
-          b.order_no.localeCompare(a.order_no, undefined, { numeric: true })
-        ));
+        const orderNos = new Set(materials.map((m) => m.order_no));
+        const filtered = orders.filter((order) => orderNos.has(order.order_no));
+        setFilteredOrders(filtered.sort((a, b) => b.order_no.localeCompare(a.order_no, undefined, { numeric: true })));
       } catch (error) {
         console.error('批次搜索失败:', error);
         setFilteredOrders([]);
       }
     } else if (searchType === 'customer') {
-      // 按客户名称搜索
-      const filtered = orders.filter(order => 
-        order.customer_name && order.customer_name.toLowerCase().includes(lowerText)
-      );
-      // 保持排序（从大到小）
-      setFilteredOrders(filtered.sort((a, b) => 
-        b.order_no.localeCompare(a.order_no, undefined, { numeric: true })
-      ));
+      const filtered = orders.filter((order) => order.customer_name?.toLowerCase().includes(lowerText));
+      setFilteredOrders(filtered.sort((a, b) => b.order_no.localeCompare(a.order_no, undefined, { numeric: true })));
     } else {
-      // 按订单号搜索
-      const filtered = orders.filter(order => 
-        order.order_no.toLowerCase().includes(lowerText)
-      );
-      // 保持排序（从大到小）
-      setFilteredOrders(filtered.sort((a, b) => 
-        b.order_no.localeCompare(a.order_no, undefined, { numeric: true })
-      ));
+      const filtered = orders.filter((order) => order.order_no.toLowerCase().includes(lowerText));
+      setFilteredOrders(filtered.sort((a, b) => b.order_no.localeCompare(a.order_no, undefined, { numeric: true })));
     }
   }, [orders, searchType]);
-  
-  // 搜索类型变更时重新搜索
+
   const handleSearchTypeChange = useCallback((type: SearchType) => {
     setSearchType(type);
-    if (searchText.trim()) {
-      handleSearch(searchText);
-    }
+    if (searchText.trim()) handleSearch(searchText);
   }, [searchText, handleSearch]);
-  
-  // 初始化数据库
-  const initDB = useCallback(async () => {
-    try {
-      await initDatabase();
-    } catch (error) {
-      console.error('数据库初始化失败:', error);
-    }
-  }, []);
-  
-  // 页面聚焦时刷新数据
-  useFocusEffect(
-    useCallback(() => {
-      initDB();
-      loadData();
-    }, [initDB, loadData])
-  );
-  
-  // 处理从扫描页面跳转过来的参数（自动展开订单）
-  useEffect(() => {
-    if (params.orderNo && orders.length > 0) {
-      // 找到对应的订单
-      const targetOrder = orders.find(o => o.order_no === params.orderNo);
-      if (targetOrder && targetOrder.id !== expandedOrderId) {
-        // 展开该订单
-        setExpandedOrderId(targetOrder.id);
-        getMaterialsByOrder(targetOrder.order_no).then(materials => {
-          setExpandedMaterials(materials);
-        });
-      }
-    }
-  }, [params.orderNo, orders]);
-  
-  // 点击订单 - 展开/收起显示物料列表
+
+  // ============ 订单操作 ============
   const handleToggleOrder = async (order: Order) => {
     if (expandedOrderId === order.id) {
       setExpandedOrderId(null);
@@ -434,23 +255,19 @@ export default function OrdersScreen() {
       setExpandedMaterials(materials);
     }
   };
-  
-  // 查看物料详情
+
   const handleViewMaterial = (material: MaterialRecord) => {
     router.push('/detail', { id: material.id });
   };
-  
-  // 打开编辑客户名称弹窗
+
   const handleEditCustomer = (order: Order) => {
     setEditingOrder(order);
     setEditCustomerName(order.customer_name || '');
     setEditModalVisible(true);
   };
-  
-  // 保存客户名称
+
   const handleSaveCustomer = async () => {
     if (!editingOrder) return;
-    
     try {
       await upsertOrder(editingOrder.order_no, editCustomerName.trim());
       setEditModalVisible(false);
@@ -462,8 +279,7 @@ export default function OrdersScreen() {
       showCustomAlert('错误', '保存失败', [{ text: '确定', style: 'destructive' }], 'error');
     }
   };
-  
-  // 删除订单
+
   const handleDeleteOrder = (order: Order) => {
     showCustomAlert(
       '确认删除',
@@ -492,69 +308,33 @@ export default function OrdersScreen() {
       'warning'
     );
   };
-  
-  // 打开物料汇总弹窗
+
+  // ============ 物料操作 ============
   const handleOpenMaterials = async (todayOnly: boolean = false) => {
     try {
       const allMaterials = await getAllMaterials();
-      const today = getToday();
-      
-      // 根据参数筛选物料
-      const materials = todayOnly 
-        ? allMaterials.filter(m => m.scanned_at && m.scanned_at.slice(0, 10) === today)
-        : allMaterials;
-      
-      const summaryMap = new Map<string, MaterialSummary>();
-      let totalQty = 0;
-      
-      materials.forEach(m => {
-        const model = m.model || '未知型号';
-        const qty = parseInt(m.quantity, 10) || 0;
-        const isToday = m.scanned_at && m.scanned_at.slice(0, 10) === today;
-        
-        totalQty += qty;
-        
-        if (!summaryMap.has(model)) {
-          summaryMap.set(model, {
-            model,
-            count: 0,
-            totalQuantity: 0,
-            todayCount: 0,
-          });
-        }
-        
-        const summary = summaryMap.get(model)!;
-        summary.count++;
-        summary.totalQuantity += qty;
-        if (isToday) summary.todayCount++;
-      });
-      
-      const summaries = Array.from(summaryMap.values()).sort((a, b) => b.totalQuantity - a.totalQuantity);
+      const { summaries, totalQuantity } = summarizeMaterials(allMaterials, todayOnly);
       setMaterialSummaries(summaries);
-      setMaterialTotalQuantity(totalQty);
+      setMaterialTotalQuantity(totalQuantity);
       setShowTodayOnly(todayOnly);
       setMaterialsModalVisible(true);
     } catch (error) {
       console.error('获取物料汇总失败:', error);
     }
   };
-  
-  // 打开物料详情弹窗（按型号筛选）
+
   const handleOpenMaterialDetail = async (model: string) => {
     try {
       const allMaterials = await getAllMaterials();
-      const today = getToday();
-      
-      // 根据 showTodayOnly 筛选物料
-      const filtered = allMaterials.filter(m => {
+      const filtered = allMaterials.filter((m) => {
         const modelMatch = (m.model || '未知型号') === model;
         if (!modelMatch) return false;
         if (showTodayOnly) {
+          const today = getToday();
           return m.scanned_at && m.scanned_at.slice(0, 10) === today;
         }
         return true;
       });
-      
       setSelectedModel(model);
       setSelectedModelMaterials(filtered);
       setMaterialsModalVisible(false);
@@ -563,8 +343,7 @@ export default function OrdersScreen() {
       console.error('获取物料详情失败:', error);
     }
   };
-  
-  // 删除物料
+
   const handleDeleteMaterial = (material: MaterialRecord) => {
     showCustomAlert(
       '确认删除',
@@ -577,8 +356,7 @@ export default function OrdersScreen() {
           onPress: async () => {
             try {
               await deleteMaterial(material.id!);
-              // 短暂延迟确保 AsyncStorage 写入完成
-              await new Promise(resolve => setTimeout(resolve, 50));
+              await new Promise((resolve) => setTimeout(resolve, 50));
               const materials = await getMaterialsByOrder(material.order_no);
               setExpandedMaterials(materials);
               await loadData();
@@ -592,56 +370,48 @@ export default function OrdersScreen() {
       'warning'
     );
   };
-  
-  // 打开拆包弹窗
+
+  // ============ 拆包操作 ============
   const handleOpenUnpack = async (material: MaterialRecord) => {
     setUnpackingMaterial(material);
     setUnpackNewQuantity('');
     setUnpackNotes('');
-    
-    // 获取拆包历史和下一个序号
+
     try {
       const history = await getUnpackHistoryByMaterialId(material.id!);
       setUnpackHistory(history);
-      
       const nextIndex = await getNextUnpackIndex(material.traceNo);
       setNextUnpackIndex(nextIndex);
-      
-      // 自动生成新追踪码
-      const newTraceNo = material.traceNo ? `${material.traceNo}-${nextIndex}` : '';
-      setUnpackNewTraceNo(newTraceNo);
+      setUnpackNewTraceNo(material.traceNo ? `${material.traceNo}-${nextIndex}` : '');
     } catch (error) {
       console.error('获取拆包信息失败:', error);
       setUnpackHistory([]);
       setNextUnpackIndex(1);
       setUnpackNewTraceNo(material.traceNo ? `${material.traceNo}-1` : '');
     }
-    
+
     setUnpackModalVisible(true);
   };
-  
-  // 确认拆包
+
   const handleConfirmUnpack = async () => {
     if (!unpackingMaterial) return;
-    
+
     const newQty = parseInt(unpackNewQuantity, 10);
     if (!unpackNewQuantity.trim() || isNaN(newQty) || newQty <= 0) {
       showCustomAlert('错误', '请输入有效的拆出数量', [{ text: '确定', style: 'destructive' }], 'error');
       return;
     }
-    
-    // 使用剩余数量作为当前可用数量（已拆包物料使用 remaining_quantity，新物料使用 quantity）
+
     const availableQty = parseInt(unpackingMaterial.remaining_quantity || unpackingMaterial.quantity, 10);
     if (!isNaN(availableQty) && newQty > availableQty) {
       showCustomAlert('错误', `拆出数量不能大于当前数量（${availableQty}个）`, [{ text: '确定', style: 'destructive' }], 'error');
       return;
     }
-    
+
     const remainingQty = availableQty - newQty;
-    
+
     setUnpacking(true);
     try {
-      // 1. 添加拆包记录（同时更新原物料的拆包状态和剩余数量）
       await addUnpackRecord({
         original_material_id: unpackingMaterial.id!,
         order_no: unpackingMaterial.order_no,
@@ -650,7 +420,6 @@ export default function OrdersScreen() {
         batch: unpackingMaterial.batch,
         package: unpackingMaterial.package,
         version: unpackingMaterial.version,
-        // 原始数量使用剩余数量或当前数量
         original_quantity: unpackingMaterial.remaining_quantity || unpackingMaterial.quantity,
         new_quantity: unpackNewQuantity,
         remaining_quantity: remainingQty.toString(),
@@ -659,41 +428,18 @@ export default function OrdersScreen() {
         sourceNo: unpackingMaterial.sourceNo,
         new_traceNo: unpackNewTraceNo,
         notes: unpackNotes,
-        // V3.0 新增：仓库和存货编码
         warehouse_id: unpackingMaterial.warehouse_id,
         warehouse_name: unpackingMaterial.warehouse_name,
         inventory_code: unpackingMaterial.inventory_code,
       });
-      
-      // 2. 刷新物料列表（短暂延迟确保 AsyncStorage 写入完成）
-      await new Promise(resolve => setTimeout(resolve, 50));
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
       const materials = await getMaterialsByOrder(unpackingMaterial.order_no);
       setExpandedMaterials(materials);
       await loadData();
-      
+
       setUnpackModalVisible(false);
-      
-      showCustomAlert(
-        '拆包成功',
-        `已生成 2 条标签：\n• 发货标签：${unpackNewTraceNo}（${newQty}个）\n• 剩余标签：${unpackingMaterial.traceNo}（${remainingQty}个）`,
-        [
-          { text: '完成', style: 'cancel' },
-          {
-            text: '同步到电脑',
-            onPress: async () => {
-              // 获取刚生成的两条标签
-              const records = await getAllUnpackRecords();
-              const shippedRecord = records.find(r => r.new_traceNo === unpackNewTraceNo && r.label_type === 'shipped');
-              const remainingRecord = records.find(r => r.traceNo === unpackingMaterial.traceNo && r.label_type === 'remaining' && r.pair_id === shippedRecord?.pair_id);
-              
-              if (shippedRecord && remainingRecord) {
-                handleSyncUnpackToComputer(shippedRecord, remainingRecord);
-              }
-            },
-          },
-        ],
-        'success'
-      );
+      showCustomAlert('拆包成功', `已拆包 ${newQty} 个物料`, [{ text: '确定' }], 'success');
     } catch (error) {
       console.error('拆包失败:', error);
       showCustomAlert('错误', '拆包失败，请稍后重试', [{ text: '确定', style: 'destructive' }], 'error');
@@ -701,145 +447,9 @@ export default function OrdersScreen() {
       setUnpacking(false);
     }
   };
-  
-  // 同步单次拆包数据到电脑
-  const handleSyncUnpackToComputer = async (shippedRecord: UnpackRecord, remainingRecord: UnpackRecord) => {
-    if (!syncConfig.ip) {
-      showCustomAlert('提示', '请先在设置页面配置电脑IP地址', [{ text: '确定' }], 'warning');
-      return;
-    }
-    
-    setSyncing(true);
-    try {
-      // 定义表头（与设置页同步标签数据格式保持一致，确保BarTender能正确识别）
-      const headers = [
-        '仓库名称', '标签类型', '订单号', '客户', '型号', '存货编码', '批次', '封装', '版本',
-        '原数量', '标签数量', '生产日期', '追踪码', '箱号', '拆包时间', '备注'
-      ];
-      
-      // 构建数据行（发货标签和剩余标签）
-      const rows = [
-        [
-          shippedRecord.warehouse_name || '',
-          '发货标签',
-          shippedRecord.order_no || '',
-          shippedRecord.customer_name || '',
-          shippedRecord.model || '',
-          shippedRecord.inventory_code || '',
-          shippedRecord.batch || '',
-          shippedRecord.package || '',
-          shippedRecord.version || '',
-          parseInt(shippedRecord.original_quantity, 10) || 0,
-          parseInt(shippedRecord.new_quantity, 10) || 0,
-          shippedRecord.productionDate || '',
-          shippedRecord.new_traceNo || shippedRecord.traceNo || '',
-          shippedRecord.sourceNo || '',
-          formatTime(shippedRecord.unpacked_at),
-          shippedRecord.notes || '',
-        ],
-        [
-          remainingRecord.warehouse_name || '',
-          '剩余标签',
-          remainingRecord.order_no || '',
-          remainingRecord.customer_name || '',
-          remainingRecord.model || '',
-          remainingRecord.inventory_code || '',
-          remainingRecord.batch || '',
-          remainingRecord.package || '',
-          remainingRecord.version || '',
-          parseInt(remainingRecord.original_quantity, 10) || 0,
-          parseInt(remainingRecord.new_quantity, 10) || 0,
-          remainingRecord.productionDate || '',
-          remainingRecord.traceNo || '',
-          remainingRecord.sourceNo || '',
-          formatTime(remainingRecord.unpacked_at),
-          remainingRecord.notes || '',
-        ],
-      ];
-      
-      // 创建Excel
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-      
-      // 计算列宽
-      const colWidths = headers.map((header, colIdx) => {
-        let maxWidth = header.length;
-        rows.forEach(row => {
-          const cellValue = String(row[colIdx] || '');
-          const width = cellValue.split('').reduce((acc, char) => {
-            return acc + (char.charCodeAt(0) > 127 ? 2 : 1);
-          }, 0);
-          if (width > maxWidth) maxWidth = width;
-        });
-        return { wch: Math.min(maxWidth + 2, 50) };
-      });
-      ws['!cols'] = colWidths;
-      
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, '标签数据');
-      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-      
-      // 转换为二进制
-      const binaryString = atob(wbout);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      
-      // 发送到电脑（添加订单号作为name_suffix，与设置页同步格式保持一致）
-      const baseUrl = `http://${syncConfig.ip}:${syncConfig.port || '8080'}/labels`;
-      const nameSuffix = shippedRecord.order_no || '拆包标签';
-      const url = `${baseUrl}?name_suffix=${encodeURIComponent(nameSuffix)}`;
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        },
-        body: bytes,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      
-      // 检查响应状态
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('服务器响应错误:', response.status, errorText);
-        throw new Error(`服务器错误 (${response.status})`);
-      }
-      
-      // 尝试解析JSON响应
-      let result;
-      try {
-        result = await response.json();
-      } catch (parseError) {
-        const responseText = await response.text();
-        console.error('JSON解析失败，响应内容:', responseText.substring(0, 200));
-        throw new Error('服务器返回格式错误，请检查同步服务是否正常运行');
-      }
-      
-      if (result.success) {
-        showCustomAlert('同步成功', `已同步 2 条标签到电脑\n${result.path || ''}`, [{ text: '确定' }], 'success');
-      } else {
-        showCustomAlert('同步失败', result.message || '未知错误', [{ text: '确定', style: 'destructive' }], 'error');
-      }
-    } catch (error: any) {
-      console.error('同步失败:', error);
-      const errorMsg = error.name === 'AbortError' 
-        ? '连接超时，请检查网络' 
-        : error.message?.includes('服务器')
-          ? error.message
-          : `同步失败: ${error.message || '请检查网络和同步服务'}`;
-      showCustomAlert('同步失败', errorMsg, [{ text: '确定', style: 'destructive' }], 'error');
-    } finally {
-      setSyncing(false);
-    }
-  };
-  
-  // 打开编辑物料弹窗
-  const handleOpenEditMaterial = (material: MaterialRecord) => {
+
+  // ============ 编辑物料操作 ============
+  const handleEditMaterial = (material: MaterialRecord) => {
     setEditingMaterial(material);
     setEditMaterialData({
       model: material.model || '',
@@ -853,54 +463,91 @@ export default function OrdersScreen() {
     });
     setEditMaterialModalVisible(true);
   };
-  
-  // 确认编辑物料
+
   const handleConfirmEditMaterial = async () => {
     if (!editingMaterial) return;
-    
-    // 验证数量
-    const newQty = parseInt(editMaterialData.quantity, 10);
-    const originalQty = parseInt(editingMaterial.original_quantity || editingMaterial.quantity, 10);
-    
-    if (isNaN(newQty) || newQty <= 0) {
-      showCustomAlert('错误', '请输入有效的数量', [{ text: '确定', style: 'destructive' }], 'error');
-      return;
-    }
-    
-    if (!isNaN(originalQty) && newQty > originalQty) {
-      showCustomAlert('错误', `数量不能大于原始扫描数量（${originalQty}个）`, [{ text: '确定', style: 'destructive' }], 'error');
-      return;
-    }
-    
+
     setSavingMaterial(true);
     try {
-      // 只更新数量字段，其他字段不可修改
       await updateMaterial(editingMaterial.id!, {
+        model: editMaterialData.model,
+        batch: editMaterialData.batch,
         quantity: editMaterialData.quantity,
+        package: editMaterialData.package,
+        version: editMaterialData.version,
+        productionDate: editMaterialData.productionDate,
+        traceNo: editMaterialData.traceNo,
+        sourceNo: editMaterialData.sourceNo,
       });
-      
-      // 刷新物料列表（短暂延迟确保 AsyncStorage 写入完成）
-      await new Promise(resolve => setTimeout(resolve, 50));
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
       const materials = await getMaterialsByOrder(editingMaterial.order_no);
       setExpandedMaterials(materials);
       await loadData();
-      
       setEditMaterialModalVisible(false);
-      showCustomAlert('成功', '物料数量已更新', [{ text: '确定' }], 'success');
     } catch (error) {
-      console.error('更新物料失败:', error);
-      showCustomAlert('错误', '更新失败，请稍后重试', [{ text: '确定', style: 'destructive' }], 'error');
+      console.error('保存物料失败:', error);
+      showCustomAlert('错误', '保存失败', [{ text: '确定', style: 'destructive' }], 'error');
     } finally {
       setSavingMaterial(false);
     }
   };
-  
+
+  // ============ 同步到电脑 ============
+  const handleSyncUnpackToComputer = async (shippedRecord: UnpackRecord, remainingRecord: UnpackRecord) => {
+    if (!syncConfig.ip) {
+      showCustomAlert('提示', '请先在设置中配置同步服务器', [{ text: '确定' }], 'info');
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const records = [shippedRecord, remainingRecord].map((r) => ({
+        订单号: r.order_no,
+        客户: r.customer_name,
+        型号: r.model,
+        批次: r.batch,
+        封装: r.package,
+        版本: r.version,
+        数量: r.new_quantity,
+        剩余数量: r.remaining_quantity,
+        追溯码: r.new_traceNo || r.traceNo,
+        箱号: r.sourceNo,
+        生产日期: r.productionDate,
+        拆包时间: formatDateTime(r.created_at),
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(records);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '拆包记录');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+
+      const formData = new FormData();
+      formData.append('file', { uri: 'data:application/vnd.ms-excel;base64,' + wbout, name: `unpack_${Date.now()}.xlsx`, type: 'application/vnd.ms-excel' } as any);
+      formData.append('orderNo', shippedRecord.order_no);
+
+      const response = await fetch(`http://${syncConfig.ip}:${syncConfig.port || NETWORK_CONFIG.DEFAULT_PORT}/unpack`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        showCustomAlert('同步成功', '拆包记录已同步到电脑', [{ text: '确定' }], 'success');
+      } else {
+        throw new Error('同步失败');
+      }
+    } catch (error) {
+      console.error('同步失败:', error);
+      showCustomAlert('同步失败', '请检查网络连接和服务器配置', [{ text: '确定', style: 'destructive' }], 'error');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // ============ 渲染 ============
   return (
-    <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
-      <ScrollView 
-        style={styles.container}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
-      >
+    <Screen>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}>
         {/* 头部 */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -911,21 +558,16 @@ export default function OrdersScreen() {
             <Text style={styles.subtitle}>点击订单展开查看物料</Text>
           </View>
         </View>
-        
+
         {/* 搜索框 */}
         <View style={styles.searchContainer}>
           <Feather name="search" size={18} color={theme.textMuted} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder={
-              searchType === 'batch' ? '搜索批次号...' :
-              searchType === 'customer' ? '搜索客户名称...' :
-              '搜索订单号...'
-            }
+            placeholder={searchType === 'batch' ? '搜索批次号...' : searchType === 'customer' ? '搜索客户名称...' : '搜索订单号...'}
             placeholderTextColor={theme.textMuted}
             value={searchText}
             onChangeText={handleSearch}
-            showSoftInputOnFocus={true}
           />
           {searchText.length > 0 && (
             <TouchableOpacity onPress={() => handleSearch('')} style={styles.searchClear}>
@@ -933,38 +575,24 @@ export default function OrdersScreen() {
             </TouchableOpacity>
           )}
         </View>
-        
+
         {/* 搜索类型选择器 */}
         <View style={styles.searchTypeContainer}>
-          <TouchableOpacity 
-            style={[styles.searchTypeBtn, searchType === 'order' && styles.searchTypeBtnActive]}
-            onPress={() => handleSearchTypeChange('order')}
-          >
-            <Text style={[styles.searchTypeText, searchType === 'order' && styles.searchTypeTextActive]}>
-              订单号
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.searchTypeBtn, searchType === 'customer' && styles.searchTypeBtnActive]}
-            onPress={() => handleSearchTypeChange('customer')}
-          >
-            <Text style={[styles.searchTypeText, searchType === 'customer' && styles.searchTypeTextActive]}>
-              客户名称
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.searchTypeBtn, searchType === 'batch' && styles.searchTypeBtnActive]}
-            onPress={() => handleSearchTypeChange('batch')}
-          >
-            <Text style={[styles.searchTypeText, searchType === 'batch' && styles.searchTypeTextActive]}>
-              批次号
-            </Text>
-          </TouchableOpacity>
+          {(['order', 'customer', 'batch'] as SearchType[]).map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[styles.searchTypeBtn, searchType === type && styles.searchTypeBtnActive]}
+              onPress={() => handleSearchTypeChange(type)}
+            >
+              <Text style={[styles.searchTypeText, searchType === type && styles.searchTypeTextActive]}>
+                {type === 'order' ? '订单号' : type === 'customer' ? '客户名称' : '批次号'}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-        
+
         {/* 统计信息 */}
         <View style={styles.statsContainer}>
-          {/* 总数概览 */}
           <View style={styles.statsOverview}>
             <Text style={styles.statsOverviewText}>总订单 <Text style={styles.statsOverviewNum}>{stats.totalOrders}</Text></Text>
             <Text style={styles.statsOverviewDivider}>|</Text>
@@ -974,101 +602,59 @@ export default function OrdersScreen() {
             <Text style={styles.statsOverviewDivider}>|</Text>
             <Text style={styles.statsOverviewText}>总数量 <Text style={styles.statsOverviewNum}>{stats.totalQuantity.toLocaleString()}</Text></Text>
           </View>
-          {/* 今日统计卡片 */}
           <View style={styles.statsCards}>
-            <TouchableOpacity 
-              style={styles.statCard}
-              onPress={() => {
-                setShowTodayOrdersOnly(true);
-                setAllOrdersModalVisible(true);
-              }}
-            >
+            <TouchableOpacity style={styles.statCard} onPress={() => { setShowTodayOrdersOnly(true); setAllOrdersModalVisible(true); }}>
               <Text style={[styles.statNumber, { color: theme.primary }]}>{stats.todayOrders}</Text>
               <Text style={styles.statLabel}>今日订单</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.statCard, { marginRight: 0 }]}
-              onPress={() => handleOpenMaterials(true)}
-            >
+            <TouchableOpacity style={[styles.statCard, { marginRight: 0 }]} onPress={() => handleOpenMaterials(true)}>
               <Text style={[styles.statNumber, { color: theme.accent }]}>{stats.todayMaterials}</Text>
               <Text style={styles.statLabel}>今日物料</Text>
             </TouchableOpacity>
           </View>
         </View>
-        
+
         {/* 订单列表 */}
         <View style={styles.recentOrders}>
           <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>订单列表</Text>
-              <Text style={styles.sectionTip}>点击展开查看物料，长按删除订单</Text>
-            </View>
+            <Text style={styles.sectionTitle}>订单列表</Text>
+            <Text style={styles.sectionTip}>点击展开查看物料，长按删除订单</Text>
           </View>
-          
+
           {filteredOrders.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Feather name="file-text" size={48} color={theme.textMuted} />
-              <Text style={styles.emptyText}>
-                {searchText ? '未找到匹配的订单' : '暂无订单'}
-              </Text>
-              <Text style={styles.emptyTip}>
-                {searchText ? '请尝试其他关键词' : '扫码时会自动创建订单'}
-              </Text>
+              <Text style={styles.emptyText}>{searchText ? '未找到匹配的订单' : '暂无订单'}</Text>
+              <Text style={styles.emptyTip}>{searchText ? '请尝试其他关键词' : '扫码时会自动创建订单'}</Text>
             </View>
           ) : (
             filteredOrders.map((order) => (
               <View key={order.id}>
-                {/* 订单卡片 */}
-                <AnimatedCard
-                  onPress={() => handleToggleOrder(order)}
-                  onLongPress={() => handleDeleteOrder(order)}
-                >
-                  <View style={[
-                    styles.orderItem,
-                    expandedOrderId === order.id && styles.orderItemExpanded
-                  ]}>
+                <AnimatedCard onPress={() => handleToggleOrder(order)} onLongPress={() => handleDeleteOrder(order)}>
+                  <View style={[styles.orderItem, expandedOrderId === order.id && styles.orderItemExpanded]}>
                     <View style={styles.orderHeader}>
                       <View style={styles.orderHeaderLeft}>
-                        <Feather 
-                          name={expandedOrderId === order.id ? "chevron-down" : "chevron-right"} 
-                          size={18} 
-                          color={theme.textSecondary} 
-                        />
-                        <Text style={styles.orderNo} numberOfLines={1} ellipsizeMode="tail">{order.order_no}</Text>
+                        <Feather name={expandedOrderId === order.id ? "chevron-down" : "chevron-right"} size={18} color={theme.textSecondary} />
+                        <Text style={styles.orderNo} numberOfLines={1}>{order.order_no}</Text>
                       </View>
-                      <Text style={styles.orderDate}>
-                        {formatDate(order.created_at)}
-                      </Text>
+                      <Text style={styles.orderDate}>{formatDate(order.created_at)}</Text>
                     </View>
-                    
                     <View style={styles.orderContent}>
                       <View style={styles.orderInfo}>
                         {order.customer_name ? (
-                          <Text style={styles.customerName}>
-                            {order.customer_name}
-                          </Text>
+                          <Text style={styles.customerName}>{order.customer_name}</Text>
                         ) : (
                           <Text style={styles.noCustomer}>点击设置客户名称</Text>
                         )}
                       </View>
-                      
-                      <TouchableOpacity 
-                        style={styles.editBtn}
-                        onPress={() => handleEditCustomer(order)}
-                      >
-                        <Feather 
-                          name={order.customer_name ? "edit-2" : "plus"} 
-                          size={16} 
-                          color={theme.primary} 
-                        />
-                        <Text style={styles.editBtnText}>
-                          {order.customer_name ? '编辑' : '设置'}
-                        </Text>
+                      <TouchableOpacity style={styles.editBtn} onPress={() => handleEditCustomer(order)}>
+                        <Feather name={order.customer_name ? "edit-2" : "plus"} size={16} color={theme.primary} />
+                        <Text style={styles.editBtnText}>{order.customer_name ? '编辑' : '设置'}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 </AnimatedCard>
-                
+
                 {/* 展开的物料列表 */}
                 {expandedOrderId === order.id && (
                   <View style={styles.materialsList}>
@@ -1079,42 +665,21 @@ export default function OrdersScreen() {
                     ) : (
                       expandedMaterials.map((material) => (
                         <View key={material.id} style={styles.materialItem}>
-                          <TouchableOpacity 
-                            style={styles.materialMainInfo}
-                            onPress={() => handleViewMaterial(material)}
-                            onLongPress={() => handleDeleteMaterial(material)}
-                          >
+                          <TouchableOpacity style={styles.materialMainInfo} onPress={() => handleViewMaterial(material)} onLongPress={() => handleDeleteMaterial(material)}>
                             <Text style={styles.materialModel}>{material.model || '未知型号'}</Text>
                             <Text style={styles.materialDetails}>批次: {material.batch || '-'}</Text>
                             <Text style={styles.materialDetails}>
-                              {material.isUnpacked 
-                                ? `已发货: ${material.quantity || '-'}`
-                                : `数量: ${material.quantity || '-'}`
-                              }
+                              {material.isUnpacked ? `已发货: ${material.quantity || '-'}` : `数量: ${material.quantity || '-'}`}
                             </Text>
-                            <Text style={styles.materialDate}>
-                              {formatDate(material.scanned_at)}
-                            </Text>
+                            <Text style={styles.materialDate}>{formatDate(material.scanned_at)}</Text>
                           </TouchableOpacity>
-                          
-                          {/* 操作按钮 */}
-                          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
-                            {/* 编辑按钮 */}
-                            <TouchableOpacity 
-                              style={[styles.unpackBtn, { backgroundColor: theme.backgroundTertiary }]}
-                              onPress={() => handleOpenEditMaterial(material)}
-                            >
-                              <Feather name="edit-2" size={14} color={theme.textPrimary} />
-                              <Text style={[styles.unpackBtnText, { color: theme.textPrimary }]}>编辑</Text>
+                          <View style={styles.materialActions}>
+                            <TouchableOpacity style={[styles.materialActionBtn, { backgroundColor: theme.primary + '15' }]} onPress={() => handleOpenUnpack(material)}>
+                              <Feather name="package" size={14} color={theme.primary} />
+                              <Text style={[styles.materialActionText, { color: theme.primary }]}>拆包</Text>
                             </TouchableOpacity>
-                            
-                            {/* 拆包按钮 */}
-                            <TouchableOpacity 
-                              style={styles.unpackBtn}
-                              onPress={() => handleOpenUnpack(material)}
-                            >
-                              <Feather name="scissors" size={14} color={theme.primary} />
-                              <Text style={styles.unpackBtnText}>拆包</Text>
+                            <TouchableOpacity style={styles.materialActionBtn} onPress={() => handleEditMaterial(material)}>
+                              <Feather name="edit-2" size={14} color={theme.textSecondary} />
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -1127,734 +692,153 @@ export default function OrdersScreen() {
           )}
         </View>
       </ScrollView>
-      
+
+      {/* ============ 弹窗组件 ============ */}
+
       {/* 编辑客户名称弹窗 */}
-      <Modal
-        visible={editModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setEditModalVisible(false)}
-        hardwareAccelerated
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>设置客户名称</Text>
-              <Text style={styles.modalSubtitle}>订单号: {editingOrder?.order_no}</Text>
+      <Modal visible={editModalVisible} transparent animationType="slide" onRequestClose={() => setEditModalVisible(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>编辑客户名称</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Text style={[styles.modalClose, { color: theme.textSecondary }]}>×</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={[styles.inputLabel, { color: theme.textPrimary }]}>客户名称</Text>
               <TextInput
                 ref={customerNameInputRef}
-                style={styles.modalInput}
-                placeholder="输入客户名称"
-                placeholderTextColor={theme.textMuted}
+                style={[styles.textInput, { backgroundColor: theme.backgroundTertiary, color: theme.textPrimary, borderColor: theme.border }]}
                 value={editCustomerName}
                 onChangeText={setEditCustomerName}
-                showSoftInputOnFocus={true}
-                autoFocus
+                placeholder="请输入客户名称"
+                placeholderTextColor={theme.textMuted}
               />
-              <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => {
-                  setEditModalVisible(false);
-                  setEditingOrder(null);
-                  setEditCustomerName('');
-                }}
-              >
-                <Text style={styles.modalCancelText}>取消</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalSaveButton}
-                onPress={handleSaveCustomer}
-              >
-                <Text style={styles.modalSaveText}>保存</Text>
-              </TouchableOpacity>
             </View>
+            <View style={[styles.modalFooter, { borderTopColor: theme.border }]}>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.backgroundTertiary, borderColor: theme.border }]} onPress={() => setEditModalVisible(false)}>
+                <Text style={[styles.modalButtonText, { color: theme.textPrimary }]}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.primary }]} onPress={handleSaveCustomer}>
+                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>保存</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
-      
-      {/* 所有订单弹窗 */}
-      <Modal
-        visible={allOrdersModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setAllOrdersModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.orderListContainer}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.lg }}>
-              <Text style={styles.modalTitle}>
-                {showTodayOrdersOnly ? '今日订单' : '所有订单'} ({showTodayOrdersOnly ? orders.filter(o => o.created_at.startsWith(getToday())).length : orders.length})
-              </Text>
-              <TouchableOpacity onPress={() => {
-                setAllOrdersModalVisible(false);
-                setShowTodayOrdersOnly(false);
-              }}>
-                <Feather name="x" size={20} color={theme.textMuted} />
+
+      {/* 物料汇总弹窗 */}
+      <Modal visible={materialsModalVisible} transparent animationType="slide" onRequestClose={() => setMaterialsModalVisible(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault, maxHeight: '70%' }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>物料汇总</Text>
+              <TouchableOpacity onPress={() => setMaterialsModalVisible(false)}>
+                <Text style={[styles.modalClose, { color: theme.textSecondary }]}>×</Text>
               </TouchableOpacity>
             </View>
-            
-            <ScrollView style={{ maxHeight: 400 }}>
-              {(() => {
-                const today = getToday();
-                const displayOrders = showTodayOrdersOnly 
-                  ? orders.filter(o => o.created_at.startsWith(today))
-                  : orders;
-                
-                if (displayOrders.length === 0) {
-                  return (
-                    <Text style={{ textAlign: 'center', color: theme.textMuted, paddingVertical: Spacing.xl }}>
-                      {showTodayOrdersOnly ? '今日暂无订单' : '暂无订单'}
-                    </Text>
-                  );
-                }
-                
-                return displayOrders.map((order, index) => (
+            <View style={styles.modalBody}>
+              <View style={[styles.summaryTotal, { backgroundColor: theme.backgroundTertiary }]}>
+                <Text style={[styles.summaryTotalText, { color: theme.textSecondary }]}>总数量</Text>
+                <Text style={[styles.summaryTotalNum, { color: theme.primary }]}>{materialTotalQuantity.toLocaleString()}</Text>
+              </View>
+              <ScrollView style={{ maxHeight: 300 }}>
+                {materialSummaries.map((summary, index) => (
                   <TouchableOpacity
-                    key={order.id}
-                    style={[styles.orderListItem, index === displayOrders.length - 1 && styles.orderListItemLast]}
-                    onPress={() => {
-                      // 关闭弹窗
-                      setAllOrdersModalVisible(false);
-                      setShowTodayOrdersOnly(false);
-                      // 清空搜索条件
-                      setSearchText('');
-                      // 重置过滤列表为完整订单列表
-                      setFilteredOrders(orders);
-                      // 展开该订单
-                      handleToggleOrder(order);
-                    }}
+                    key={index}
+                    style={[styles.summaryItem, { borderBottomColor: theme.border }]}
+                    onPress={() => handleOpenMaterialDetail(summary.model)}
                   >
                     <View>
-                      <Text style={styles.orderListItemNo}>{order.order_no}</Text>
-                      <Text style={styles.orderListItemInfo}>
-                        {order.customer_name || '未设置客户'}
-                      </Text>
+                      <Text style={[styles.summaryModel, { color: theme.textPrimary }]}>{summary.model}</Text>
+                      <Text style={[styles.summaryCount, { color: theme.textSecondary }]}>记录数: {summary.count}</Text>
                     </View>
-                    <Text style={{ fontSize: rf(12), color: theme.textMuted }}>
-                      {formatDate(order.created_at)}
-                    </Text>
+                    <View style={styles.summaryRight}>
+                      <Text style={[styles.summaryQty, { color: theme.primary }]}>{summary.totalQuantity.toLocaleString()}</Text>
+                      <Feather name="chevron-right" size={16} color={theme.textMuted} />
+                    </View>
                   </TouchableOpacity>
-                ));
-              })()}
-            </ScrollView>
-            
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => {
-                setAllOrdersModalVisible(false);
-                setShowTodayOrdersOnly(false);
-              }}
-            >
-              <Text style={styles.modalCloseText}>关闭</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-      
-      {/* 物料汇总弹窗 */}
-      <Modal
-        visible={materialsModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setMaterialsModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.orderListContainer}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
-              <View>
-                <Text style={styles.modalTitle}>{showTodayOnly ? '今日物料' : '物料汇总'}</Text>
-                <Text style={{ fontSize: rf(13), color: theme.textSecondary, marginTop: 2 }}>
-                  {materialSummaries.length} 种型号 · 总数量 {materialTotalQuantity.toLocaleString()}
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => setMaterialsModalVisible(false)}>
-                <Feather name="x" size={20} color={theme.textMuted} />
-              </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
-            
-            <ScrollView style={{ maxHeight: 450 }}>
-              {materialSummaries.length === 0 ? (
-                <Text style={{ textAlign: 'center', color: theme.textMuted, paddingVertical: Spacing.xl }}>
-                  暂无物料数据
-                </Text>
-              ) : (
-                materialSummaries.map((summary, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={{
-                      backgroundColor: theme.backgroundTertiary,
-                      borderRadius: BorderRadius.lg,
-                      padding: Spacing.md,
-                      marginBottom: Spacing.sm,
-                    }}
-                    onPress={() => handleOpenMaterialDetail(summary.model)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: Spacing.xs,
-                    }}>
-                      <Text style={{ fontSize: rf(16), fontWeight: '700', color: theme.textPrimary, flex: 1 }} numberOfLines={1}>
-                        {summary.model}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Feather name="chevron-right" size={16} color={theme.textMuted} />
-                      </View>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: Spacing.lg }}>
-                      <View>
-                        <Text style={{ fontSize: rf(11), color: theme.textMuted }}>扫码次数</Text>
-                        <Text style={{ fontSize: rf(14), fontWeight: '600', color: theme.textPrimary }}>{summary.count} 次</Text>
-                      </View>
-                      <View>
-                        <Text style={{ fontSize: rf(11), color: theme.textMuted }}>总数量</Text>
-                        <Text style={{ fontSize: rf(14), fontWeight: '600', color: theme.primary }}>{summary.totalQuantity.toLocaleString()}</Text>
-                      </View>
-                      {summary.todayCount > 0 && (
-                        <View>
-                          <Text style={{ fontSize: rf(11), color: theme.textMuted }}>今日</Text>
-                          <Text style={{ fontSize: rf(14), fontWeight: '600', color: theme.accent }}>{summary.todayCount}</Text>
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
-            
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setMaterialsModalVisible(false)}
-            >
-              <Text style={styles.modalCloseText}>关闭</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
-      
-      {/* 物料详情弹窗（按型号筛选） */}
-      <Modal
-        visible={materialDetailModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setMaterialDetailModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.orderListContainer}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
-              <View>
-                <Text style={styles.modalTitle}>{selectedModel}</Text>
-                <Text style={{ fontSize: rf(13), color: theme.textSecondary, marginTop: 2 }}>
-                  共 {selectedModelMaterials.length} 条记录
-                </Text>
-              </View>
+
+      {/* 物料详情弹窗 */}
+      <Modal visible={materialDetailModalVisible} transparent animationType="slide" onRequestClose={() => setMaterialDetailModalVisible(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault, maxHeight: '80%' }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{selectedModel}</Text>
               <TouchableOpacity onPress={() => setMaterialDetailModalVisible(false)}>
-                <Feather name="x" size={20} color={theme.textMuted} />
+                <Text style={[styles.modalClose, { color: theme.textSecondary }]}>×</Text>
               </TouchableOpacity>
             </View>
-            
-            <ScrollView style={{ maxHeight: 450 }}>
-              {selectedModelMaterials.length === 0 ? (
-                <Text style={{ textAlign: 'center', color: theme.textMuted, paddingVertical: Spacing.xl }}>
-                  暂无数据
-                </Text>
-              ) : (
-                selectedModelMaterials.map((material, index) => (
-                  <TouchableOpacity
-                    key={material.id || index}
-                    style={{
-                      backgroundColor: theme.backgroundTertiary,
-                      borderRadius: BorderRadius.lg,
-                      padding: Spacing.md,
-                      marginBottom: Spacing.sm,
-                    }}
-                    onPress={() => {
-                      setMaterialDetailModalVisible(false);
-                      router.push('/detail', { id: material.id });
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs }}>
-                      <Text style={{ fontSize: rf(14), fontWeight: '600', color: theme.textPrimary }}>
-                        {material.traceNo || '无追踪码'}
-                      </Text>
-                      <Text style={{ fontSize: rf(12), color: theme.textMuted }}>
-                        {formatDate(material.scanned_at)}
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: Spacing.lg }}>
-                      <View>
-                        <Text style={{ fontSize: rf(11), color: theme.textMuted }}>数量</Text>
-                        <Text style={{ fontSize: rf(14), fontWeight: '600', color: theme.textPrimary }}>{material.quantity}</Text>
-                      </View>
-                      <View>
-                        <Text style={{ fontSize: rf(11), color: theme.textMuted }}>批次</Text>
-                        <Text style={{ fontSize: rf(13), color: theme.textSecondary }}>{material.batch || '-'}</Text>
-                      </View>
-                      <View>
-                        <Text style={{ fontSize: rf(11), color: theme.textMuted }}>订单</Text>
-                        <Text style={{ fontSize: rf(13), color: theme.textSecondary }}>{material.order_no}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
-            
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setMaterialDetailModalVisible(false)}
-            >
-              <Text style={styles.modalCloseText}>关闭</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-      
-      {/* 拆包弹窗 */}
-      <Modal
-        visible={unpackModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setUnpackModalVisible(false)}
-      >
-        <View style={unpackModalStyles.modalOverlay}>
-          <View style={[unpackModalStyles.modalContent, { maxHeight: '85%' }]}>
-            <View style={unpackModalStyles.modalHeader}>
-              <Text style={unpackModalStyles.modalTitle}>拆包打印</Text>
-              <TouchableOpacity onPress={() => setUnpackModalVisible(false)}>
-                <Text style={unpackModalStyles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView 
-              style={unpackModalStyles.modalBody}
-              contentContainerStyle={unpackModalStyles.modalBodyContent}
-              showsVerticalScrollIndicator={true}
-            >
-              {/* 物料信息 */}
-              <View style={unpackModalStyles.infoBox}>
-                <View style={unpackModalStyles.infoRow}>
-                  <Text style={unpackModalStyles.infoLabel}>追踪码</Text>
-                  <Text style={unpackModalStyles.infoValue}>{unpackingMaterial?.traceNo || '-'}</Text>
-                </View>
-                <View style={unpackModalStyles.infoRow}>
-                  <Text style={unpackModalStyles.infoLabel}>型号</Text>
-                  <Text style={unpackModalStyles.infoValue}>{unpackingMaterial?.model}</Text>
-                </View>
-                <View style={unpackModalStyles.infoRow}>
-                  <Text style={unpackModalStyles.infoLabel}>批次</Text>
-                  <Text style={unpackModalStyles.infoValue}>{unpackingMaterial?.batch || '-'}</Text>
-                </View>
-                <View style={unpackModalStyles.infoRow}>
-                  <Text style={unpackModalStyles.infoLabel}>原始数量</Text>
-                  <Text style={[unpackModalStyles.infoValue, { color: theme.textMuted }]}>
-                    {unpackingMaterial?.original_quantity || unpackingMaterial?.quantity}
-                  </Text>
-                </View>
-                <View style={unpackModalStyles.infoRow}>
-                  <Text style={unpackModalStyles.infoLabel}>剩余数量</Text>
-                  <Text style={[unpackModalStyles.infoValue, { color: theme.primary, fontWeight: '700' }]}>
-                    {unpackingMaterial?.remaining_quantity || unpackingMaterial?.quantity}
-                  </Text>
-                </View>
-                {unpackingMaterial?.sourceNo && (
-                  <View style={unpackModalStyles.infoRow}>
-                    <Text style={unpackModalStyles.infoLabel}>箱号</Text>
-                    <Text style={unpackModalStyles.infoValue}>{unpackingMaterial.sourceNo}</Text>
+            <ScrollView style={styles.modalBody}>
+              {selectedModelMaterials.map((material, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.detailItem, { backgroundColor: theme.backgroundTertiary }]}
+                  onPress={() => {
+                    setMaterialDetailModalVisible(false);
+                    router.push('/detail', { id: material.id });
+                  }}
+                >
+                  <View>
+                    <Text style={[styles.detailBatch, { color: theme.textPrimary }]}>批次: {material.batch}</Text>
+                    <Text style={[styles.detailInfo, { color: theme.textSecondary }]}>数量: {material.quantity} | 追溯码: {material.traceNo || '-'}</Text>
+                    <Text style={[styles.detailDate, { color: theme.textMuted }]}>{formatDateTime(material.scanned_at)}</Text>
                   </View>
-                )}
-              </View>
-              
-              {/* 拆包历史 */}
-              {unpackHistory.length > 0 && (
-                <View style={{ marginBottom: Spacing.md }}>
-                  <Text style={[unpackModalStyles.inputLabel, { marginBottom: Spacing.sm }]}>
-                    拆包历史（共{unpackHistory.length}次）
-                  </Text>
-                  {unpackHistory.map((record, index) => (
-                    <View 
-                      key={record.id} 
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: theme.backgroundTertiary,
-                        paddingHorizontal: Spacing.md,
-                        paddingVertical: Spacing.sm,
-                        borderRadius: BorderRadius.sm,
-                        marginBottom: Spacing.xs,
-                      }}
-                    >
-                      <Text style={{ fontSize: rf(13), color: theme.textSecondary }}>
-                        {record.new_traceNo}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text style={{ fontSize: rf(13), color: theme.textPrimary, fontWeight: '600' }}>
-                          {record.new_quantity}个
-                        </Text>
-                        <Text style={{ fontSize: rf(11), color: theme.textMuted }}>
-                          {formatDateTime(record.unpacked_at)}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-              
-              {/* 新追踪码（自动生成） */}
-              <Text style={unpackModalStyles.inputLabel}>新追踪码（自动生成）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center' }]}>
-                <Text style={{ fontSize: rf(16), fontWeight: '600', color: theme.primary }}>
-                  {unpackNewTraceNo || '-'}
-                </Text>
-              </View>
-              
-              {/* 拆出数量 */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.lg }}>
-                <Text style={unpackModalStyles.inputLabel}>拆出数量 *</Text>
-                <Text style={{ fontSize: rf(13), color: theme.textMuted }}>
-                  可拆: {unpackingMaterial?.remaining_quantity || unpackingMaterial?.quantity || 0} 个
-                </Text>
-              </View>
-              <TextInput
-                ref={unpackQuantityRef}
-                style={unpackModalStyles.textInput}
-                placeholder="输入要拆出的数量"
-                placeholderTextColor={theme.textMuted}
-                value={unpackNewQuantity}
-                onChangeText={(text) => {
-                  // 只允许输入数字
-                  const numeric = text.replace(/[^0-9]/g, '');
-                  setUnpackNewQuantity(numeric);
-                }}
-                keyboardType="number-pad"
-                showSoftInputOnFocus={true}
-              />
-              
-              {/* 剩余数量预览 */}
-              {unpackNewQuantity && !isNaN(parseInt(unpackNewQuantity, 10)) && (
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingHorizontal: Spacing.md,
-                  paddingVertical: Spacing.md,
-                  marginTop: Spacing.sm,
-                }}>
-                  <Text style={{ fontSize: rf(14), color: theme.textSecondary }}>剩余标签数量</Text>
-                  <Text style={{ fontSize: rf(16), fontWeight: '600', color: theme.textPrimary }}>
-                    {Math.max(0, parseInt(unpackingMaterial?.remaining_quantity || unpackingMaterial?.quantity || '0', 10) - parseInt(unpackNewQuantity, 10))} 个
-                  </Text>
-                </View>
-              )}
-              
-              {/* 备注 */}
-              <Text style={unpackModalStyles.inputLabel}>备注（可选）</Text>
-              <TextInput
-                ref={unpackNotesRef}
-                style={[unpackModalStyles.textInput, { minHeight: Spacing["2xl"], textAlignVertical: 'top' }]}
-                placeholder="添加备注信息"
-                placeholderTextColor={theme.textMuted}
-                value={unpackNotes}
-                onChangeText={setUnpackNotes}
-                multiline
-                showSoftInputOnFocus={true}
-              />
+                  <Feather name="chevron-right" size={16} color={theme.textMuted} />
+                </TouchableOpacity>
+              ))}
             </ScrollView>
-            
-            <View style={unpackModalStyles.modalFooter}>
-              <TouchableOpacity
-                style={unpackModalStyles.cancelButton}
-                onPress={() => setUnpackModalVisible(false)}
-              >
-                <Text style={unpackModalStyles.cancelButtonText}>取消</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={unpackModalStyles.saveButton}
-                onPress={handleConfirmUnpack}
-                disabled={unpacking}
-              >
-                <Text style={unpackModalStyles.saveButtonText}>
-                  {unpacking ? '处理中...' : '确认拆包'}
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
-      
+
       {/* 编辑物料弹窗 */}
-      <Modal
+      <EditMaterialModal
         visible={editMaterialModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setEditMaterialModalVisible(false)}
-      >
-        <View style={unpackModalStyles.modalOverlay}>
-          <View style={[unpackModalStyles.modalContent, { maxHeight: '90%' }]}>
-            <View style={unpackModalStyles.modalHeader}>
-              <Text style={unpackModalStyles.modalTitle}>编辑物料</Text>
-              <TouchableOpacity onPress={() => setEditMaterialModalVisible(false)}>
-                <Text style={unpackModalStyles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={unpackModalStyles.modalBody}>
-              {/* 追踪码（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>追踪码（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editingMaterial?.traceNo || '-'}
-                </Text>
-              </View>
-              
-              {/* 原始数量（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>原始扫描数量</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editingMaterial?.original_quantity || editingMaterial?.quantity || '-'}
-                </Text>
-              </View>
-              
-              {/* 型号（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>型号（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.model || '-'}
-                </Text>
-              </View>
-              
-              {/* 批次（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>批次（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.batch || '-'}
-                </Text>
-              </View>
-              
-              {/* 数量 */}
-              <Text style={unpackModalStyles.inputLabel}>数量 *</Text>
-              <TextInput
-                style={unpackModalStyles.textInput}
-                placeholder={`最多 ${editingMaterial?.original_quantity || editingMaterial?.quantity || 0} 个`}
-                placeholderTextColor={theme.textMuted}
-                value={editMaterialData.quantity}
-                onChangeText={(text) => {
-                  // 只允许输入数字
-                  const numeric = text.replace(/[^0-9]/g, '');
-                  setEditMaterialData(prev => ({ ...prev, quantity: numeric }));
-                }}
-                keyboardType="number-pad"
-                showSoftInputOnFocus={true}
-              />
-              
-              {/* 封装（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>封装（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.package || '-'}
-                </Text>
-              </View>
-              
-              {/* 版本号（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>版本号（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.version || '-'}
-                </Text>
-              </View>
-              
-              {/* 生产日期（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>生产日期（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.productionDate || '-'}
-                </Text>
-              </View>
-              
-              {/* 箱号（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>箱号（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.sourceNo || '-'}
-                </Text>
-              </View>
-            </ScrollView>
-            
-            <View style={unpackModalStyles.modalFooter}>
-              <TouchableOpacity
-                style={unpackModalStyles.cancelButton}
-                onPress={() => setEditMaterialModalVisible(false)}
-              >
-                <Text style={unpackModalStyles.cancelButtonText}>取消</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={unpackModalStyles.saveButton}
-                onPress={handleConfirmEditMaterial}
-                disabled={savingMaterial}
-              >
-                <Text style={unpackModalStyles.saveButtonText}>
-                  {savingMaterial ? '保存中...' : '保存'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      
-      {/* 自定义弹窗 */}
-      <Modal
+        material={editingMaterial}
+        formData={editMaterialData}
+        saving={savingMaterial}
+        onChange={(field, value) => setEditMaterialData((prev) => ({ ...prev, [field]: value }))}
+        onSave={handleConfirmEditMaterial}
+        onClose={() => setEditMaterialModalVisible(false)}
+        theme={theme}
+      />
+
+      {/* 拆包弹窗 */}
+      <UnpackModal
+        visible={unpackModalVisible}
+        material={unpackingMaterial}
+        newQuantity={unpackNewQuantity}
+        newTraceNo={unpackNewTraceNo}
+        notes={unpackNotes}
+        unpacking={unpacking}
+        history={unpackHistory}
+        nextIndex={nextUnpackIndex}
+        onQuantityChange={setUnpackNewQuantity}
+        onTraceNoChange={setUnpackNewTraceNo}
+        onNotesChange={setUnpackNotes}
+        onConfirm={handleConfirmUnpack}
+        onClose={() => setUnpackModalVisible(false)}
+        theme={theme}
+      />
+
+      {/* 自定义确认弹窗 */}
+      <CustomAlert
         visible={customAlert.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeCustomAlert}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: Spacing["2xl"],
-        }}>
-          <View style={{
-            width: '100%',
-            maxWidth: 320,
-            borderRadius: BorderRadius.xl,
-            padding: Spacing.xl,
-            alignItems: 'center',
-            backgroundColor: theme.backgroundDefault,
-          }}>
-            {/* 图标 */}
-            {customAlert.icon && (
-              <View style={{
-                width: 72,
-                height: 72,
-                borderRadius: BorderRadius["4xl"],
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: Spacing.lg,
-                backgroundColor: customAlert.icon === 'success' ? 'rgba(16, 185, 129, 0.12)' 
-                  : customAlert.icon === 'warning' ? 'rgba(245, 158, 11, 0.12)'
-                  : customAlert.icon === 'error' ? 'rgba(239, 68, 68, 0.12)'
-                  : 'rgba(59, 130, 246, 0.12)',
-                shadowColor: customAlert.icon === 'success' ? theme.success 
-                  : customAlert.icon === 'warning' ? theme.warning
-                  : customAlert.icon === 'error' ? theme.error
-                  : theme.info,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.15,
-                shadowRadius: 14,
-                elevation: 4,
-              }}>
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: BorderRadius["2xl"],
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: customAlert.icon === 'success' ? theme.success 
-                    : customAlert.icon === 'warning' ? theme.warning
-                    : customAlert.icon === 'error' ? theme.error
-                    : theme.info,
-                }}>
-                  <FontAwesome6 
-                    name={
-                      customAlert.icon === 'success' ? 'check' 
-                      : customAlert.icon === 'warning' ? 'triangle-exclamation'
-                      : customAlert.icon === 'error' ? 'xmark'
-                      : 'info'
-                    }
-                    size={24} 
-                    color={theme.white}
-                  />
-                </View>
-              </View>
-            )}
-            
-            {/* 标题 */}
-            <Text style={{
-              fontSize: rf(18),
-              fontWeight: '700',
-              textAlign: 'center',
-              marginBottom: Spacing.sm,
-              color: theme.textPrimary,
-            }}>
-              {customAlert.title}
-            </Text>
-            
-            {/* 消息内容 */}
-            <Text style={{
-              fontSize: rf(14),
-              lineHeight: Spacing.xl,
-              textAlign: 'center',
-              marginBottom: Spacing.xl,
-              color: theme.textSecondary,
-            }}>
-              {customAlert.message}
-            </Text>
-            
-            {/* 按钮组 */}
-            <View style={{
-              flexDirection: 'row',
-              gap: Spacing.md,
-              width: '100%',
-            }}>
-              {customAlert.buttons.map((button, index) => {
-                const isDestructive = button.style === 'destructive';
-                const isCancel = button.style === 'cancel';
-                const bgColor = isDestructive ? theme.error 
-                  : isCancel ? theme.backgroundTertiary 
-                  : theme.primary;
-                const textColor = isDestructive ? theme.white 
-                  : isCancel ? theme.textPrimary 
-                  : theme.buttonPrimaryText;
-                
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={{
-                      flex: customAlert.buttons.length === 1 ? 0 : 1,
-                      width: customAlert.buttons.length === 1 ? '100%' : undefined,
-                      paddingVertical: Spacing.md,
-                      paddingHorizontal: Spacing.lg,
-                      borderRadius: BorderRadius.lg,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: Spacing["2xl"],
-                      backgroundColor: bgColor,
-                      borderWidth: isCancel ? 1.5 : 0,
-                      borderColor: isCancel ? theme.border : 'transparent',
-                    }}
-                    onPress={() => {
-                      closeCustomAlert();
-                      button.onPress?.();
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={{
-                      fontSize: rf(16),
-                      fontWeight: '600',
-                      color: textColor,
-                    }}>
-                      {button.text}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        </View>
-      </Modal>
+        title={customAlert.title}
+        message={customAlert.message}
+        icon={customAlert.icon}
+        buttons={customAlert.buttons}
+        onClose={closeCustomAlert}
+        theme={theme}
+      />
     </Screen>
   );
 }
