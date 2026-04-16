@@ -38,7 +38,7 @@ import { useCustomAlert } from '@/components/CustomAlert';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { rs } from '@/utils/responsive';
-import { APP_VERSION } from '@/constants/version';
+import { APP_VERSION, APP_NAME, COMPANY_NAME, AUTHOR } from '@/constants/version';
 import { setSoundEnabled as setSoundEnabledFn, initSoundSetting } from '@/utils/feedback';
 import { syncExcelToComputer } from '@/utils/excel';
 import { testConnection } from '@/utils/heartbeat';
@@ -631,29 +631,65 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>关于</Text>
         </View>
         <View style={[styles.aboutCard, { backgroundColor: theme.backgroundSecondary }]}>
-          <Text style={[styles.aboutTitle, { color: theme.textPrimary }]}>掌上仓库</Text>
-          <Text style={[styles.aboutVersion, { color: theme.textSecondary }]}>版本 {APP_VERSION}</Text>
-          <Text style={[styles.aboutDesc, { color: theme.textMuted }]}>高效仓储管理解决方案</Text>
-        </View>
-
-        {/* 使用说明和更新日志 */}
-        <View style={{ gap: Spacing.md }}>
-          <MenuCard
-            title="使用说明"
-            desc="了解应用功能和使用方法"
-            iconName="book-open"
-            color={theme.textMuted}
-            onPress={() => router.push('/help')}
-            theme={theme}
-          />
-          <MenuCard
-            title="更新日志"
-            desc="查看版本更新历史"
-            iconName="file-text"
-            color={theme.textMuted}
-            onPress={() => router.push('/changelog')}
-            theme={theme}
-          />
+          {/* App图标和名称 */}
+          <View style={styles.aboutAppSection}>
+            <View style={[styles.aboutLogo, { backgroundColor: theme.primary + '15' }]}>
+              <Feather name="package" size={rs(16)} color={theme.primary} />
+            </View>
+            <Text style={[styles.aboutAppName, { color: theme.textPrimary }]}>{APP_NAME}</Text>
+            <View style={[styles.aboutVersionBadge, { backgroundColor: theme.primary + '15' }]}>
+              <Text style={[styles.aboutVersionText, { color: theme.primary }]}>{APP_VERSION}</Text>
+            </View>
+          </View>
+          
+          <View style={[styles.aboutDivider, { backgroundColor: theme.border }]} />
+          
+          {/* 公司信息 */}
+          <View style={styles.aboutDetailsSection}>
+            <View style={styles.aboutDetailRow}>
+              <View style={styles.aboutDetailIconWrapper}>
+                <Feather name="briefcase" size={rs(14)} color={theme.textSecondary} />
+              </View>
+              <Text style={[styles.aboutDetailLabel, { color: theme.textSecondary }]}>公司</Text>
+              <View style={styles.aboutDetailRight}>
+                <Text style={[styles.aboutDetailValue, { color: theme.textPrimary }]}>{COMPANY_NAME}</Text>
+                <Feather name="external-link" size={rs(12)} color={theme.textMuted} />
+              </View>
+            </View>
+            
+            <View style={styles.aboutDetailRow}>
+              <View style={styles.aboutDetailIconWrapper}>
+                <Feather name="user" size={rs(14)} color={theme.textSecondary} />
+              </View>
+              <Text style={[styles.aboutDetailLabel, { color: theme.textSecondary }]}>作者</Text>
+              <Text style={[styles.aboutDetailValue, { color: theme.textPrimary }]}>{AUTHOR}</Text>
+            </View>
+          </View>
+          
+          <View style={[styles.aboutDivider, { backgroundColor: theme.border }]} />
+          
+          {/* 使用说明和更新日志 */}
+          <View style={styles.helpRow}>
+            <TouchableOpacity
+              style={styles.helpEntry}
+              onPress={() => router.push('/help')}
+              activeOpacity={0.7}
+            >
+              <Feather name="book-open" size={rs(14)} color={theme.textMuted} style={styles.helpIconWrapper} />
+              <Text style={[styles.helpText, { color: theme.textSecondary }]}>使用说明</Text>
+              <Feather name="chevron-right" size={rs(14)} color={theme.textMuted} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.helpEntry}
+              onPress={() => router.push('/changelog')}
+              activeOpacity={0.7}
+            >
+              <Feather name="file-text" size={rs(14)} color={theme.textMuted} style={styles.changelogIconWrapper} />
+              <Text style={[styles.changelogText, { color: theme.textSecondary }]}>更新日志</Text>
+              <Feather name="chevron-right" size={rs(14)} color={theme.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </Screen>
