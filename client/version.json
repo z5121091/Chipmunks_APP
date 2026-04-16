@@ -11,59 +11,53 @@
   "changelog": [
     {
       "version": "V3.3.7",
-      "date": "2026-04-23",
+      "date": "2026-04-17",
       "changes": [
-        { "type": "fix", "text": "输入法弹出：Modal内移除showSoftInputOnFocus属性" },
-        { "type": "fix", "text": "Modal动画：animationType从slide改为fade" },
-        { "type": "fix", "text": "Modal事件：移除包裹TextInput的TouchableWithoutFeedback" },
-        { "type": "fix", "text": "detail页面：增加modalBodyContent的paddingBottom避免键盘遮挡" },
-        { "type": "fix", "text": "扫码页面：添加showSoftInputOnFocus={false}阻止输入法弹出" },
-        { "type": "fix", "text": "存储时间格式：改为YYYY/M/D HH:mm（不带秒）" }
+        { "type": "fix", "text": "输入法：Modal内移除showSoftInputOnFocus属性" },
+        { "type": "fix", "text": "Modal动画：从slide改为fade" },
+        { "type": "fix", "text": "Modal交互：移除包裹TextInput的TouchableWithoutFeedback" },
+        { "type": "fix", "text": "键盘遮挡：detail页面增加paddingBottom" },
+        { "type": "fix", "text": "扫码页面：PDA扫码时阻止输入法弹出" },
+        { "type": "fix", "text": "存储时间格式：改为YYYY/M/D HH:mm" }
       ]
     },
     {
       "version": "V3.3.6",
-      "date": "2026-04-23",
+      "date": "2026-04-16",
       "changes": [
-        { "type": "fix", "text": "规则字段顺序：修复解析时忽略用户配置的字段顺序问题" },
-        { "type": "fix", "text": "键盘抖动：所有Modal的KeyboardAvoidingView统一改为padding模式" },
+        { "type": "fix", "text": "规则解析：修复忽略用户配置的字段顺序问题" },
+        { "type": "fix", "text": "键盘抖动：Modal的KeyboardAvoidingView统一为padding模式" },
         { "type": "fix", "text": "输入法冲突：移除warehouse-management的autoFocus" },
-        { "type": "fix", "text": "订单记录：修复拆分结果显示分隔符错误（改用实际的分隔符）" },
-        { "type": "fix", "text": "pnpm ENOTEMPTY错误：prefer-frozen-lockfile改为false" },
-        { "type": "fix", "text": "JSX标签未闭合导致Android打包失败" },
-        { "type": "fix", "text": "拆包标签导出：文件名固定为「拆包标签.xlsx」（不含日期）" },
-        { "type": "fix", "text": "拆包标签导出：端点改为/inventory" },
-        { "type": "fix", "text": "同步服务版本更新至V3.2.1" }
+        { "type": "fix", "text": "订单拆分显示：改用实际的分隔符" },
+        { "type": "fix", "text": "打包错误：修复JSX标签未闭合问题" },
+        { "type": "fix", "text": "拆包标签：文件名固定为「拆包标签.xlsx」" },
+        { "type": "fix", "text": "拆包标签：导出端点改为/inventory" },
+        { "type": "fix", "text": "pnpm ENOTEMPTY错误：prefer-frozen-lockfile改为false" }
       ]
     },
     {
       "version": "V3.3.5",
-      "date": "2026-04-22",
+      "date": "2026-04-15",
       "changes": [
-        { "type": "fix", "text": "数据同步：修复心跳检测路径（/api/v1/health 改为 /health）" },
-        { "type": "fix", "text": "数据同步：修复测试连接函数路径" },
-        { "type": "fix", "text": "备份恢复：修复 SYNC_CONFIG_KEY 未定义问题" },
-        { "type": "improve", "text": "编辑物料弹窗：优化显示字段（只保留核心字段）" },
-        { "type": "improve", "text": "编辑物料：打开时自动聚焦数量输入框" },
-        { "type": "improve", "text": "编辑物料弹窗：底部添加留空避免内容被遮挡" },
-        { "type": "improve", "text": "盘点导出：移除备注列，创建时间格式改为 YYYY/M/D HH:mm" },
+        { "type": "fix", "text": "数据同步：修复心跳检测路径" },
+        { "type": "fix", "text": "数据同步：修复SYNC_CONFIG_KEY未定义问题" },
+        { "type": "improve", "text": "编辑物料：优化显示字段，打开时自动聚焦" },
+        { "type": "improve", "text": "盘点导出：移除备注列，时间格式改为YYYY/M/D HH:mm" },
         { "type": "improve", "text": "备份恢复：显示格式化后的备份时间" },
-        { "type": "improve", "text": "导出序号：序号从内容移到文件名（入库单/出库单/盘点单）" },
-        { "type": "improve", "text": "拆包模式修改数量：提示音改为确认音" },
-        { "type": "feat", "text": "新增导出盘点拆包标签功能" },
-        { "type": "feat", "text": "时间格式化：新增导出专用格式 YYYY/M/D HH:mm" }
+        { "type": "improve", "text": "导出序号：序号移到文件名（入库单/出库单/盘点单）" },
+        { "type": "feat", "text": "新增导出盘点拆包标签功能" }
       ]
     },
     {
       "version": "V3.3.3",
-      "date": "2026-04-21",
+      "date": "2026-04-14",
       "changes": [
-        { "type": "fix", "text": "扫码出库：聚合项展开后显示所有数据（移除10行限制）" }
+        { "type": "fix", "text": "扫码出库：聚合项展开后显示所有数据" }
       ]
     },
     {
       "version": "V3.3.0",
-      "date": "2026-04-18",
+      "date": "2026-04-13",
       "changes": [
         { "type": "improve", "text": "聚合项显示格式统一：批次 | 生产日期 | 数量" },
         { "type": "improve", "text": "语音反馈优化：成功播报「扫码成功」，重复播报「扫码重复」" },
