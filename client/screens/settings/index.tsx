@@ -448,7 +448,7 @@ export default function SettingsScreen() {
     try {
       const headers = [
         '盘点单号', '仓库名称', '存货编码', '扫描型号', '批次', '封装', '版本',
-        '扫描数量', '实际数量', '生产日期', '追踪码', '箱号', '盘点日期', '创建时间'
+        '实际数量', '生产日期', '追踪码', '箱号', '盘点日期', '创建时间'
       ];
       
       const rows = records.map(r => [
@@ -459,7 +459,6 @@ export default function SettingsScreen() {
         r.batch || '',
         r.package || '',
         r.version || '',
-        r.quantity || 0,
         r.actual_quantity || '',
         r.productionDate || '',
         r.traceNo || '',
