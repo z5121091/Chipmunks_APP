@@ -1747,9 +1747,11 @@ export const parseWithRule = (
   console.log('规则字段数量:', rule.fieldOrder?.length || 0);
   console.log('旧格式自定义字段IDs:', rule.customFieldIds);
   
-  // 【核心修改】使用固定字段顺序提取值，不再依赖 rule.fieldOrder
-  // 无论用户用什么分隔符，都按固定顺序：型号/批次/封装/版本/数量/生产日期/追踪码/箱号
-  STANDARD_FIELD_ORDER.forEach((field, index) => {
+  // 使用用户配置的字段顺序（rule.fieldOrder），如果不存在则使用标准顺序
+  const fieldOrder = rule.fieldOrder?.length > 0 ? rule.fieldOrder : STANDARD_FIELD_ORDER;
+  
+  // 使用用户配置的字段顺序提取值
+  fieldOrder.forEach((field, index) => {
     const value = parts[index]?.trim() || '';
     console.log(`字段[${index}] ${FIELD_LABELS[field] || field}: "${value}"`);
     standardFields[field] = value;
