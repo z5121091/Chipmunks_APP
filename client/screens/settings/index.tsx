@@ -514,7 +514,7 @@ export default function SettingsScreen() {
       r.traceNo || '',
       r.sourceNo || '',
       r.productionDate || '',
-      formatTime(r.scanned_at),
+      formatTime(r.scanned_at) || '',
     ]);
     
     // 获取唯一仓库名称列表
@@ -586,7 +586,7 @@ export default function SettingsScreen() {
       r.productionDate || '',
       r.label_type === 'shipped' ? (r.new_traceNo || r.traceNo || '') : (r.traceNo || ''),
       r.sourceNo || '',
-      formatTime(r.unpacked_at),
+      formatTime(r.unpacked_at) || '',
       r.notes || '',
     ]);
     

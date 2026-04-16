@@ -38,15 +38,20 @@ export const getISODateTime = (): string => {
  * 格式化日期 (YYYY-MM-DD)
  * 用于列表、卡片等只显示日期的场景
  */
-export const formatDate = (dateString: string): string => {
+export const formatDate = (dateString: string | undefined | null): string => {
+  if (!dateString) return '-';
   try {
     const date = new Date(dateString);
+    // 检查是否为有效日期
+    if (isNaN(date.getTime())) {
+      return '-';
+    }
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   } catch {
-    return dateString;
+    return '-';
   }
 };
 
@@ -54,9 +59,14 @@ export const formatDate = (dateString: string): string => {
  * 格式化日期时间 (YYYY-MM-DD HH:mm)
  * 用于详情、导出等需要时间的场景
  */
-export const formatDateTime = (dateString: string): string => {
+export const formatDateTime = (dateString: string | undefined | null): string => {
+  if (!dateString) return '-';
   try {
     const date = new Date(dateString);
+    // 检查是否为有效日期
+    if (isNaN(date.getTime())) {
+      return '-';
+    }
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -64,7 +74,7 @@ export const formatDateTime = (dateString: string): string => {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   } catch {
-    return dateString;
+    return '-';
   }
 };
 
