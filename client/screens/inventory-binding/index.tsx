@@ -33,6 +33,7 @@ import {
   deleteInventoryBinding,
   importInventoryBindings,
 } from '@/utils/database';
+import { formatDate } from '@/utils/time';
 
 // 使用 any 绕过类型检查
 const FileSystem = FileSystemLegacy as any;
@@ -208,7 +209,7 @@ export default function InventoryBindingScreen() {
         b.inventory_code,
         b.supplier || '',
         b.description || '',
-        b.created_at ? new Date(b.created_at).toLocaleDateString() : '',
+        b.created_at ? formatDate(b.created_at) : '',
       ]);
 
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);

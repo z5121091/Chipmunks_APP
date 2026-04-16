@@ -21,6 +21,7 @@ import {
   deleteUnpackRecord,
   deleteUnpackRecords,
 } from '@/utils/database';
+import { formatTime } from '@/utils/time';
 
 // 简单的按压动画卡片组件（兼容旧版Android）
 function AnimatedLabelCard({ 
@@ -175,12 +176,6 @@ export default function LabelsScreen() {
       newSelected.add(id);
     }
     setSelectedIds(newSelected);
-  };
-
-  // 格式化时间
-  const formatTime = (timeStr: string) => {
-    const date = new Date(timeStr);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
   // 删除记录

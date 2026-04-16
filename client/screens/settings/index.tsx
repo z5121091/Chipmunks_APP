@@ -38,7 +38,7 @@ import {
   CustomField,
   BackupData,
 } from '@/utils/database';
-import { formatDateTime } from '@/utils/time';
+import { formatDateTime, formatTime } from '@/utils/time';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
@@ -501,12 +501,6 @@ export default function SettingsScreen() {
       '数量', '追踪码', '箱号', '生产日期', '扫描时间'
     ];
     
-    const formatTime = (timeStr: string) => {
-      if (!timeStr) return '';
-      const date = new Date(timeStr);
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    };
-    
     const rows = records.map(r => [
       r.order_no || '',
       r.customer_name || '',
@@ -576,12 +570,6 @@ export default function SettingsScreen() {
       '仓库名称', '标签类型', '订单号', '客户', '型号', '存货编码', '批次', '封装', '版本',
       '原数量', '标签数量', '生产日期', '追踪码', '箱号', '拆包时间', '备注'
     ];
-    
-    const formatTime = (timeStr: string) => {
-      if (!timeStr) return '';
-      const date = new Date(timeStr);
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    };
     
     const rows = records.map(r => [
       r.warehouse_name || '',

@@ -28,7 +28,7 @@ import {
   MaterialRecord,
   UnpackRecord 
 } from '@/utils/database';
-import { formatDate, formatDateTime, getToday } from '@/utils/time';
+import { formatDate, formatDateTime, formatTime, getToday } from '@/utils/time';
 import { useSafeRouter, useSafeSearchParams } from '@/hooks/useSafeRouter';
 import { Spacing, BorderRadius, BorderWidth } from '@/constants/theme';
 import { rf } from '@/utils/responsive';
@@ -723,12 +723,6 @@ export default function OrdersScreen() {
         '仓库名称', '标签类型', '订单号', '客户', '型号', '存货编码', '批次', '封装', '版本',
         '原数量', '标签数量', '生产日期', '追踪码', '箱号', '拆包时间', '备注'
       ];
-      
-      // 格式化时间
-      const formatTime = (timeStr: string) => {
-        const date = new Date(timeStr);
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-      };
       
       // 构建数据行（发货标签和剩余标签）
       const rows = [

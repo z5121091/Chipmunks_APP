@@ -2519,7 +2519,7 @@ export const addInboundRecord = async (record: Omit<InboundRecord, 'id' | 'creat
     const newRecord: InboundRecord = {
       ...record,
       id: generateId(),
-      created_at: new Date().toISOString(),
+      created_at: getISODateTime(),
     };
     
     records.unshift(newRecord);

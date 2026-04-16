@@ -34,6 +34,7 @@ import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, initSoundSetting, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
+import { getISODateTime } from '@/utils/time';
 
 // 订单号格式：IO-年-月-日-序号（序号2-3位）
 const ORDER_NO_REGEX = /^IO-\d{4}-\d{2}-\d{2}-\d{2,3}$/;
@@ -258,7 +259,7 @@ export default function PDAScanScreen() {
         version: parsed.version,
         productionDate: parsed.productionDate,
         raw_content: code,
-        scanned_at: new Date().toISOString(),
+        scanned_at: getISODateTime(),
         warehouse_id: currentWarehouse.id,
         warehouse_name: currentWarehouse.name,
         inventory_code: inventoryCode || '',

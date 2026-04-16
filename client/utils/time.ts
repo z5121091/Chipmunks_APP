@@ -79,3 +79,11 @@ export const getToday = (): string => {
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+/**
+ * 格式化时间 (YYYY-MM-DD HH:mm)
+ * 与 formatDateTime 功能相同，提供别名兼容旧代码
+ */
+export const formatTime = (dateString: string): string => {
+  return formatDateTime(dateString);
+};
