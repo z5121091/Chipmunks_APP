@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APP_VERSION } from '@/constants/version';
 import { STORAGE_KEYS, ExportType, ExportCountData } from '@/constants/config';
-import { getISODateTime, formatDateTime } from './time';
+import { getISODateTime, getExportDateTime, formatDateTime } from './time';
 
 // 数据版本
 const CURRENT_DATA_VERSION = 12; // 更新此版本号触发迁移
@@ -1917,7 +1917,7 @@ export const exportBackupData = async (): Promise<BackupData> => {
 
     const backup: BackupData = {
       version: '1.3',
-      backupTime: getISODateTime(),
+      backupTime: getExportDateTime(),
       appVersion: APP_VERSION,
       rules: rulesData ? JSON.parse(rulesData) : [],
       customFields: customFieldsData ? JSON.parse(customFieldsData) : [],

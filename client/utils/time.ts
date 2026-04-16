@@ -30,6 +30,20 @@ export const getISODateTime = (): string => {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${tzSign}${tzHours}:${tzMinutes}`;
 };
 
+/**
+ * 获取当前时间（用于导出/备份）
+ * 格式：YYYY/M/D HH:mm (不补零，更紧凑)
+ */
+export const getExportDateTime = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;  // 不补零
+  const day = now.getDate();  // 不补零
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}/${month}/${day} ${hours}:${minutes}`;
+};
+
 // ============================================
 // 显示格式
 // ============================================
