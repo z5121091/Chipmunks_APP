@@ -1599,10 +1599,8 @@ export default function OrdersScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-              </View>
-            </KeyboardAvoidingView>
           </View>
-        </TouchableWithoutFeedback>
+        </View>
       </Modal>
       
       {/* 编辑物料弹窗 */}
@@ -1701,7 +1699,9 @@ export default function OrdersScreen() {
               </TouchableOpacity>
             </View>
           </View>
+          </KeyboardAvoidingView>
         </View>
+        </TouchableWithoutFeedback>
       </Modal>
       
       {/* 自定义弹窗 */}
