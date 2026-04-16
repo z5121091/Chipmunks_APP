@@ -28,13 +28,33 @@ interface SyncSettingsProps {
   };
 }
 
-const getStatusIcon = (status: ConnectionStatus): { name: keyof typeof Feather.glyphMap; color: string; text: string } => {
+const getStatusText = (status: ConnectionStatus): string => {
   switch (status) {
-    case 'success': return { name: 'check-circle', color: '#10B981', text: '已连接' };
-    case 'error': return { name: 'x-circle', color: '#EF4444', text: '连接失败' };
-    case 'disconnected': return { name: 'slash', color: '#6B7280', text: '已断开' };
-    case 'testing': return { name: 'loader', color: '#3B82F6', text: '测试中...' };
-    default: return { name: 'circle', color: '#6B7280', text: '未连接' };
+    case 'success': return '已连接 ✓';
+    case 'error': return '连接失败 ✗';
+    case 'disconnected': return '断开连接 ✗';
+    case 'testing': return '测试中...';
+    default: return '未连接';
+  }
+};
+
+const getStatusIcon = (status: ConnectionStatus): { name: keyof typeof Feather.glyphMap; color: string } => {
+  switch (status) {
+    case 'success': return { name: 'check-circle', color: '#10B981' };
+    case 'error': return { name: 'x-circle', color: '#EF4444' };
+    case 'disconnected': return { name: 'slash', color: '#6B7280' };
+    case 'testing': return { name: 'loader', color: '#3B82F6' };
+    default: return { name: 'circle', color: '#6B7280' };
+  }
+};
+
+const getButtonConfig = (status: ConnectionStatus): { text: string; bgColor: string; textColor: string } => {
+  switch (status) {
+    case 'success': return { text: '已连接 ✓', bgColor: '#10B981', textColor: '#FFFFFF' };
+    case 'error': return { text: '连接失败 ✗', bgColor: '#EF4444', textColor: '#FFFFFF' };
+    case 'disconnected': return { text: '断开连接 ✗', bgColor: '#EF4444', textColor: '#FFFFFF' };
+    case 'testing': return { text: '测试中...', bgColor: '#3B82F6', textColor: '#FFFFFF' };
+    default: return { text: '测试连接', bgColor: '#4F46E5', textColor: '#FFFFFF' };
   }
 };
 
@@ -46,7 +66,9 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
   onTestConnection,
   theme,
 }) => {
-  const status = getStatusIcon(connectionStatus);
+  const statusIcon = getStatusIcon(connectionStatus);
+  const statusText = getStatusText(connectionStatus);
+  const buttonConfig = getButtonConfig(connectionStatus);
   const isTesting = connectionStatus === 'testing';
 
   return (
@@ -75,11 +97,11 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
         />
       </View>
       <View style={styles.statusRow}>
-        <Feather name={status.name} size={16} color={status.color} style={status.name === 'loader' && isTesting ? styles.spinning : undefined} />
-        <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
+        <Feather name={statusIcon.name} size={16} color={statusIcon.color} style={statusIcon.name === 'loader' && isTesting ? styles.spinning : undefined} />
+        <Text style={[styles.statusText, { color: statusIcon.color }]}>{statusText}</Text>
       </View>
       <TouchableOpacity
-        style={[styles.testButton, { backgroundColor: theme.primary }]}
+        style={[styles.testButton, { backgroundColor: buttonConfig.bgColor }]}
         onPress={onTestConnection}
         disabled={isTesting}
       >
@@ -87,11 +109,22 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
           <ActivityIndicator size="small" color="#FFFFFF" />
         ) : (
           <>
-            <Feather name="zap" size={14} color="#FFFFFF" />
-            <Text style={styles.testButtonText}>测试连接</Text>
+            <Feather name="zap" size={14} color={buttonConfig.textColor} />
+            <Text style={[styles.testButtonText, { color: buttonConfig.textColor }]}>{buttonConfig.text}</Text>
           </>
         )}
       </TouchableOpacity>
+      {connectionStatus === 'success' && (
+        <Text style={[styles.hintText, { color: '#10B981' }]}>连接成功，配置已自动保存</Text>
+      )}
+      {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
+        <Text style={[styles.hintText, { color: '#EF4444' }]}>
+          {connectionStatus === 'disconnected' ? '网络连接已断开，请检查网络后重新连接' : '请检查服务器地址和状态后重试'}
+        </Text>
+      )}
+      {connectionStatus === 'idle' && !syncConfig.ip && (
+        <Text style={[styles.hintText, { color: theme.textMuted }]}>支持局域网IP、公网IP或域名</Text>
+      )}
     </View>
   );
 };
@@ -136,13 +169,18 @@ const styles = {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.md,
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   testButtonText: {
-    fontSize: rf(14),
+    fontSize: rf(15),
     fontWeight: '600' as const,
-    color: '#FFFFFF',
+  },
+  hintText: {
+    fontSize: rf(12),
+    marginTop: Spacing.sm,
+    textAlign: 'center' as const,
   },
 };
