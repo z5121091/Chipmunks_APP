@@ -28,7 +28,7 @@ import {
   CustomField,
   STORAGE_KEYS,
 } from '@/utils/database';
-import { formatDateTime, formatTime } from '@/utils/time';
+import { formatDateTime, formatTime, formatDate } from '@/utils/time';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
@@ -76,6 +76,7 @@ export default function SettingsScreen() {
 
   // 同步状态
   const [syncingInbound, setSyncingInbound] = useState(false);
+  const [syncingOutbound, setSyncingOutbound] = useState(false);
   const [syncingInventory, setSyncingInventory] = useState(false);
   const [syncingLabels, setSyncingLabels] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
@@ -280,6 +281,51 @@ export default function SettingsScreen() {
       const nameSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
 
       await syncToComputerMultiSheet([{ name: '入库明细', headers, rows }], '/inbound', setSyncingInbound, nameSuffix);
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      alert.showError(`同步失败: ${err.message || '请检查服务是否运行'}`);
+    }
+  }, [syncToComputerMultiSheet, alert]);
+
+  const handleSyncOutbound = useCallback(async () => {
+    const records = await getAllMaterials();
+    if (records.length === 0) {
+      alert.showWarning('暂无数据可同步');
+      return;
+    }
+
+    setSyncingOutbound(true);
+    try {
+      const todayCount = await incrementExportCount('outbound');
+      const seqNo = String(todayCount).padStart(2, '0');
+
+      const headers = [
+        '订单号', '客户', '仓库名称', '存货编码', '型号', '批次', '封装', '生产日期', '版本',
+        '数量', '追踪码', '箱号', '扫描日期', '序号', '扫描时间'
+      ];
+
+      const rows = records.map((r) => [
+        r.order_no || '',
+        r.customer_name || '',
+        r.warehouse_name || '',
+        r.inventory_code || '',
+        r.model || '',
+        r.batch || '',
+        r.package || '',
+        r.productionDate || '',
+        r.version || '',
+        parseInt(r.quantity, 10) || 0,
+        r.traceNo || '',
+        r.sourceNo || '',
+        formatDate(r.scanned_at) || '',
+        `-${seqNo}`,
+        formatTime(r.scanned_at) || '',
+      ]);
+
+      const warehouses = [...new Set(records.map((r) => r.warehouse_name).filter(Boolean))];
+      const nameSuffix = warehouses.length === 1 ? warehouses[0] : (warehouses.length > 1 ? '多仓库' : '');
+
+      await syncToComputerMultiSheet([{ name: '出库明细', headers, rows }], '/outbound', setSyncingOutbound, nameSuffix);
     } catch (error: unknown) {
       const err = error as { message?: string };
       alert.showError(`同步失败: ${err.message || '请检查服务是否运行'}`);
@@ -501,6 +547,16 @@ export default function SettingsScreen() {
             theme={theme}
           />
           <MenuCard
+            title="同步出库单"
+            desc="出库物料导出到电脑"
+            iconName="upload"
+            color={theme.primary}
+            onPress={handleSyncOutbound}
+            disabled={!canSync}
+            loading={syncingOutbound}
+            theme={theme}
+          />
+          <MenuCard
             title="同步盘点单"
             desc="导出盘点明细到电脑"
             iconName="clipboard"
@@ -528,18 +584,18 @@ export default function SettingsScreen() {
         </View>
         <View style={{ gap: Spacing.md }}>
           <MenuCard
-            title="导出备份"
-            desc="将配置和数据导出为备份文件"
-            iconName="upload"
+            title="备份配置"
+            desc="导出规则、字段、物料绑定、仓库、同步服务器"
+            iconName="save"
             color={theme.primary}
             onPress={handleExportBackup}
             loading={backupLoading}
             theme={theme}
           />
           <MenuCard
-            title="导入备份"
-            desc="从备份文件恢复配置和数据"
-            iconName="download"
+            title="恢复配置"
+            desc="从备份文件恢复全部配置"
+            iconName="rotate-ccw"
             color={theme.accent}
             onPress={handleImportBackup}
             loading={restoreLoading}
@@ -547,22 +603,23 @@ export default function SettingsScreen() {
           />
           <MenuCard
             title="清除业务数据"
-            desc="清除所有业务数据（不可恢复）"
+            desc="清空订单、物料、标签数据"
             iconName="trash-2"
             color={theme.error}
             onPress={() => {
               alert.showConfirm(
-                '确认清除',
-                '确定要清除所有业务数据吗？此操作不可恢复！',
+                '确认清空',
+                '确定要清空所有业务数据吗？\n\n将清空：订单、物料、标签、入库记录、盘点记录\n保留：仓库、物料绑定、解析规则、自定义字段',
                 async () => {
                   try {
                     await clearAllBusinessData();
-                    alert.showSuccess('业务数据已清除');
+                    alert.showSuccess('业务数据已清空');
                     loadData();
                   } catch (error) {
-                    alert.showError('清除失败');
+                    alert.showError('操作失败，请重试');
                   }
-                }
+                },
+                true
               );
             }}
             theme={theme}
