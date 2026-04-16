@@ -2528,7 +2528,7 @@ export const addInboundRecord = async (record: Omit<InboundRecord, 'id' | 'creat
     const newRecord: InboundRecord = {
       ...record,
       id: generateId(),
-      created_at: new Date().toLocaleString('zh-CN', { hour12: false }),
+      created_at: new Date().toISOString(),
     };
     
     records.unshift(newRecord);
