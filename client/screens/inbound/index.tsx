@@ -634,7 +634,7 @@ export default function InboundScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             autoFocus={false}
-            
+            showSoftInputOnFocus={false}
           />
           
           {/* Toast */}

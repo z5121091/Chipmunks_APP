@@ -13,10 +13,11 @@
       "version": "V3.3.7",
       "date": "2026-04-23",
       "changes": [
-        { "type": "fix", "text": "输入法弹出：移除所有showSoftInputOnFocus属性" },
+        { "type": "fix", "text": "输入法弹出：移除所有showSoftInputOnFocus属性（Modal内）" },
         { "type": "fix", "text": "Modal动画：animationType从slide改为fade（避免动画期间阻止点击）" },
         { "type": "fix", "text": "Modal事件：移除包裹TextInput的TouchableWithoutFeedback" },
-        { "type": "fix", "text": "detail页面：增加modalBodyContent的paddingBottom避免键盘遮挡" }
+        { "type": "fix", "text": "detail页面：增加modalBodyContent的paddingBottom避免键盘遮挡" },
+        { "type": "fix", "text": "扫码页面：添加showSoftInputOnFocus={false}阻止输入法弹出（扫码入库/出库/盘点）" }
       ]
     },
     {

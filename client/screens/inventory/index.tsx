@@ -708,7 +708,7 @@ export default function InventoryScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             autoFocus={false}
-            
+            showSoftInputOnFocus={false}
           />
           
           {/* Toast */}
