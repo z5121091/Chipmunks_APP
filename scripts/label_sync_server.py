@@ -48,7 +48,7 @@ else:
     APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 日志文件配置
-LOG_FILE = os.path.join(APP_DIR, 'sync_service.log')
+LOG_FILE = os.path.join(APP_DIR, '日志记录.log')
 # 日志轮转配置：单个文件最大5MB，保留10个备份
 MAX_LOG_SIZE = 5 * 1024 * 1024  # 5MB
 BACKUP_COUNT = 10
