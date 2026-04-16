@@ -469,7 +469,7 @@ export default function SettingsScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>基础配置</Text>
         </View>
-        <View style={{ gap: Spacing.sm }}>
+        <View style={{ gap: Spacing.xs }}>
           <MenuCard
             title="仓库管理"
             desc="添加、编辑仓库信息"
@@ -502,7 +502,7 @@ export default function SettingsScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>解析配置</Text>
         </View>
-        <View style={{ gap: Spacing.sm }}>
+        <View style={{ gap: Spacing.xs }}>
           <MenuCard
             title="解析规则"
             desc="二维码解析规则配置"
@@ -535,7 +535,7 @@ export default function SettingsScreen() {
           onTestConnection={handleTestConnection}
           theme={theme}
         />
-        <View style={{ gap: Spacing.sm }}>
+        <View style={{ gap: Spacing.xs }}>
           <MenuCard
             title="同步入库单"
             desc="入库记录导出到电脑"
@@ -582,7 +582,7 @@ export default function SettingsScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>备份还原</Text>
         </View>
-        <View style={{ gap: Spacing.sm }}>
+        <View style={{ gap: Spacing.xs }}>
           <MenuCard
             title="备份配置"
             desc="导出规则、字段、物料绑定、仓库、同步服务器"
