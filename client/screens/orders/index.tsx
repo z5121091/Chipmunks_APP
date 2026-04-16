@@ -1610,16 +1610,8 @@ export default function OrdersScreen() {
             </View>
             
             <ScrollView style={unpackModalStyles.modalBody}>
-              {/* 追踪码（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>追踪码（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editingMaterial?.traceNo || '-'}
-                </Text>
-              </View>
-              
-              {/* 原始数量（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>原始扫描数量</Text>
+              {/* 原始扫码数量（只读） */}
+              <Text style={unpackModalStyles.inputLabel}>原始扫码数量</Text>
               <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
                 <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
                   {editingMaterial?.original_quantity || editingMaterial?.quantity || '-'}
@@ -1627,7 +1619,7 @@ export default function OrdersScreen() {
               </View>
               
               {/* 型号（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>型号（不可修改）</Text>
+              <Text style={unpackModalStyles.inputLabel}>型号</Text>
               <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
                 <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
                   {editMaterialData.model || '-'}
@@ -1635,14 +1627,22 @@ export default function OrdersScreen() {
               </View>
               
               {/* 批次（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>批次（不可修改）</Text>
+              <Text style={unpackModalStyles.inputLabel}>批次</Text>
               <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
                 <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
                   {editMaterialData.batch || '-'}
                 </Text>
               </View>
               
-              {/* 数量 */}
+              {/* 生产日期（只读） */}
+              <Text style={unpackModalStyles.inputLabel}>生产日期</Text>
+              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
+                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
+                  {editMaterialData.productionDate || '-'}
+                </Text>
+              </View>
+              
+              {/* 数量（可修改） */}
               <Text style={unpackModalStyles.inputLabel}>数量 *</Text>
               <TextInput
                 style={unpackModalStyles.textInput}
@@ -1657,38 +1657,6 @@ export default function OrdersScreen() {
                 keyboardType="number-pad"
                 showSoftInputOnFocus={true}
               />
-              
-              {/* 封装（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>封装（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.package || '-'}
-                </Text>
-              </View>
-              
-              {/* 版本号（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>版本号（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.version || '-'}
-                </Text>
-              </View>
-              
-              {/* 生产日期（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>生产日期（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.productionDate || '-'}
-                </Text>
-              </View>
-              
-              {/* 箱号（只读） */}
-              <Text style={unpackModalStyles.inputLabel}>箱号（不可修改）</Text>
-              <View style={[unpackModalStyles.textInput, { justifyContent: 'center', backgroundColor: theme.backgroundTertiary, opacity: 0.7 }]}>
-                <Text style={{ fontSize: rf(16), color: theme.textSecondary }}>
-                  {editMaterialData.sourceNo || '-'}
-                </Text>
-              </View>
             </ScrollView>
             
             <View style={unpackModalStyles.modalFooter}>
