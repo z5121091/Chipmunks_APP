@@ -234,15 +234,20 @@ export default function WarehouseManagementScreen() {
               {editingWarehouse ? '编辑仓库' : '添加仓库'}
             </Text>
 
-            <Text style={styles.inputLabel}>仓库名称 *</Text>
+            <Text style={styles.inputLabel}>仓库名称 *（中文4字/英文4字符）</Text>
             <TextInput
               style={styles.input}
               value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
+              onChangeText={(text) => {
+                // 限制总字符数不超过4
+                if (text.length > 4) return;
+                setFormData({ ...formData, name: text });
+              }}
               placeholder="请输入仓库名称"
               placeholderTextColor={theme.textMuted}
               showSoftInputOnFocus={true}
               autoFocus={true}
+              maxLength={4}
             />
 
             <Text style={styles.inputLabel}>仓库描述</Text>
