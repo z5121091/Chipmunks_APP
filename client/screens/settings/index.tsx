@@ -413,24 +413,109 @@ export default function SettingsScreen() {
   }, [alert, loadData]);
 
   // ============ 更新功能 ============
+
+  // 获取更新服务器地址
+  const getUpdateServerUrl = (): string => {
+    if (updateServerUrl.includes('@')) {
+      return UPDATE_CONFIG.DEFAULT_SERVER;
+    }
+    return updateServerUrl;
+  };
+
+  // base64 编码
+  const base64Encode = (str: string): string => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    let output = '';
+    for (let i = 0; i < str.length; i += 3) {
+      const char1 = str.charCodeAt(i);
+      const char2 = i + 1 < str.length ? str.charCodeAt(i + 1) : NaN;
+      const char3 = i + 2 < str.length ? str.charCodeAt(i + 2) : NaN;
+      const enc1 = char1 >> 2;
+      const enc2 = ((char1 & 3) << 4) | (char2 >> 4);
+      let enc3 = ((char2 & 15) << 2) | (char3 >> 6);
+      let enc4 = char3 & 63;
+      if (isNaN(char2)) { enc3 = enc4 = 64; }
+      else if (isNaN(char3)) { enc4 = 64; }
+      output += characters.charAt(enc1) + characters.charAt(enc2) + characters.charAt(enc3) + characters.charAt(enc4);
+    }
+    return output;
+  };
+
+  // 版本号比较函数
+  const compareVersions = (v1: string, v2: string): number => {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+      const p1 = parts1[i] || 0;
+      const p2 = parts2[i] || 0;
+      if (p1 > p2) return 1;
+      if (p1 < p2) return -1;
+    }
+    return 0;
+  };
+
+  // 检查更新
   const handleCheckForUpdate = useCallback(async () => {
+    if (checkingUpdate) return;
+
     setCheckingUpdate(true);
     try {
-      const info = await checkForUpdate(
-        updateServerUrl,
-        APP_VERSION,
-        (msg) => alert.showError(msg),
-        () => alert.showSuccess(`当前已是最新版本 (${APP_VERSION})`)
-      );
+      const baseUrl = getUpdateServerUrl();
+      const versionUrl = `${baseUrl}/version.json`;
 
-      if (info) {
-        setUpdateInfo(info);
-        setUpdateModalVisible(true);
+      const authInfo = parseAuthFromUrl(baseUrl);
+      const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
+
+      if (authInfo) {
+        const authString = `${authInfo.username}:${authInfo.password}`;
+        const authBase64 = base64Encode(authString);
+        headers['Authorization'] = `Basic ${authBase64}`;
       }
+
+      const response = await fetch(versionUrl, { method: 'GET', headers });
+
+      if (!response.ok) {
+        let errorMessage = `无法连接到更新服务器 (${response.status})`;
+        if (response.status === 401) {
+          errorMessage = '认证失败，请检查服务器地址中的用户名和密码是否正确';
+        } else if (response.status === 404) {
+          errorMessage = '更新文件不存在，请检查服务器地址是否正确';
+        }
+        alert.showError(errorMessage);
+        return;
+      }
+
+      const data = await response.json();
+      const currentVersion = APP_VERSION.replace(/^V/, '');
+      const latestVersion = (data.version || '0.0.0').replace(/^V/, '');
+
+      const isNewVersion = compareVersions(latestVersion, currentVersion) > 0;
+
+      if (isNewVersion) {
+        let changelogText = '优化用户体验';
+        if (Array.isArray(data.changelog)) {
+          changelogText = data.changelog[0]?.changes
+            ?.map((c: { type: string; text: string }) => `${c.text}`)
+            .join('\n') || '优化用户体验';
+        } else if (typeof data.changelog === 'string') {
+          changelogText = data.changelog;
+        }
+        setUpdateInfo({
+          version: data.version || latestVersion,
+          downloadUrl: data.downloadUrl || `${baseUrl}/app-release.apk`,
+          changelog: changelogText,
+          forceUpdate: data.forceUpdate || false,
+        });
+        setUpdateModalVisible(true);
+      } else {
+        alert.showSuccess(`当前已是最新版本 (${APP_VERSION})`);
+      }
+    } catch (error) {
+      alert.showError('检查更新失败，请检查网络连接');
     } finally {
       setCheckingUpdate(false);
     }
-  }, [updateServerUrl, alert]);
+  }, [updateServerUrl, alert, checkingUpdate]);
 
   const handleDownloadAndInstall = useCallback(async () => {
     if (!updateInfo) return;
