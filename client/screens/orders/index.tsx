@@ -1663,6 +1663,8 @@ export default function OrdersScreen() {
                 keyboardType="number-pad"
                 showSoftInputOnFocus={true}
               />
+              {/* 底部留空，避免内容被键盘遮挡 */}
+              <View style={{ height: 40 }} />
             </ScrollView>
             
             <View style={unpackModalStyles.modalFooter}>
