@@ -1,4 +1,5 @@
 // 二维码内容解析器
+import { formatDate } from './time';
 
 // 支持的普通分隔符
 const SEPARATORS = ['/', '|', ',', '*', '#', ';', '\t'];
@@ -217,9 +218,6 @@ export const parseQRCode = (
     separator,
   };
 };
-
-// 统一时间格式化工具
-import { formatDate } from './time';
 
 // 格式化日期（兼容旧代码）
 export { formatDate } from './time';
