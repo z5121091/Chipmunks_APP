@@ -125,6 +125,40 @@ export async function feedbackWarning() {
 }
 
 /**
+ * 新订单反馈 - 震动 + "新订单"语音
+ */
+export async function feedbackNewOrder() {
+  console.log('[Feedback] feedbackNewOrder 触发');
+  
+  // 震动
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  } catch (e) {
+    console.error('[Feedback] 震动失败:', e);
+  }
+  
+  // 语音
+  await speakChinese('新订单');
+}
+
+/**
+ * 切换订单反馈 - 震动 + "切换订单"语音
+ */
+export async function feedbackSwitchOrder() {
+  console.log('[Feedback] feedbackSwitchOrder 触发');
+  
+  // 震动
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  } catch (e) {
+    console.error('[Feedback] 震动失败:', e);
+  }
+  
+  // 语音
+  await speakChinese('切换订单');
+}
+
+/**
  * 清理语音资源
  */
 export function cleanupSounds() {

@@ -32,7 +32,7 @@ import {
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Spacing } from '@/constants/theme';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
-import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, initSoundSetting, useFeedbackCleanup } from '@/utils/feedback';
+import { feedbackSuccess, feedbackError, feedbackWarning, feedbackDuplicate, feedbackNewOrder, feedbackSwitchOrder, initSoundSetting, useFeedbackCleanup } from '@/utils/feedback';
 import { useToast } from '@/utils/toast';
 import { getISODateTime } from '@/utils/time';
 
@@ -169,12 +169,12 @@ export default function PDAScanScreen() {
 
         if (existing) {
           await loadOrderMaterials(code);
-          showToast(`继续订单: ${code}`, 'warning');
-          feedbackWarning();
-          console.log('[扫码出库] 继续订单:', code);
+          showToast(`切换订单: ${code}`, 'warning');
+          feedbackSwitchOrder();
+          console.log('[扫码出库] 切换订单:', code);
         } else {
           showToast('新订单', 'success');
-          feedbackSuccess();
+          feedbackNewOrder();
           console.log('[扫码出库] 新订单:', code);
         }
         return;
