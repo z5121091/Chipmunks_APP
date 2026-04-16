@@ -849,7 +849,7 @@ export default function InventoryScreen() {
         >
           <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
           >
           <TouchableOpacity
             style={styles.modalOverlay}

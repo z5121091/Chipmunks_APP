@@ -1382,7 +1382,7 @@ export default function SettingsScreen() {
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.updateModalOverlay}>

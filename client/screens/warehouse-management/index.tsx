@@ -229,7 +229,7 @@ export default function WarehouseManagementScreen() {
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.modalOverlay}>
@@ -249,7 +249,6 @@ export default function WarehouseManagementScreen() {
               placeholder="请输入仓库名称"
               placeholderTextColor={theme.textMuted}
               showSoftInputOnFocus={true}
-              autoFocus={true}
             />
 
             <Text style={styles.inputLabel}>仓库描述</Text>

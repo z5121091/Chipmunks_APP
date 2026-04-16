@@ -1148,7 +1148,7 @@ export default function OrdersScreen() {
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
@@ -1613,7 +1613,7 @@ export default function OrdersScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={unpackModalStyles.modalOverlay}>
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
               style={{ flex: 1, justifyContent: 'center' }}
             >
               <View style={[unpackModalStyles.modalContent, { maxHeight: '90%' }]}>
