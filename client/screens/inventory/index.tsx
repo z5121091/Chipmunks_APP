@@ -503,7 +503,7 @@ export default function InventoryScreen() {
     setQuantityModalVisible(false);
     setEditingRecord(null);
     showToast(`已修改为 ${qty}`, 'success');
-    feedbackSuccess();
+    feedbackConfirm();
   };
 
   // 确认盘点
