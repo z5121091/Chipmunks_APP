@@ -44,7 +44,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
 import { AnimatedCard } from '@/components/AnimatedCard';
-import { getSpacing } from '@/constants/theme';
+import { getSpacing, Spacing } from '@/constants/theme';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Feather } from '@expo/vector-icons';
 import { useCustomAlert } from '@/components/CustomAlert';
