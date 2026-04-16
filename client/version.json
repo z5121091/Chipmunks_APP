@@ -3,10 +3,100 @@
   "versionCode": 82,
   "buildNumber": 82,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
-  "changelog": "【修复】\n1. 扫码出库：生产日期字段缺失\n2. 聚合项：总数量基于所有行，而非只显示的10行",
   "forceUpdate": false,
   "appName": "掌上仓库",
   "companyName": "上海花栗鼠科技有限公司",
   "companyWebsite": "http://www.chipmunks.com.cn/",
-  "author": "zx5121091"
+  "author": "zx5121091",
+  "changelog": [
+    {
+      "version": "V3.3.1",
+      "date": "2026-04-20",
+      "changes": [
+        { "type": "fix", "text": "扫码出库：生产日期字段缺失" },
+        { "type": "fix", "text": "聚合项：总数量基于所有行，而非只显示的10行" }
+      ]
+    },
+    {
+      "version": "V3.3.0",
+      "date": "2026-04-18",
+      "changes": [
+        { "type": "improve", "text": "聚合项显示格式统一：批次 | 生产日期 | 数量" },
+        { "type": "improve", "text": "语音反馈优化：成功播报「扫码成功」，重复播报「扫码重复」" },
+        { "type": "improve", "text": "扫码出库：新增订单播报「新订单」，切换订单播报「切换订单」" },
+        { "type": "improve", "text": "时间显示统一：日期 YYYY-MM-DD，日期时间 YYYY-MM-DD HH:mm" },
+        { "type": "feat", "text": "仓库管理：仓库名称唯一性校验" },
+        { "type": "feat", "text": "订单编辑：数量输入只允许数字" },
+        { "type": "feat", "text": "拆包数量：只允许输入数字" },
+        { "type": "feat", "text": "全局时间格式化工具" },
+        { "type": "fix", "text": "仓库管理：添加仓库报错、删除仓库无响应" },
+        { "type": "fix", "text": "订单详情：扫码时间 NaN 问题" },
+        { "type": "fix", "text": "仓库名称：中文4字/英文4字符限制，打断拼音输入" },
+        { "type": "fix", "text": "聚合项删除：明细项删除只删除选中项" },
+        { "type": "fix", "text": "生产日期：字段抓取失败问题" },
+        { "type": "fix", "text": "入库/出库/盘点：聚合项明细删除 BUG" },
+        { "type": "fix", "text": "全局：硬编码字体统一为 rf()" }
+      ]
+    },
+    {
+      "version": "V3.2.0",
+      "date": "2026-04-15",
+      "changes": [
+        { "type": "improve", "text": "扫码反馈：成功播报「成功」，重复播报「重复」" },
+        { "type": "improve", "text": "扫码反馈：震动改为单次" },
+        { "type": "improve", "text": "提示音：移除音效文件，纯中文语音反馈" },
+        { "type": "improve", "text": "声音开关：支持实时控制语音播报" },
+        { "type": "feat", "text": "首页：UI 改版" },
+        { "type": "feat", "text": "扫码入库：聚合显示、勾选确认、展开折叠、长按删除" },
+        { "type": "feat", "text": "扫码出库：聚合显示、长按删除" },
+        { "type": "feat", "text": "盘点：勾选确认、展开折叠、长按删除、扩展字段支持" },
+        { "type": "feat", "text": "全局：统一 Toast 组件" },
+        { "type": "feat", "text": "扫码：统一重复反馈" },
+        { "type": "feat", "text": "自动更新功能" },
+        { "type": "fix", "text": "扫码：音效无声、音效加载竞态" },
+        { "type": "fix", "text": "入库：缺少原始二维码、重复检测逻辑" },
+        { "type": "fix", "text": "出库：聚合明细批次显示错误、长按删除失效" },
+        { "type": "fix", "text": "设置：状态栏背景色不协调、服务器地址认证信息泄露" },
+        { "type": "fix", "text": "全局：时间显示为北京时间" }
+      ]
+    },
+    {
+      "version": "V3.1.2",
+      "date": "2026-03-05",
+      "changes": [
+        { "type": "improve", "text": "入库：重复扫码震动" },
+        { "type": "improve", "text": "订单：编辑优化" },
+        { "type": "improve", "text": "解析规则：智能识别日期" },
+        { "type": "improve", "text": "输入框：键盘避让" },
+        { "type": "fix", "text": "出库：清单命名和编码" },
+        { "type": "fix", "text": "解析规则：日期字段拆分" }
+      ]
+    },
+    {
+      "version": "V3.1.1",
+      "date": "2026-03-03",
+      "changes": [
+        { "type": "feat", "text": "入库：历史查询与筛选" },
+        { "type": "feat", "text": "入库：同型号数量合并" },
+        { "type": "feat", "text": "入库：点击型号切换确认" },
+        { "type": "feat", "text": "入库：滑动删除" },
+        { "type": "improve", "text": "同步服务：日志自动轮转" }
+      ]
+    },
+    {
+      "version": "V3.0.0",
+      "date": "2026-03-01",
+      "changes": [
+        { "type": "feat", "text": "掌上仓库 APP 正式上线" },
+        { "type": "feat", "text": "扫码入库：供应商识别、重复检测" },
+        { "type": "feat", "text": "扫码出库：PDA扫码模式" },
+        { "type": "feat", "text": "订单管理：创建、编辑、删除、导出" },
+        { "type": "feat", "text": "盘点功能：整包/拆包盘点" },
+        { "type": "feat", "text": "物料管理：型号编码绑定" },
+        { "type": "feat", "text": "仓库管理：多仓库支持" },
+        { "type": "feat", "text": "数据同步：一键同步到电脑" },
+        { "type": "feat", "text": "备份恢复：配置备份" }
+      ]
+    }
+  ]
 }

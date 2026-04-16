@@ -730,10 +730,21 @@ export default function SettingsScreen() {
       const isNewVersion = compareVersions(latestVersion, currentVersion) > 0;
       
       if (isNewVersion) {
+        // 处理 changelog：可能是数组（旧格式）或对象数组（新格式）
+        let changelogText = '优化用户体验';
+        if (Array.isArray(data.changelog)) {
+          // 新格式：数组 [{version, date, changes}]
+          changelogText = data.changelog[0]?.changes
+            ?.map((c: { type: string; text: string }) => `${c.text}`)
+            .join('\n') || '优化用户体验';
+        } else if (typeof data.changelog === 'string') {
+          // 旧格式：字符串
+          changelogText = data.changelog;
+        }
         setUpdateInfo({
           version: data.version || latestVersion,
           downloadUrl: data.downloadUrl || `${baseUrl}/app-release.apk`,
-          changelog: data.changelog || '优化用户体验',
+          changelog: changelogText,
           forceUpdate: data.forceUpdate || false,
         });
         setUpdateServerEditing(false); // 重置编辑状态
