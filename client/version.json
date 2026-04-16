@@ -1,7 +1,7 @@
 {
-  "version": "V3.3.5",
-  "versionCode": 86,
-  "buildNumber": 86,
+  "version": "V3.3.6",
+  "versionCode": 87,
+  "buildNumber": 87,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
   "forceUpdate": false,
   "appName": "掌上仓库",
@@ -9,6 +9,21 @@
   "companyWebsite": "http://www.chipmunks.com.cn/",
   "author": "zx5121091",
   "changelog": [
+    {
+      "version": "V3.3.6",
+      "date": "2026-04-23",
+      "changes": [
+        { "type": "fix", "text": "规则字段顺序：修复解析时忽略用户配置的字段顺序问题" },
+        { "type": "fix", "text": "键盘抖动：所有Modal的KeyboardAvoidingView统一改为padding模式" },
+        { "type": "fix", "text": "输入法冲突：移除warehouse-management的autoFocus" },
+        { "type": "fix", "text": "订单记录：修复拆分结果显示分隔符错误（改用逗号分隔）" },
+        { "type": "fix", "text": "pnpm ENOTEMPTY错误：prefer-frozen-lockfile改为false" },
+        { "type": "fix", "text": "JSX标签未闭合导致Android打包失败" },
+        { "type": "fix", "text": "拆包标签导出：文件名固定为「拆包标签.xlsx」（不含日期）" },
+        { "type": "fix", "text": "拆包标签导出：端点改为/inventory" },
+        { "type": "fix", "text": "同步服务版本更新至V3.2.1" }
+      ]
+    },
     {
       "version": "V3.3.5",
       "date": "2026-04-22",
