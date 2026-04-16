@@ -378,6 +378,34 @@ export default function PDAScanScreen() {
     );
   }, [orderNo, loadOrderMaterials]);
 
+  // 删除单个物料
+  const handleDeleteItem = useCallback((item: MaterialItem) => {
+    Alert.alert(
+      '确认删除',
+      `确定要删除这条物料吗？`,
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMaterial(item.id);
+              // 刷新列表
+              if (orderNo) {
+                await loadOrderMaterials(orderNo);
+              }
+              showToast('已删除物料', 'success');
+            } catch (error) {
+              console.error('删除失败:', error);
+              showToast('删除失败', 'error');
+            }
+          },
+        },
+      ]
+    );
+  }, [orderNo, loadOrderMaterials]);
+
   // 处理扫描（入口函数，清理换行符后调用）
   // 修复：防止 onChangeText 和 onSubmitEditing 重复触发
   const handleScan = useCallback(async () => {
@@ -577,7 +605,7 @@ export default function PDAScanScreen() {
                         <TouchableOpacity
                           key={item.id}
                           style={styles.detailItem}
-                          onLongPress={() => handleDeleteGroup(group)}
+                          onLongPress={() => handleDeleteItem(item)}
                           delayLongPress={500}
                         >
                           <Text style={styles.detailText}>

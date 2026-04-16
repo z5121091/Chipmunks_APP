@@ -212,6 +212,26 @@ export default function InventoryScreen() {
     );
   }, [scanRecords]);
 
+  // 删除单条记录
+  const handleDeleteRecord = useCallback((record: ScanRecord) => {
+    Alert.alert(
+      '确认删除',
+      `确定要删除这条记录吗？`,
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: () => {
+            const updated = scanRecords.filter(r => r.id !== record.id);
+            setScanRecords(updated);
+            showToast('已删除记录', 'success');
+          },
+        },
+      ]
+    );
+  }, [scanRecords]);
+
   // 初始化
   useEffect(() => {
     loadWarehouses();
@@ -762,7 +782,7 @@ export default function InventoryScreen() {
                         <TouchableOpacity
                           key={record.id}
                           style={styles.detailItem}
-                          onLongPress={() => handleDeleteGroup(item)}
+                          onLongPress={() => handleDeleteRecord(record)}
                           delayLongPress={500}
                         >
                           <Text style={styles.detailText}>
