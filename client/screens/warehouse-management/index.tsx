@@ -76,14 +76,18 @@ export default function WarehouseManagementScreen() {
 
   // 保存仓库
   const handleSave = async () => {
-    if (!formData.name.trim()) {
+    // 强制截断名称到4个字符
+    const trimmedName = formData.name.trim().slice(0, 4);
+    if (!trimmedName) {
       alert.showWarning('请输入仓库名称');
       return;
     }
+    
+    const finalFormData = { ...formData, name: trimmedName };
 
     // 检查名称唯一性（排除当前编辑的仓库）
     const existingWarehouse = warehouses.find(
-      w => w.name.trim() === formData.name.trim() && 
+      w => w.name.trim() === trimmedName && 
            (!editingWarehouse || w.id !== editingWarehouse.id)
     );
     if (existingWarehouse) {
@@ -93,10 +97,10 @@ export default function WarehouseManagementScreen() {
 
     try {
       if (editingWarehouse) {
-        await updateWarehouse(editingWarehouse.id, formData);
+        await updateWarehouse(editingWarehouse.id, finalFormData);
         alert.showSuccess('仓库已更新');
       } else {
-        await addWarehouse(formData);
+        await addWarehouse(finalFormData);
         alert.showSuccess('仓库已添加');
       }
       setModalVisible(false);
@@ -242,18 +246,10 @@ export default function WarehouseManagementScreen() {
                 // 实时更新输入值，不限制长度（让输入法正常选字）
                 setFormData({ ...formData, name: text });
               }}
-              onEndEditing={(e) => {
-                // 选字完成后检查，超过4个字符则截断
-                const finalText = e.nativeEvent.text;
-                if (finalText.length > 4) {
-                  setFormData({ ...formData, name: finalText.slice(0, 4) });
-                }
-              }}
               placeholder="请输入仓库名称"
               placeholderTextColor={theme.textMuted}
               showSoftInputOnFocus={true}
               autoFocus={true}
-              maxLength={20}
             />
 
             <Text style={styles.inputLabel}>仓库描述</Text>
