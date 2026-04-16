@@ -1539,7 +1539,11 @@ export default function OrdersScreen() {
                 placeholder="输入要拆出的数量"
                 placeholderTextColor={theme.textMuted}
                 value={unpackNewQuantity}
-                onChangeText={setUnpackNewQuantity}
+                onChangeText={(text) => {
+                  // 只允许输入数字
+                  const numeric = text.replace(/[^0-9]/g, '');
+                  setUnpackNewQuantity(numeric);
+                }}
                 keyboardType="number-pad"
                 showSoftInputOnFocus={true}
               />
@@ -1652,7 +1656,11 @@ export default function OrdersScreen() {
                 placeholder={`最多 ${editingMaterial?.original_quantity || editingMaterial?.quantity || 0} 个`}
                 placeholderTextColor={theme.textMuted}
                 value={editMaterialData.quantity}
-                onChangeText={(text) => setEditMaterialData(prev => ({ ...prev, quantity: text }))}
+                onChangeText={(text) => {
+                  // 只允许输入数字
+                  const numeric = text.replace(/[^0-9]/g, '');
+                  setEditMaterialData(prev => ({ ...prev, quantity: numeric }));
+                }}
                 keyboardType="number-pad"
                 showSoftInputOnFocus={true}
               />
