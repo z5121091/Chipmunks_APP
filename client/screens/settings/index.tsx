@@ -538,9 +538,9 @@ export default function SettingsScreen() {
         <View style={{ gap: Spacing.md }}>
           <MenuCard
             title="同步入库单"
-            desc="导出入库明细到电脑"
-            iconName="download"
-            color={theme.primary}
+            desc="入库记录导出到电脑"
+            iconName="download-cloud"
+            color={theme.success}
             onPress={handleSyncInbound}
             disabled={!canSync}
             loading={syncingInbound}
@@ -549,7 +549,7 @@ export default function SettingsScreen() {
           <MenuCard
             title="同步出库单"
             desc="出库物料导出到电脑"
-            iconName="upload"
+            iconName="upload-cloud"
             color={theme.primary}
             onPress={handleSyncOutbound}
             disabled={!canSync}
@@ -558,8 +558,8 @@ export default function SettingsScreen() {
           />
           <MenuCard
             title="同步盘点单"
-            desc="导出盘点明细到电脑"
-            iconName="clipboard"
+            desc="盘点记录导出到电脑"
+            iconName="file-text"
             color={theme.accent}
             onPress={handleSyncInventory}
             disabled={!canSync}
@@ -567,10 +567,10 @@ export default function SettingsScreen() {
             theme={theme}
           />
           <MenuCard
-            title="同步标签"
-            desc="导出标签记录到电脑"
+            title="同步标签数据"
+            desc="拆包标签导出到电脑打印"
             iconName="tag"
-            color={theme.warning}
+            color={theme.purple}
             onPress={handleSyncLabels}
             disabled={!canSync}
             loading={syncingLabels}
@@ -634,6 +634,26 @@ export default function SettingsScreen() {
           <Text style={[styles.aboutTitle, { color: theme.textPrimary }]}>掌上仓库</Text>
           <Text style={[styles.aboutVersion, { color: theme.textSecondary }]}>版本 {APP_VERSION}</Text>
           <Text style={[styles.aboutDesc, { color: theme.textMuted }]}>高效仓储管理解决方案</Text>
+        </View>
+
+        {/* 使用说明和更新日志 */}
+        <View style={{ gap: Spacing.md }}>
+          <MenuCard
+            title="使用说明"
+            desc="了解应用功能和使用方法"
+            iconName="book-open"
+            color={theme.textMuted}
+            onPress={() => router.push('/help')}
+            theme={theme}
+          />
+          <MenuCard
+            title="更新日志"
+            desc="查看版本更新历史"
+            iconName="file-text"
+            color={theme.textMuted}
+            onPress={() => router.push('/changelog')}
+            theme={theme}
+          />
         </View>
       </ScrollView>
     </Screen>
