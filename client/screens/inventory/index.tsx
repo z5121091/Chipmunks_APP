@@ -767,7 +767,7 @@ export default function InventoryScreen() {
                         >
                           <Text style={styles.detailText}>
                             批次: {record.batch || '-'}
-                            {record.sourceNo ? `  |  箱号: ${record.sourceNo}` : ''}
+                            {record.sourceNo ? `  |  LOT号: ${record.sourceNo}` : ''}
                             {'  |  数量: '}{record.quantity}
                           </Text>
                         </TouchableOpacity>
