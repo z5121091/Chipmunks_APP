@@ -1,63 +1,83 @@
-/**
- * 自定义确认弹窗组件
- */
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
+import { useTheme } from '@/hooks/useTheme';
 import { Spacing, BorderRadius } from '@/constants/theme';
+import { withAlpha } from '@/utils/colors';
 import { rf } from '@/utils/responsive';
 
-interface AlertButton {
+export type AlertButtonType = {
   text: string;
   style?: 'default' | 'cancel' | 'destructive';
   onPress?: () => void;
-}
+};
+
+export type AlertIconType = 'success' | 'warning' | 'error' | 'info' | 'question';
 
 interface CustomAlertProps {
   visible: boolean;
   title: string;
-  message: string;
-  icon?: 'success' | 'warning' | 'error' | 'info';
-  buttons: AlertButton[];
+  message?: string;
+  buttons?: AlertButtonType[];
+  icon?: AlertIconType;
   onClose: () => void;
-  theme: {
-    backgroundDefault: string;
-    textPrimary: string;
-    textSecondary: string;
-    white: string;
-    primary: string;
-    error: string;
-    warning: string;
-    info: string;
-    border: string;
-    backgroundTertiary: string;
-  };
 }
 
-const iconMap = {
-  success: 'check',
-  warning: 'triangle-exclamation',
-  error: 'xmark',
-  info: 'info',
-};
-
-const colorMap = {
-  success: { bg: 'rgba(16, 185, 129, 0.12)', fg: '#10B981' },
-  warning: { bg: 'rgba(245, 158, 11, 0.12)', fg: '#F59E0B' },
-  error: { bg: 'rgba(239, 68, 68, 0.12)', fg: '#EF4444' },
-  info: { bg: 'rgba(59, 130, 246, 0.12)', fg: '#3B82F6' },
-};
-
-export const CustomAlert: React.FC<CustomAlertProps> = ({
+export function CustomAlert({
   visible,
   title,
   message,
+  buttons = [{ text: '确定', style: 'default' }],
   icon,
-  buttons,
   onClose,
-  theme,
-}) => {
-  const colors = icon ? colorMap[icon] : null;
+}: CustomAlertProps) {
+  const { theme } = useTheme();
+
+  const getIconConfig = () => {
+    switch (icon) {
+      case 'success':
+        return {
+          name: 'check' as const,
+          color: theme.success,
+          bgColor: withAlpha(theme.success, 0.12),
+        };
+      case 'warning':
+        return {
+          name: 'triangle-exclamation' as const,
+          color: theme.warning,
+          bgColor: withAlpha(theme.warning, 0.12),
+        };
+      case 'error':
+        return {
+          name: 'xmark' as const,
+          color: theme.error,
+          bgColor: withAlpha(theme.error, 0.12),
+        };
+      case 'info':
+        return {
+          name: 'circle-info' as const,
+          color: theme.info,
+          bgColor: withAlpha(theme.info, 0.12),
+        };
+      case 'question':
+        return {
+          name: 'circle-question' as const,
+          color: theme.primary,
+          bgColor: withAlpha(theme.purple, 0.12),
+        };
+      default:
+        return null;
+    }
+  };
+
+  const handleButtonPress = (button: AlertButtonType) => {
+    if (button.onPress) {
+      button.onPress();
+    }
+    onClose();
+  };
+
+  const iconConfig = getIconConfig();
 
   return (
     <Modal
@@ -66,51 +86,101 @@ export const CustomAlert: React.FC<CustomAlertProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.content, { backgroundColor: theme.backgroundDefault }]}>
+      <View style={{
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: Spacing['2xl'],
+      }}>
+        <View style={{
+          width: '100%',
+          maxWidth: 320,
+          borderRadius: BorderRadius.xl,
+          padding: Spacing.xl,
+          backgroundColor: theme.backgroundDefault,
+        }}>
           {/* 图标 */}
-          {icon && colors && (
-            <View style={[styles.iconContainer, { backgroundColor: colors.bg }]}>
-              <View style={[styles.iconInner, { backgroundColor: colors.fg }]}>
-                <FontAwesome6 name={iconMap[icon]} size={24} color={theme.white} />
-              </View>
+          {iconConfig && (
+            <View style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: Spacing.lg,
+              alignSelf: 'center',
+              backgroundColor: iconConfig.bgColor,
+            }}>
+              <FontAwesome6
+                name={iconConfig.name}
+                size={24}
+                color={iconConfig.color}
+              />
             </View>
           )}
 
           {/* 标题 */}
-          <Text style={[styles.title, { color: theme.textPrimary }]}>{title}</Text>
+          <Text style={{
+            fontSize: rf(18),
+            fontWeight: '700',
+            textAlign: 'center',
+            marginBottom: message ? Spacing.sm : Spacing.lg,
+            color: theme.textPrimary,
+          }}>
+            {title}
+          </Text>
 
           {/* 消息内容 */}
-          <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
+          {message && (
+            <Text style={{
+              fontSize: rf(14),
+              lineHeight: 22,
+              textAlign: 'center',
+              marginBottom: Spacing.xl,
+              color: theme.textSecondary,
+            }}>
+              {message}
+            </Text>
+          )}
 
           {/* 按钮组 */}
-          <View style={styles.buttonGroup}>
+          <View style={{
+            flexDirection: buttons.length > 2 ? 'column' : 'row',
+            gap: Spacing.md,
+          }}>
             {buttons.map((button, index) => {
               const isDestructive = button.style === 'destructive';
               const isCancel = button.style === 'cancel';
-              const bgColor = isDestructive ? theme.error
-                : isCancel ? theme.backgroundTertiary
-                : theme.primary;
-              const textColor = isDestructive ? theme.white
-                : isCancel ? theme.textPrimary
-                : theme.buttonPrimaryText;
-
+              
               return (
                 <TouchableOpacity
                   key={index}
-                  style={[
-                    styles.button,
-                    buttons.length === 1 ? styles.fullButton : styles.halfButton,
-                    { backgroundColor: bgColor },
-                    isCancel && { borderWidth: 1.5, borderColor: theme.border },
-                  ]}
-                  onPress={() => {
-                    onClose();
-                    button.onPress?.();
+                  style={{
+                    flex: buttons.length <= 2 ? 1 : undefined,
+                    width: buttons.length > 2 ? '100%' : undefined,
+                    paddingVertical: Spacing.md,
+                    borderRadius: BorderRadius.lg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: isDestructive 
+                      ? theme.error 
+                      : isCancel 
+                        ? theme.backgroundTertiary 
+                        : theme.primary,
+                    borderWidth: isCancel ? 1.5 : 0,
+                    borderColor: isCancel ? theme.border : 'transparent',
                   }}
+                  onPress={() => handleButtonPress(button)}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.buttonText, { color: textColor }]}>{button.text}</Text>
+                  <Text style={{
+                    fontSize: rf(16),
+                    fontWeight: '600',
+                    color: isCancel ? theme.textPrimary : theme.buttonPrimaryText,
+                  }}>
+                    {button.text}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -119,76 +189,119 @@ export const CustomAlert: React.FC<CustomAlertProps> = ({
       </View>
     </Modal>
   );
-};
+}
 
-const styles = {
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    padding: Spacing['2xl'],
-  },
-  content: {
-    width: '100%' as const,
-    maxWidth: 320,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    alignItems: 'center' as const,
-  },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: BorderRadius['4xl'],
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    marginBottom: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  iconInner: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius['2xl'],
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-  },
-  title: {
-    fontSize: rf(18),
-    fontWeight: '700' as const,
-    textAlign: 'center' as const,
-    marginBottom: Spacing.sm,
-  },
-  message: {
-    fontSize: rf(14),
-    lineHeight: Spacing.xl,
-    textAlign: 'center' as const,
-    marginBottom: Spacing.xl,
-  },
-  buttonGroup: {
-    flexDirection: 'row' as const,
-    gap: Spacing.md,
-    width: '100%' as const,
-  },
-  button: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    minHeight: Spacing['2xl'],
-  },
-  fullButton: {
-    width: '100%' as const,
-  },
-  halfButton: {
-    flex: 1,
-  },
-  buttonText: {
-    fontSize: rf(16),
-    fontWeight: '600' as const,
-  },
-};
+// Hook for easy usage
+export interface AlertConfig {
+  title: string;
+  message?: string;
+  buttons?: AlertButtonType[];
+  icon?: AlertIconType;
+}
+
+export function useCustomAlert() {
+  const [visible, setVisible] = useState(false);
+  const [config, setConfig] = useState<AlertConfig>({
+    title: '',
+    message: '',
+    buttons: [{ text: '确定' }],
+  });
+
+  const showAlert = useCallback((
+    title: string,
+    message?: string,
+    buttons?: AlertButtonType[],
+    icon?: AlertIconType
+  ) => {
+    setConfig({
+      title,
+      message,
+      buttons: buttons || [{ text: '确定' }],
+      icon,
+    });
+    setVisible(true);
+  }, []);
+
+  const showConfirm = useCallback((
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    isDanger: boolean = false
+  ) => {
+    setConfig({
+      title,
+      message,
+      buttons: [
+        { text: '取消', style: 'cancel' },
+        {
+          text: isDanger ? '删除' : '确认',
+          style: isDanger ? 'destructive' : 'default',
+          onPress: onConfirm,
+        },
+      ],
+      icon: isDanger ? 'error' : 'question',
+    });
+    setVisible(true);
+  }, []);
+
+  const showSuccess = useCallback((message: string) => {
+    setConfig({
+      title: '成功',
+      message,
+      buttons: [{ text: '确定' }],
+      icon: 'success',
+    });
+    setVisible(true);
+  }, []);
+
+  const showError = useCallback((message: string) => {
+    setConfig({
+      title: '错误',
+      message,
+      buttons: [{ text: '确定', style: 'destructive' }],
+      icon: 'error',
+    });
+    setVisible(true);
+  }, []);
+
+  const showWarning = useCallback((message: string) => {
+    setConfig({
+      title: '提示',
+      message,
+      buttons: [{ text: '确定' }],
+      icon: 'warning',
+    });
+    setVisible(true);
+  }, []);
+
+  const close = useCallback(() => {
+    setVisible(false);
+  }, []);
+
+  // 使用 useMemo 缓存 AlertComponent，避免每次渲染都创建新对象
+  const AlertComponent = useMemo(() => {
+    if (!visible) return null;
+    return (
+      <CustomAlert
+        visible={visible}
+        title={config.title}
+        message={config.message}
+        buttons={config.buttons}
+        icon={config.icon}
+        onClose={close}
+      />
+    );
+  }, [visible, config.title, config.message, config.buttons, config.icon, close]);
+
+  return {
+    visible,
+    config,
+    showAlert,
+    showConfirm,
+    showSuccess,
+    showError,
+    showWarning,
+    close,
+    AlertComponent,
+  };
+}

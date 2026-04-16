@@ -837,7 +837,6 @@ export default function OrdersScreen() {
         icon={customAlert.icon}
         buttons={customAlert.buttons}
         onClose={closeCustomAlert}
-        theme={theme}
       />
     </Screen>
   );
