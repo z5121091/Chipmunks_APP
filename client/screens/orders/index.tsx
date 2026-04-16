@@ -175,6 +175,7 @@ export default function OrdersScreen() {
     sourceNo: '',
   });
   const [savingMaterial, setSavingMaterial] = useState(false);
+  const quantityInputRef = useRef<TextInput>(null);
   
   // 同步配置
   const [syncConfig, setSyncConfig] = useState<SyncConfig>({ ip: '', port: '8080' });
@@ -852,6 +853,10 @@ export default function OrdersScreen() {
       sourceNo: material.sourceNo || '',
     });
     setEditMaterialModalVisible(true);
+    // 延迟聚焦到数量输入框，等待 Modal 打开动画完成
+    setTimeout(() => {
+      quantityInputRef.current?.focus();
+    }, 300);
   };
   
   // 确认编辑物料
@@ -1645,6 +1650,7 @@ export default function OrdersScreen() {
               {/* 数量（可修改） */}
               <Text style={unpackModalStyles.inputLabel}>数量 *</Text>
               <TextInput
+                ref={quantityInputRef}
                 style={unpackModalStyles.textInput}
                 placeholder={`最多 ${editingMaterial?.original_quantity || editingMaterial?.quantity || 0} 个`}
                 placeholderTextColor={theme.textMuted}
