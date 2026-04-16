@@ -1,7 +1,7 @@
 {
-  "version": "V3.3.2",
-  "versionCode": 83,
-  "buildNumber": 83,
+  "version": "V3.3.3",
+  "versionCode": 84,
+  "buildNumber": 84,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
   "forceUpdate": false,
   "appName": "掌上仓库",
@@ -10,13 +10,10 @@
   "author": "zx5121091",
   "changelog": [
     {
-      "version": "V3.3.2",
+      "version": "V3.3.3",
       "date": "2026-04-21",
       "changes": [
-        { "type": "fix", "text": "扫码出库：修复 reverse() 副作用bug" },
-        { "type": "fix", "text": "扫码出库：扫码成功后不限制列表数量，确保聚合计算正确" },
-        { "type": "fix", "text": "全局：formatTime 类型定义修复，支持 undefined/null" },
-        { "type": "fix", "text": "全局：添加缺失的 index.tsx 入口文件" }
+        { "type": "fix", "text": "扫码出库：聚合项展开后显示所有数据（移除10行限制）" }
       ]
     },
     {

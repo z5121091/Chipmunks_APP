@@ -58,8 +58,7 @@ interface AggregatedGroup {
   version: string;
   totalQuantity: number;
   boxCount: number;
-  items: MaterialItem[]; // 所有items，用于聚合总数量
-  displayItems: MaterialItem[]; // 显示的items，限制10行
+  items: MaterialItem[]; // 所有items，用于聚合总数量和显示
 }
 
 export default function PDAScanScreen() {
@@ -331,17 +330,12 @@ export default function PDAScanScreen() {
           totalQuantity: parseInt(item.quantity, 10) || 0,
           boxCount: 1,
           items: [item],
-          displayItems: [item],
         });
       } else {
         const group = map.get(key)!;
         group.totalQuantity += parseInt(item.quantity, 10) || 0;
         group.boxCount += 1;
         group.items.push(item);
-        // displayItems 只保留前10行
-        if (group.displayItems.length < 10) {
-          group.displayItems.push(item);
-        }
       }
     });
 
@@ -613,7 +607,7 @@ export default function PDAScanScreen() {
                   {/* 展开的明细 */}
                   {isExpanded && (
                     <View style={styles.detailsContainer}>
-                      {group.displayItems.map((item) => (
+                      {group.items.map((item) => (
                         <TouchableOpacity
                           key={item.id}
                           style={styles.detailItem}
@@ -625,11 +619,6 @@ export default function PDAScanScreen() {
                           </Text>
                         </TouchableOpacity>
                       ))}
-                      {group.items.length > 10 && (
-                        <Text style={styles.detailText}>
-                          ...还有 {group.items.length - 10} 条
-                        </Text>
-                      )}
                     </View>
                   )}
                 </View>
