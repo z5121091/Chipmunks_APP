@@ -1609,17 +1609,13 @@ export default function OrdersScreen() {
         onRequestClose={() => setEditMaterialModalVisible(false)}
       >
         <View style={unpackModalStyles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-            style={{ flex: 1, justifyContent: 'center' }}
-          >
-              <View style={[unpackModalStyles.modalContent, { maxHeight: '90%' }]}>
-                <View style={unpackModalStyles.modalHeader}>
-                  <Text style={unpackModalStyles.modalTitle}>编辑物料</Text>
-                  <TouchableOpacity onPress={() => setEditMaterialModalVisible(false)}>
-                    <Text style={unpackModalStyles.modalClose}>✕</Text>
-                  </TouchableOpacity>
-                </View>
+          <View style={[unpackModalStyles.modalContent, { maxHeight: '85%' }]}>
+            <View style={unpackModalStyles.modalHeader}>
+              <Text style={unpackModalStyles.modalTitle}>编辑物料</Text>
+              <TouchableOpacity onPress={() => setEditMaterialModalVisible(false)}>
+                <Text style={unpackModalStyles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
                 
                 <ScrollView
                   ref={editMaterialScrollRef}
@@ -1696,7 +1692,6 @@ export default function OrdersScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </KeyboardAvoidingView>
         </View>
       </Modal>
       
