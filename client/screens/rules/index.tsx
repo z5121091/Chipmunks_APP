@@ -381,12 +381,16 @@ export default function RulesScreen() {
                         const fieldCount = hasCustomFieldsInOrder 
                           ? (rule.fieldOrder?.length || 0)
                           : ((rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0));
-                        const conditions = rule.matchConditions?.map(c => {
-                          const fieldName = AVAILABLE_FIELDS[c.fieldIndex] 
-                            ? FIELD_LABELS[AVAILABLE_FIELDS[c.fieldIndex]] 
-                            : `字段${c.fieldIndex}`;
-                          return `${fieldName}:${c.keyword}`;
-                        }).join(', ') || '';
+                        
+                        // 识别条件：使用 fieldOrder 映射字段名（与编辑弹窗一致）
+                        let conditions = '';
+                        if (rule.matchConditions && rule.matchConditions.length > 0) {
+                          conditions = rule.matchConditions.map(c => {
+                            const fieldKey = rule.fieldOrder?.[c.fieldIndex];
+                            const displayName = fieldKey ? getFieldDisplayName(fieldKey) : `字段${c.fieldIndex + 1}`;
+                            return `${displayName}:${c.keyword}`;
+                          }).join(', ');
+                        }
                         
                         return `${sep} • ${fieldCount}字段${conditions ? ` • ${conditions}` : ''}`;
                       })()}
