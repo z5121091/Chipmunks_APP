@@ -389,9 +389,17 @@ export default function RulesScreen() {
                       })()}
                     </Text>
                     {/* 第三行：识别条件 */}
-                    <Text style={styles.ruleCondition} numberOfLines={1}>
-                      {JSON.stringify(rule.matchConditions)}
-                    </Text>
+                    {(rule.matchConditions || []).length > 0 && (
+                      <Text style={styles.ruleCondition} numberOfLines={1}>
+                        {(() => {
+                          return rule.matchConditions!.map(c => {
+                            const fieldKey = rule.fieldOrder?.[c.fieldIndex];
+                            const displayName = fieldKey ? getFieldDisplayName(fieldKey) : `字段${c.fieldIndex + 1}`;
+                            return `${displayName}:${c.keyword}`;
+                          }).join(', ');
+                        })()}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                   <View style={styles.ruleSwitch}>
                     <Switch
