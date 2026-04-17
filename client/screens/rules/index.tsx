@@ -382,7 +382,8 @@ export default function RulesScreen() {
                               rule.separator.includes('[') || rule.separator.includes(']')) {
                             return `[${rule.separator[0]}*${rule.separator[rule.separator.length - 1]}]`;
                           }
-                          return `[/${rule.separator}]`;
+                          // 其他分隔符直接显示
+                          return rule.separator;
                         })()}
                       </Text>
                     </View>
