@@ -359,14 +359,20 @@ export default function RulesScreen() {
                   key={rule.id} 
                   style={styles.ruleItem}
                 >
-                  <TouchableOpacity 
-                    style={styles.ruleCompactRow}
-                    onPress={() => handleEditRule(rule)}
-                    onLongPress={() => handleDeleteRule(rule)}
-                    delayLongPress={800}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.ruleCompactInfo}>
+                  <View style={styles.ruleCompactRow}>
+                    <Switch
+                      value={rule.isActive}
+                      onValueChange={() => handleToggleRule(rule)}
+                      trackColor={{ false: theme.border, true: theme.primary }}
+                      thumbColor={theme.buttonPrimaryText}
+                    />
+                    <TouchableOpacity 
+                      style={styles.ruleCompactInfo}
+                      onPress={() => handleEditRule(rule)}
+                      onLongPress={() => handleDeleteRule(rule)}
+                      delayLongPress={800}
+                      activeOpacity={0.7}
+                    >
                       <Text style={styles.ruleCompactName}>{rule.name}</Text>
                       <Text style={styles.ruleCompactSeparator}>
                         {(() => {
@@ -380,22 +386,26 @@ export default function RulesScreen() {
                           if (separatorDisplayMap[rule.separator]) {
                             return separatorDisplayMap[rule.separator];
                           }
-                          if (rule.separator.includes('{') || rule.separator.includes('}') ||
-                              rule.separator.includes('(') || rule.separator.includes(')') ||
-                              rule.separator.includes('[') || rule.separator.includes(']')) {
-                            return rule.separator;
-                          }
                           return rule.separator;
                         })()}
                       </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <Switch
-                    value={rule.isActive}
-                    onValueChange={() => handleToggleRule(rule)}
-                    trackColor={{ false: theme.border, true: theme.primary }}
-                    thumbColor={theme.buttonPrimaryText}
-                  />
+                    </TouchableOpacity>
+                    <Text style={styles.ruleCompactMeta}>
+                      {(() => {
+                        const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
+                        let fieldCount = 0;
+                        if (hasCustomFieldsInOrder) {
+                          fieldCount = rule.fieldOrder?.length || 0;
+                        } else {
+                          fieldCount = (rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0);
+                        }
+                        return `${fieldCount}字段`;
+                      })()}
+                      {rule.matchConditions && rule.matchConditions.length > 0 && 
+                        ` • ${rule.matchConditions.length}条件`
+                      }
+                    </Text>
+                  </View>
                 </View>
               ))}
             </View>
