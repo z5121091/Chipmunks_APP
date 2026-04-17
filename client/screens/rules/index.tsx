@@ -355,69 +355,71 @@ export default function RulesScreen() {
           ) : (
             <View style={{ gap: Spacing.sm }}>
               {rules.map((rule) => (
-                <TouchableOpacity 
+                <View 
                   key={rule.id} 
                   style={styles.ruleItem}
-                  onPress={() => handleEditRule(rule)}
-                  onLongPress={() => handleDeleteRule(rule)}
-                  delayLongPress={800}
-                  activeOpacity={0.7}
                 >
-                  <View style={styles.ruleCompactRow}>
-                    <View style={styles.ruleCompactInfo}>
-                      <Text style={styles.ruleCompactName}>{rule.name}</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
-                        <Text style={styles.ruleCompactSeparator}>
-                          {(() => {
-                            const separatorDisplayMap: Record<string, string> = {
-                              '{}': '{*}',
-                              '()': '(*)',
-                              '[]': '[*]',
-                              '<>': '<*>',
-                            };
-                            if (rule.separator === ' ') return '空格';
-                            if (separatorDisplayMap[rule.separator]) {
-                              return separatorDisplayMap[rule.separator];
-                            }
-                            return rule.separator;
-                          })()}
-                        </Text>
-                        <Text style={styles.ruleCompactMeta}> • </Text>
-                        <Text style={styles.ruleCompactMeta}>
-                          {(() => {
-                            const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
-                            let fieldCount = 0;
-                            if (hasCustomFieldsInOrder) {
-                              fieldCount = rule.fieldOrder?.length || 0;
-                            } else {
-                              fieldCount = (rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0);
-                            }
-                            return `${fieldCount}字段`;
-                          })()}
-                        </Text>
-                        {rule.matchConditions && rule.matchConditions.length > 0 && (
-                          <>
-                            <Text style={styles.ruleCompactMeta}> • </Text>
-                            <Text style={styles.ruleCompactMeta} numberOfLines={1}>
-                              {rule.matchConditions.map(c => {
-                                const fieldName = AVAILABLE_FIELDS[c.fieldIndex] 
-                                  ? FIELD_LABELS[AVAILABLE_FIELDS[c.fieldIndex]] 
-                                  : `字段${c.fieldIndex}`;
-                                return `${fieldName}:${c.keyword}`;
-                              }).join(', ')}
-                            </Text>
-                          </>
-                        )}
-                      </View>
+                  <TouchableOpacity 
+                    style={styles.ruleContent}
+                    onPress={() => handleEditRule(rule)}
+                    onLongPress={() => handleDeleteRule(rule)}
+                    delayLongPress={800}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.ruleRow}>
+                      <Text style={styles.ruleCompactName} numberOfLines={1}>{rule.name}</Text>
                     </View>
-                    <Switch
-                      value={rule.isActive}
-                      onValueChange={() => handleToggleRule(rule)}
-                      trackColor={{ false: theme.border, true: theme.primary }}
-                      thumbColor={theme.buttonPrimaryText}
-                    />
-                  </View>
-                </TouchableOpacity>
+                    <View style={styles.ruleRow}>
+                      <Text style={styles.ruleCompactSeparator} numberOfLines={1}>
+                        {(() => {
+                          const separatorDisplayMap: Record<string, string> = {
+                            '{}': '{*}',
+                            '()': '(*)',
+                            '[]': '[*]',
+                            '<>': '<*>',
+                          };
+                          if (rule.separator === ' ') return '空格';
+                          if (separatorDisplayMap[rule.separator]) {
+                            return separatorDisplayMap[rule.separator];
+                          }
+                          return rule.separator;
+                        })()}
+                      </Text>
+                      <Text style={styles.ruleCompactMeta}> • </Text>
+                      <Text style={styles.ruleCompactMeta}>
+                        {(() => {
+                          const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
+                          let fieldCount = 0;
+                          if (hasCustomFieldsInOrder) {
+                            fieldCount = rule.fieldOrder?.length || 0;
+                          } else {
+                            fieldCount = (rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0);
+                          }
+                          return `${fieldCount}字段`;
+                        })()}
+                      </Text>
+                      {rule.matchConditions && rule.matchConditions.length > 0 && (
+                        <>
+                          <Text style={styles.ruleCompactMeta}> • </Text>
+                          <Text style={styles.ruleCompactMeta} numberOfLines={1}>
+                            {rule.matchConditions.map(c => {
+                              const fieldName = AVAILABLE_FIELDS[c.fieldIndex] 
+                                ? FIELD_LABELS[AVAILABLE_FIELDS[c.fieldIndex]] 
+                                : `字段${c.fieldIndex}`;
+                              return `${fieldName}:${c.keyword}`;
+                            }).join(', ')}
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                  <Switch
+                    value={rule.isActive}
+                    onValueChange={() => handleToggleRule(rule)}
+                    trackColor={{ false: theme.border, true: theme.primary }}
+                    thumbColor={theme.buttonPrimaryText}
+                  />
+                </View>
               ))}
             </View>
           )}

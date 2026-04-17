@@ -79,18 +79,9 @@ export const createStyles = (theme: Theme) => {
       borderWidth: BorderWidth.normal,
       borderColor: theme.border,
       padding: Spacing.md,
-      paddingRight: Spacing.lg,
-    },
-    ruleCompactRow: {
+      paddingRight: Spacing.sm,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    ruleCompactInfo: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.sm,
     },
     ruleCompactName: {
       fontSize: 15,
@@ -104,6 +95,14 @@ export const createStyles = (theme: Theme) => {
     ruleCompactMeta: {
       fontSize: 11,
       color: theme.textMuted,
+    },
+    ruleRow: {
+      height: 18,
+      justifyContent: 'center',
+    },
+    ruleContent: {
+      flex: 1,
+      justifyContent: 'center',
     },
     // 弹窗样式
     modalOverlay: {
