@@ -129,7 +129,7 @@ export default function HomeScreen() {
       name: Str.moduleOutbound,
       icon: 'send',
       color: moduleColors[1],
-      route: '/pda-scan',
+      route: '/outbound',
     },
     {
       id: 'orders',

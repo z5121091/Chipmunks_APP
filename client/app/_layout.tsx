@@ -44,7 +44,7 @@ export default function RootLayout() {
             <Stack.Screen name="inventory-binding" options={{ title: "物料管理" }} />
             <Stack.Screen name="inbound" options={{ title: "扫码入库" }} />
             <Stack.Screen name="inventory" options={{ title: "盘点" }} />
-            <Stack.Screen name="pda-scan" options={{ title: "PDA扫码" }} />
+            <Stack.Screen name="outbound" options={{ title: "扫码出库" }} />
             <Stack.Screen name="orders" options={{ title: "订单管理" }} />
           </Stack>
           <Toast />
