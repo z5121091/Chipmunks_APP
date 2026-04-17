@@ -355,20 +355,18 @@ export default function RulesScreen() {
           ) : (
             <View style={{ gap: Spacing.sm }}>
               {rules.map((rule) => (
-                <View 
+                <TouchableOpacity 
                   key={rule.id} 
                   style={styles.ruleItem}
+                  onPress={() => handleEditRule(rule)}
+                  onLongPress={() => handleDeleteRule(rule)}
+                  delayLongPress={800}
+                  activeOpacity={0.7}
                 >
-                  <TouchableOpacity 
-                    style={styles.ruleCompactRow}
-                    onPress={() => handleEditRule(rule)}
-                    onLongPress={() => handleDeleteRule(rule)}
-                    delayLongPress={800}
-                    activeOpacity={0.7}
-                  >
+                  <View style={styles.ruleCompactRow}>
                     <View style={styles.ruleCompactInfo}>
                       <Text style={styles.ruleCompactName}>{rule.name}</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
                         <Text style={styles.ruleCompactSeparator}>
                           {(() => {
                             const separatorDisplayMap: Record<string, string> = {
@@ -412,14 +410,14 @@ export default function RulesScreen() {
                         )}
                       </View>
                     </View>
-                  </TouchableOpacity>
-                  <Switch
-                    value={rule.isActive}
-                    onValueChange={() => handleToggleRule(rule)}
-                    trackColor={{ false: theme.border, true: theme.primary }}
-                    thumbColor={theme.buttonPrimaryText}
-                  />
-                </View>
+                    <Switch
+                      value={rule.isActive}
+                      onValueChange={() => handleToggleRule(rule)}
+                      trackColor={{ false: theme.border, true: theme.primary }}
+                      thumbColor={theme.buttonPrimaryText}
+                    />
+                  </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}
