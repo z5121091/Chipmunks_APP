@@ -31,7 +31,6 @@ import {
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
-import { AnimatedCard } from '@/components/AnimatedCard';
 import { Spacing } from '@/constants/theme';
 import { rf } from '@/utils/responsive';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
@@ -354,96 +353,47 @@ export default function RulesScreen() {
               <Text style={styles.emptyText}>点击右上角 + 按钮添加规则{'\n'}用于解析不同格式的二维码</Text>
             </View>
           ) : (
-            <View style={{ gap: Spacing.lg }}>
+            <View style={{ gap: Spacing.sm }}>
               {rules.map((rule) => (
-                <AnimatedCard key={rule.id} onPress={() => handleEditRule(rule)}>
-                  <View style={styles.ruleItem}>
-                    <View style={styles.ruleHeader}>
-                      <View style={styles.ruleInfo}>
-                        <Text style={styles.ruleName}>{rule.name}</Text>
-                        <Text style={styles.ruleSeparator}>
-                          分隔符: {(() => {
-                            const separatorDisplayMap: Record<string, string> = {
-                              '{}': '{ * }',
-                              '()': '( * )',
-                              '[]': '[ * ]',
-                              '<>': '< * >',
-                            };
-                            if (rule.separator === ' ') return '空格';
-                            if (separatorDisplayMap[rule.separator]) {
-                              return separatorDisplayMap[rule.separator];
-                            }
-                            // 特殊包裹格式
-                            if (rule.separator.includes('{') || rule.separator.includes('}') ||
-                                rule.separator.includes('(') || rule.separator.includes(')') ||
-                                rule.separator.includes('[') || rule.separator.includes(']')) {
-                              return `${rule.separator[0]} * ${rule.separator[rule.separator.length - 1]}`;
-                            }
-                            return rule.separator;
-                          })()}
-                        </Text>
-                      </View>
-                      <Switch
-                        value={rule.isActive}
-                        onValueChange={() => handleToggleRule(rule)}
-                        trackColor={{ false: theme.border, true: theme.primary }}
-                        thumbColor={theme.buttonPrimaryText}
-                      />
+                <TouchableOpacity 
+                  key={rule.id} 
+                  style={styles.ruleItem}
+                  onPress={() => handleEditRule(rule)}
+                  onLongPress={() => handleDeleteRule(rule)}
+                  delayLongPress={800}
+                >
+                  <View style={styles.ruleCompactRow}>
+                    <View style={styles.ruleCompactInfo}>
+                      <Text style={styles.ruleCompactName}>{rule.name}</Text>
+                      <Text style={styles.ruleCompactSeparator}>
+                        {(() => {
+                          const separatorDisplayMap: Record<string, string> = {
+                            '{}': '{*}',
+                            '()': '(*)',
+                            '[]': '[*]',
+                            '<>': '<*>',
+                          };
+                          if (rule.separator === ' ') return '[空格]';
+                          if (separatorDisplayMap[rule.separator]) {
+                            return separatorDisplayMap[rule.separator];
+                          }
+                          if (rule.separator.includes('{') || rule.separator.includes('}') ||
+                              rule.separator.includes('(') || rule.separator.includes(')') ||
+                              rule.separator.includes('[') || rule.separator.includes(']')) {
+                            return `[${rule.separator[0]}*${rule.separator[rule.separator.length - 1]}]`;
+                          }
+                          return `[/${rule.separator}]`;
+                        })()}
+                      </Text>
                     </View>
-                    
-                    <View style={styles.ruleFieldsPreview}>
-                      {(() => {
-                        const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
-                        let displayFields: string[] = [];
-                        
-                        if (hasCustomFieldsInOrder) {
-                          displayFields = rule.fieldOrder || [];
-                        } else {
-                          displayFields = [
-                            ...(rule.fieldOrder || []),
-                            ...(rule.customFieldIds || []).map(id => createCustomFieldKey(id))
-                          ];
-                        }
-                        
-                        const totalFields = displayFields.length;
-                        const previewFields = displayFields.slice(0, 4);
-                        
-                        return (
-                          <>
-                            {previewFields.map((f, i) => {
-                              const displayName = isCustomField(f) 
-                                ? (customFields.find(cf => cf.id === getCustomFieldId(f))?.name || '自定义')
-                                : (FIELD_LABELS[f] || f);
-                              return (
-                                <View key={f} style={styles.fieldTag}>
-                                  <Text style={styles.fieldTagText}>{displayName}</Text>
-                                </View>
-                              );
-                            })}
-                            {totalFields > 4 && (
-                              <Text style={styles.moreFieldsText}>+{totalFields - 4}</Text>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </View>
-                    
-                    <View style={styles.ruleActions}>
-                      <TouchableOpacity
-                        style={styles.ruleActionButton}
-                        onPress={() => handleEditRule(rule)}
-                      >
-                        <Text style={styles.ruleActionText}>编辑</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.ruleActionButton, styles.deleteAction]}
-                        onPress={() => handleDeleteRule(rule)}
-                      >
-                        <Text style={[styles.ruleActionText, styles.deleteText]}>删除</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <Switch
+                      value={rule.isActive}
+                      onValueChange={() => handleToggleRule(rule)}
+                      trackColor={{ false: theme.border, true: theme.primary }}
+                      thumbColor={theme.buttonPrimaryText}
+                    />
                   </View>
-                </AnimatedCard>
+                </TouchableOpacity>
               ))}
             </View>
           )}

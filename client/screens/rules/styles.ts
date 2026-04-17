@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { withAlpha } from '@/utils/colors';
 import { Spacing, BorderRadius, Theme, BorderWidth } from '@/constants/theme';
 
 export const createStyles = (theme: Theme) => {
@@ -73,79 +72,34 @@ export const createStyles = (theme: Theme) => {
       textAlign: 'center',
       lineHeight: 20,
     },
-    // 规则卡片
+    // 规则卡片（紧凑版）
     ruleItem: {
       backgroundColor: theme.backgroundDefault,
-      borderRadius: BorderRadius.xl,
-      borderWidth: BorderWidth.thick,
+      borderRadius: BorderRadius.lg,
+      borderWidth: BorderWidth.normal,
       borderColor: theme.border,
-      padding: Spacing.xl,
+      padding: Spacing.md,
+      paddingRight: Spacing.lg,
     },
-    ruleHeader: {
+    ruleCompactRow: {
       flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: Spacing.md,
     },
-    ruleInfo: {
+    ruleCompactInfo: {
       flex: 1,
-      marginRight: Spacing.md,
-    },
-    ruleName: {
-      fontSize: 17,
-      fontWeight: '700',
-      color: theme.textPrimary,
-      marginBottom: 4,
-    },
-    ruleSeparator: {
-      fontSize: 13,
-      color: theme.textSecondary,
-      fontWeight: '500',
-    },
-    ruleFieldsPreview: {
       flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: Spacing.xs,
-      marginBottom: Spacing.md,
-    },
-    fieldTag: {
-      backgroundColor: withAlpha(theme.primary, 0.08),
-      paddingHorizontal: Spacing.sm,
-      paddingVertical: 4,
-      borderRadius: BorderRadius.sm,
-    },
-    fieldTagText: {
-      fontSize: 12,
-      color: theme.primary,
-      fontWeight: '500',
-    },
-    moreFieldsText: {
-      fontSize: 12,
-      color: theme.textSecondary,
-      alignSelf: 'center',
-    },
-    ruleActions: {
-      flexDirection: 'row',
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.border,
-      paddingTop: Spacing.md,
-    },
-    ruleActionButton: {
-      flex: 1,
-      paddingVertical: Spacing.sm,
       alignItems: 'center',
+      gap: Spacing.sm,
     },
-    ruleActionText: {
-      fontSize: 14,
+    ruleCompactName: {
+      fontSize: 15,
       fontWeight: '600',
+      color: theme.textPrimary,
+    },
+    ruleCompactSeparator: {
+      fontSize: 12,
       color: theme.textSecondary,
-    },
-    deleteAction: {
-      borderLeftWidth: StyleSheet.hairlineWidth,
-      borderLeftColor: theme.border,
-    },
-    deleteText: {
-      color: theme.error,
     },
     // 弹窗样式
     modalOverlay: {
