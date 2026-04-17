@@ -362,20 +362,9 @@ export default function RulesScreen() {
                     delayLongPress={800}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.ruleName} numberOfLines={1}>{rule.name}</Text>
+                    {/* 第一行：规则名称 + 字段数 */}
                     <View style={styles.ruleInfoRow}>
-                      <Text style={styles.ruleSeparator} numberOfLines={1}>
-                        {(() => {
-                          const separatorDisplayMap: Record<string, string> = {
-                            '{}': '{*}',
-                            '()': '(*)',
-                            '[]': '[*]',
-                            '<>': '<*>',
-                          };
-                          return rule.separator === ' ' ? '空格' 
-                            : (separatorDisplayMap[rule.separator] || rule.separator);
-                        })()}
-                      </Text>
+                      <Text style={styles.ruleName} numberOfLines={1}>{rule.name}</Text>
                       <Text style={styles.ruleFieldCount}>
                         {(() => {
                           const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
@@ -386,17 +375,23 @@ export default function RulesScreen() {
                         })()}
                       </Text>
                     </View>
-                    {(rule.matchConditions || []).length > 0 && (
-                      <Text style={styles.ruleCondition} numberOfLines={1}>
-                        {(() => {
-                          return rule.matchConditions!.map(c => {
-                            const fieldKey = rule.fieldOrder?.[c.fieldIndex];
-                            const displayName = fieldKey ? getFieldDisplayName(fieldKey) : `字段${c.fieldIndex + 1}`;
-                            return `${displayName}:${c.keyword}`;
-                          }).join(', ');
-                        })()}
-                      </Text>
-                    )}
+                    {/* 第二行：分隔符 */}
+                    <Text style={styles.ruleSeparator} numberOfLines={1}>
+                      {(() => {
+                        const separatorDisplayMap: Record<string, string> = {
+                          '{}': '{*}',
+                          '()': '(*)',
+                          '[]': '[*]',
+                          '<>': '<*>',
+                        };
+                        return rule.separator === ' ' ? '空格' 
+                          : (separatorDisplayMap[rule.separator] || rule.separator);
+                      })()}
+                    </Text>
+                    {/* 第三行：识别条件 */}
+                    <Text style={styles.ruleCondition} numberOfLines={1}>
+                      {JSON.stringify(rule.matchConditions)}
+                    </Text>
                   </TouchableOpacity>
                   <View style={styles.ruleSwitch}>
                     <Switch
