@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
@@ -95,6 +96,9 @@ export default function PDAScanScreen() {
   // 聚合展开状态（记录哪些聚合组是展开的）
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
+  // AsyncStorage Key
+  const PDA_SCAN_WAREHOUSE_KEY = 'pda_scan_current_warehouse';
+
   // Toast
   const { showToast, ToastContainer } = useToast();
 
@@ -121,8 +125,27 @@ export default function PDAScanScreen() {
   const loadWarehouses = async () => {
     const list = await getAllWarehouses();
     setWarehouses(list);
+    
+    // 尝试恢复之前选择的仓库
+    const savedWarehouse = await AsyncStorage.getItem(PDA_SCAN_WAREHOUSE_KEY);
+    if (savedWarehouse) {
+      const warehouse = JSON.parse(savedWarehouse) as Warehouse;
+      // 确保仓库仍然存在
+      if (list.find(w => w.id === warehouse.id)) {
+        setCurrentWarehouse(warehouse);
+        return;
+      }
+    }
+    
+    // 没有保存的选择，使用默认仓库
     const def = await getDefaultWarehouse();
     setCurrentWarehouse(def || list[0] || null);
+  };
+
+  // 切换仓库
+  const handleWarehouseChange = (warehouse: Warehouse) => {
+    setCurrentWarehouse(warehouse);
+    AsyncStorage.setItem(PDA_SCAN_WAREHOUSE_KEY, JSON.stringify(warehouse));
   };
 
   // 加载订单物料
@@ -528,7 +551,7 @@ export default function PDAScanScreen() {
 
   // 选择仓库
   const selectWarehouse = (wh: Warehouse) => {
-    setCurrentWarehouse(wh);
+    handleWarehouseChange(wh);
     setShowWarehousePicker(false);
     showToast(wh.name, 'success');
     setTimeout(() => inputRef.current?.focus(), 100);

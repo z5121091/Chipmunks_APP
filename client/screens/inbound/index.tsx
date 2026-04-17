@@ -87,6 +87,7 @@ export default function InboundScreen() {
   // AsyncStorage Key
   const INBOUND_SCAN_RECORDS_KEY = 'inbound_scan_records';
   const INBOUND_PENDING_DATA_KEY = 'inbound_pending_data';
+  const INBOUND_WAREHOUSE_KEY = 'inbound_current_warehouse';
 
   // 扫描记录
   const [scanRecords, setScanRecords] = useState<ScanRecord[]>([]);
@@ -175,8 +176,27 @@ export default function InboundScreen() {
   const loadWarehouses = async () => {
     const list = await getAllWarehouses();
     setWarehouses(list);
+    
+    // 尝试恢复之前选择的仓库
+    const savedWarehouse = await AsyncStorage.getItem(INBOUND_WAREHOUSE_KEY);
+    if (savedWarehouse) {
+      const warehouse = JSON.parse(savedWarehouse) as Warehouse;
+      // 确保仓库仍然存在
+      if (list.find(w => w.id === warehouse.id)) {
+        setCurrentWarehouse(warehouse);
+        return;
+      }
+    }
+    
+    // 没有保存的选择，使用默认仓库
     const def = await getDefaultWarehouse();
     setCurrentWarehouse(def || list[0] || null);
+  };
+
+  // 切换仓库
+  const handleWarehouseChange = (warehouse: Warehouse) => {
+    setCurrentWarehouse(warehouse);
+    AsyncStorage.setItem(INBOUND_WAREHOUSE_KEY, JSON.stringify(warehouse));
   };
 
   // 生成入库单号
@@ -417,7 +437,7 @@ export default function InboundScreen() {
 
   // 选择仓库
   const selectWarehouse = (wh: Warehouse) => {
-    setCurrentWarehouse(wh);
+    handleWarehouseChange(wh);
     setShowWarehousePicker(false);
     showToast(wh.name, 'success');
     setTimeout(() => inputRef.current?.focus(), 100);
