@@ -370,13 +370,13 @@ export default function RulesScreen() {
                     <Text style={styles.ruleDetail} numberOfLines={1}>
                       {(() => {
                         const separatorDisplayMap: Record<string, string> = {
-                          '{}': '{*}',
-                          '()': '(*)',
-                          '[]': '[*]',
-                          '<>': '<*>',
+                          '{}': '分隔符:{*}',
+                          '()': '分隔符:(*)',
+                          '[]': '分隔符:[*]',
+                          '<>': '分隔符:<*>',
                         };
-                        const sep = rule.separator === ' ' ? '空格' 
-                          : (separatorDisplayMap[rule.separator] || rule.separator);
+                        const sep = rule.separator === ' ' ? '分隔符:空格' 
+                          : (separatorDisplayMap[rule.separator] || `分隔符:${rule.separator}`);
                         const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
                         const fieldCount = hasCustomFieldsInOrder 
                           ? (rule.fieldOrder?.length || 0)
