@@ -94,29 +94,14 @@ export const createStyles = (theme: Theme) => {
       justifyContent: 'center',
     },
     ruleName: {
-      fontSize: rf(15),
-      fontWeight: '600',
+      fontSize: rf(16),
+      fontWeight: '700',
       color: theme.textPrimary,
       marginBottom: rf(2),
     },
-    ruleInfoRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-    },
     ruleSeparator: {
-      fontSize: rf(12),
-      color: theme.textPrimary,
-    },
-    ruleFieldCount: {
-      fontSize: rf(12),
-      color: theme.textPrimary,
-      marginLeft: rf(20),
-    },
-    ruleCondition: {
-      fontSize: rf(11),
-      color: theme.primary,
-      marginTop: rf(2),
+      fontSize: rf(13),
+      color: theme.textSecondary,
     },
     // 弹窗样式
     modalOverlay: {

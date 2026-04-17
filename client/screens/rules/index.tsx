@@ -362,21 +362,11 @@ export default function RulesScreen() {
                     delayLongPress={800}
                     activeOpacity={0.7}
                   >
-                    {/* 第一行：规则名称 + 字段数 */}
-                    <View style={styles.ruleInfoRow}>
-                      <Text style={styles.ruleName} numberOfLines={1}>{rule.name}</Text>
-                      <Text style={styles.ruleFieldCount}>
-                        {(() => {
-                          const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
-                          const fieldCount = hasCustomFieldsInOrder 
-                            ? (rule.fieldOrder?.length || 0)
-                            : ((rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0));
-                          return `${fieldCount}字段`;
-                        })()}
-                      </Text>
-                    </View>
+                    {/* 第一行：规则名称（加大加粗） */}
+                    <Text style={styles.ruleName} numberOfLines={1}>{rule.name}</Text>
                     {/* 第二行：分隔符 */}
                     <Text style={styles.ruleSeparator} numberOfLines={1}>
+                      分隔符：
                       {(() => {
                         const separatorDisplayMap: Record<string, string> = {
                           '{}': '{*}',
@@ -388,18 +378,6 @@ export default function RulesScreen() {
                           : (separatorDisplayMap[rule.separator] || rule.separator);
                       })()}
                     </Text>
-                    {/* 第三行：识别条件 */}
-                    {(rule.matchConditions || []).length > 0 && (
-                      <Text style={styles.ruleCondition} numberOfLines={1}>
-                        {(() => {
-                          return rule.matchConditions!.map(c => {
-                            const fieldKey = rule.fieldOrder?.[c.fieldIndex];
-                            const displayName = fieldKey ? getFieldDisplayName(fieldKey) : `字段${c.fieldIndex + 1}`;
-                            return `${displayName}:${c.keyword}`;
-                          }).join(', ');
-                        })()}
-                      </Text>
-                    )}
                   </TouchableOpacity>
                   <View style={styles.ruleSwitch}>
                     <Switch
