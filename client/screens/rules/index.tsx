@@ -355,14 +355,17 @@ export default function RulesScreen() {
           ) : (
             <View style={{ gap: Spacing.sm }}>
               {rules.map((rule) => (
-                <TouchableOpacity 
+                <View 
                   key={rule.id} 
                   style={styles.ruleItem}
-                  onPress={() => handleEditRule(rule)}
-                  onLongPress={() => handleDeleteRule(rule)}
-                  delayLongPress={800}
                 >
-                  <View style={styles.ruleCompactRow}>
+                  <TouchableOpacity 
+                    style={styles.ruleCompactRow}
+                    onPress={() => handleEditRule(rule)}
+                    onLongPress={() => handleDeleteRule(rule)}
+                    delayLongPress={800}
+                    activeOpacity={0.7}
+                  >
                     <View style={styles.ruleCompactInfo}>
                       <Text style={styles.ruleCompactName}>{rule.name}</Text>
                       <Text style={styles.ruleCompactSeparator}>
@@ -382,19 +385,18 @@ export default function RulesScreen() {
                               rule.separator.includes('[') || rule.separator.includes(']')) {
                             return rule.separator;
                           }
-                          // 其他分隔符直接显示
                           return rule.separator;
                         })()}
                       </Text>
                     </View>
-                    <Switch
-                      value={rule.isActive}
-                      onValueChange={() => handleToggleRule(rule)}
-                      trackColor={{ false: theme.border, true: theme.primary }}
-                      thumbColor={theme.buttonPrimaryText}
-                    />
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                  <Switch
+                    value={rule.isActive}
+                    onValueChange={() => handleToggleRule(rule)}
+                    trackColor={{ false: theme.border, true: theme.primary }}
+                    thumbColor={theme.buttonPrimaryText}
+                  />
+                </View>
               ))}
             </View>
           )}
