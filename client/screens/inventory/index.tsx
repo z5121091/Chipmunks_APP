@@ -256,8 +256,27 @@ export default function InventoryScreen() {
   const loadWarehouses = async () => {
     const list = await getAllWarehouses();
     setWarehouses(list);
+    
+    // 尝试恢复之前选择的仓库
+    const savedWarehouse = await AsyncStorage.getItem(INVENTORY_CHECK_WAREHOUSE_KEY);
+    if (savedWarehouse) {
+      const warehouse = JSON.parse(savedWarehouse) as Warehouse;
+      // 确保仓库仍然存在
+      if (list.find(w => w.id === warehouse.id)) {
+        setCurrentWarehouse(warehouse);
+        return;
+      }
+    }
+    
+    // 没有保存的选择，使用默认仓库
     const def = await getDefaultWarehouse();
     setCurrentWarehouse(def || list[0] || null);
+  };
+
+  // 切换仓库
+  const handleWarehouseChange = (warehouse: Warehouse) => {
+    setCurrentWarehouse(warehouse);
+    AsyncStorage.setItem(INVENTORY_CHECK_WAREHOUSE_KEY, JSON.stringify(warehouse));
   };
 
   // 加载已保存盘点记录
@@ -474,7 +493,7 @@ export default function InventoryScreen() {
 
   // 选择仓库
   const selectWarehouse = (wh: Warehouse) => {
-    setCurrentWarehouse(wh);
+    handleWarehouseChange(wh);
     setShowWarehousePicker(false);
     showToast(wh.name, 'success');
     setTimeout(() => inputRef.current?.focus(), 100);
