@@ -403,7 +403,7 @@ export default function SettingsScreen() {
     const seqNo = String(todayCount).padStart(2, '0');
     
     const headers = [
-      '盘点单号', '仓库名称', '存货编码', '扫描型号', '数量', '盘点类型', '盘点日期', '创建时间'
+      '盘点单号', '仓库名称', '存货编码', '扫描型号', '实盘数量', '盘点类型', '盘点日期', '创建时间'
     ];
     
     const rows = records.map(r => [
