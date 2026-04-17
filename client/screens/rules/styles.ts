@@ -104,7 +104,6 @@ export const createStyles = (theme: Theme) => {
     ruleCompactMeta: {
       fontSize: 11,
       color: theme.textMuted,
-      marginLeft: Spacing.sm,
     },
     // 弹窗样式
     modalOverlay: {
