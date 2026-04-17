@@ -403,7 +403,7 @@ export default function SettingsScreen() {
     const seqNo = String(todayCount).padStart(2, '0');
     
     const headers = [
-      '盘点单号', '仓库名称', '存货编码', '扫描型号', '数量', '盘点类型', '实际数量', '盘点日期', '创建时间'
+      '盘点单号', '仓库名称', '存货编码', '扫描型号', '数量', '盘点类型', '盘点日期', '创建时间'
     ];
     
     const rows = records.map(r => [
@@ -411,9 +411,9 @@ export default function SettingsScreen() {
       r.warehouse_name || '',
       r.inventory_code || '',
       r.scan_model || '',
-      r.quantity || 0,
+      // 拆包盘点用实际数量，整包盘点用原数量
+      r.check_type === 'partial' ? (r.actual_quantity || r.quantity) : r.quantity,
       r.check_type === 'whole' ? '整包' : '拆包',
-      r.actual_quantity || '',
       r.check_date || '',
       formatDateTimeExport(r.created_at),
     ]);
