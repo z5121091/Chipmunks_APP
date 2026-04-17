@@ -83,27 +83,25 @@ export const createStyles = (theme: Theme) => {
       paddingRight: Spacing.sm,
       flexDirection: 'row',
       alignItems: 'center',
-    },
-    ruleCompactName: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: theme.textPrimary,
-    },
-    ruleCompactSeparator: {
-      fontSize: 12,
-      color: theme.textSecondary,
-    },
-    ruleCompactMeta: {
-      fontSize: 11,
-      color: theme.textMuted,
-    },
-    ruleRow: {
-      height: rf(18),
-      justifyContent: 'center',
+      minHeight: rf(56),
     },
     ruleContent: {
       flex: 1,
       justifyContent: 'center',
+    },
+    ruleSwitch: {
+      marginLeft: Spacing.sm,
+      justifyContent: 'center',
+    },
+    ruleName: {
+      fontSize: rf(15),
+      fontWeight: '600',
+      color: theme.textPrimary,
+      marginBottom: rf(2),
+    },
+    ruleDetail: {
+      fontSize: rf(11),
+      color: theme.textSecondary,
     },
     // 弹窗样式
     modalOverlay: {
