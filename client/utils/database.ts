@@ -1389,7 +1389,16 @@ const checkAllMatchConditions = (parts: string[], conditions: MatchCondition[]):
 export const detectRule = async (content: string): Promise<QRCodeRule | null> => {
   try {
     const rules = await getActiveRules();
-    const commonSeparators = ['||', '//', '|', '/', ',', '*', '#', ' ', ';', ':', '\t'];
+    
+    // 从规则中提取所有唯一的分隔符（用户自定义的优先）
+    const ruleSeparators = [...new Set(rules.map(r => r.separator))];
+    
+    // 合并：规则分隔符 + 通用分隔符（空格、制表符作为兜底）
+    // 注意：不包含 '/' 和 '//' 在这里，因为它们需要特殊处理（URL 判断）
+    const commonSeparators = ['||', '|', ',', '*', '#', ';', ':', '\t'];
+    const allSeparators = [...ruleSeparators, ...commonSeparators];
+    // 去重，但保持顺序
+    const uniqueSeparators = [...new Set(allSeparators)];
     
     // 检测是否是 URL（避免把 http:// ftp:// 等的 // 当成分隔符）
     const isURL = (str: string): boolean => {
@@ -1484,10 +1493,10 @@ export const detectRule = async (content: string): Promise<QRCodeRule | null> =>
       }
     }
     
-    // 检测其他分隔符
-    for (const sep of commonSeparators) {
-      // 如果是 // 分隔符且内容是 URL，跳过
-      if (sep === '//' && isURL(content)) continue;
+    // 检测其他分隔符（使用从规则中提取的分隔符 + 通用分隔符）
+    for (const sep of uniqueSeparators) {
+      // 如果是 / 或 // 分隔符且内容是 URL，跳过
+      if ((sep === '/' || sep === '//') && isURL(content)) continue;
       
       // 分割后过滤空字符串并去除空白
       const parts = content.split(sep).map(s => s.trim()).filter(s => s.length > 0);
