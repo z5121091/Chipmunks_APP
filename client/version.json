@@ -1,7 +1,7 @@
 {
-  "version": "V3.3.0",
-  "versionCode": 87,
-  "buildNumber": 87,
+  "version": "V3.3.1",
+  "versionCode": 88,
+  "buildNumber": 88,
   "downloadUrl": "http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk",
   "forceUpdate": false,
   "appName": "掌上仓库",
@@ -9,6 +9,20 @@
   "companyWebsite": "http://www.chipmunks.com.cn/",
   "author": "zx5121091",
   "changelog": [
+    {
+      "version": "V3.3.1",
+      "date": "2026-04-17",
+      "changes": [
+        { "type": "feat", "text": "解析规则：支持用户自定义分隔符自动生效" },
+        { "type": "feat", "text": "规则列表：紧凑布局优化" },
+        { "type": "fix", "text": "规则列表：修复分隔符显示格式" },
+        { "type": "fix", "text": "规则列表：分离开关和卡片的点击事件" },
+        { "type": "fix", "text": "规则列表：识别条件数据丢失问题" },
+        { "type": "improve", "text": "规则列表：简化显示，只显示规则名称和分隔符" },
+        { "type": "improve", "text": "规则列表：两行布局，开关在右侧" },
+        { "type": "improve", "text": "规则列表：规则名称加大加粗显示" }
+      ]
+    },
     {
       "version": "V3.3.0",
       "date": "2026-04-17",
