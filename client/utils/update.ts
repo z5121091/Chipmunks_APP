@@ -28,13 +28,8 @@ export type UpdateStatus = 'idle' | 'checking' | 'downloading' | 'ready' | 'erro
  */
 export const extractDisplayUrl = (url: string): string => {
   try {
-    // 匹配 http://user:pass@host 或 https://user:pass@host 格式
-    const match = url.match(/^(https?:\/\/)([^:@]+:[^:@]+@)?([^/]+)/);
-    if (match) {
-      // 组1: 协议, 组3: 主机（不含认证信息）
-      return match[1] + match[3];
-    }
-    return url;
+    const parsed = new URL(url);
+    return `${parsed.protocol}//${parsed.host}`;
   } catch {
     return url;
   }
@@ -47,19 +42,13 @@ export const parseAuthFromUrl = (
   url: string
 ): { baseUrl: string; username: string; password: string } | null => {
   try {
-    // 匹配 http://user:pass@host 或 https://user:pass@host 格式
-    // 用户名和密码都可能包含特殊字符，需要从后往前找 @
-    const match = url.match(/^(https?:\/\/)([^@]+)@([^/]+)/);
-    if (match) {
-      const authPart = match[2]; // user:pass
-      const colonIndex = authPart.indexOf(':');
-      if (colonIndex > 0) {
-        return {
-          baseUrl: `${match[1]}${match[3]}`,
-          username: authPart.substring(0, colonIndex),
-          password: authPart.substring(colonIndex + 1),
-        };
-      }
+    const parsed = new URL(url);
+    if (parsed.username || parsed.password) {
+      return {
+        baseUrl: `${parsed.protocol}//${parsed.host}`,
+        username: decodeURIComponent(parsed.username),
+        password: decodeURIComponent(parsed.password),
+      };
     }
     return null;
   } catch {
@@ -71,32 +60,38 @@ export const parseAuthFromUrl = (
  * Base64 编码（兼容 Android 7.0）
  */
 export const base64Encode = (str: string): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const utf8Bytes = (() => {
+    if (typeof TextEncoder !== 'undefined') {
+      return Array.from(new TextEncoder().encode(str));
+    }
+    // 兼容旧环境：将 UTF-16 字符串转成 UTF-8 字节数组
+    const encoded = unescape(encodeURIComponent(str));
+    return Array.from(encoded).map((char) => char.charCodeAt(0));
+  })();
+
   let output = '';
   let i = 0;
   
-  while (i < str.length) {
-    const a = str.charCodeAt(i++);
-    const b = i < str.length ? str.charCodeAt(i++) : 0;
-    const c = i < str.length ? str.charCodeAt(i++) : 0;
+  while (i < utf8Bytes.length) {
+    const a = utf8Bytes[i++];
+    const b = i < utf8Bytes.length ? utf8Bytes[i++] : undefined;
+    const c = i < utf8Bytes.length ? utf8Bytes[i++] : undefined;
     
     const enc1 = a >> 2;
-    const enc2 = ((a & 3) << 4) | (b >> 4);
-    const enc3 = ((b & 15) << 2) | (c >> 6);
-    const enc4 = c & 63;
-    
-    // 计算剩余字符数
-    const remaining = str.length - i + 3;
-    if (remaining < 3) {
-      // 剩余不足3个字符，需要 padding
-      output += chars.charAt(enc1) + chars.charAt(enc2);
-      if (remaining === 2) {
-        output += chars.charAt(enc3) + '=';
-      } else {
-        output += '==';
-      }
+    const enc2 = ((a & 3) << 4) | ((b ?? 0) >> 4);
+    const enc3 = ((b ?? 0) & 15) << 2 | ((c ?? 0) >> 6);
+    const enc4 = (c ?? 0) & 63;
+
+    output += chars.charAt(enc1);
+    output += chars.charAt(enc2);
+
+    if (b === undefined) {
+      output += '==';
+    } else if (c === undefined) {
+      output += chars.charAt(enc3) + '=';
     } else {
-      output += chars.charAt(enc1) + chars.charAt(enc2) + chars.charAt(enc3) + chars.charAt(enc4);
+      output += chars.charAt(enc3) + chars.charAt(enc4);
     }
   }
   
