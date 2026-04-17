@@ -100,8 +100,13 @@ export const createStyles = (theme: Theme) => {
       marginBottom: rf(2),
     },
     ruleDetail: {
+      fontSize: rf(12),
+      color: theme.textPrimary,
+    },
+    ruleCondition: {
       fontSize: rf(11),
-      color: theme.textSecondary,
+      color: theme.primary,
+      marginTop: rf(2),
     },
     // 弹窗样式
     modalOverlay: {

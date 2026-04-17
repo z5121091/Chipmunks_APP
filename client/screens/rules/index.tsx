@@ -370,31 +370,32 @@ export default function RulesScreen() {
                     <Text style={styles.ruleDetail} numberOfLines={1}>
                       {(() => {
                         const separatorDisplayMap: Record<string, string> = {
-                          '{}': '分隔符:{*}',
-                          '()': '分隔符:(*)',
-                          '[]': '分隔符:[*]',
-                          '<>': '分隔符:<*>',
+                          '{}': '{*}',
+                          '()': '(*)',
+                          '[]': '[*]',
+                          '<>': '<*>',
                         };
-                        const sep = rule.separator === ' ' ? '分隔符:空格' 
-                          : (separatorDisplayMap[rule.separator] || `分隔符:${rule.separator}`);
+                        const sep = rule.separator === ' ' ? '空格' 
+                          : (separatorDisplayMap[rule.separator] || rule.separator);
                         const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
                         const fieldCount = hasCustomFieldsInOrder 
                           ? (rule.fieldOrder?.length || 0)
                           : ((rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0));
                         
-                        // 识别条件：使用 fieldOrder 映射字段名（与编辑弹窗一致）
-                        let conditions = '';
-                        if (rule.matchConditions && rule.matchConditions.length > 0) {
-                          conditions = rule.matchConditions.map(c => {
+                        return `分隔符:${sep}  •  ${fieldCount}字段`;
+                      })()}
+                    </Text>
+                    {rule.matchConditions && rule.matchConditions.length > 0 && (
+                      <Text style={styles.ruleCondition} numberOfLines={1}>
+                        {(() => {
+                          return rule.matchConditions.map(c => {
                             const fieldKey = rule.fieldOrder?.[c.fieldIndex];
                             const displayName = fieldKey ? getFieldDisplayName(fieldKey) : `字段${c.fieldIndex + 1}`;
                             return `${displayName}:${c.keyword}`;
                           }).join(', ');
-                        }
-                        
-                        return `${sep} • ${fieldCount}字段${conditions ? ` • ${conditions}` : ''}`;
-                      })()}
-                    </Text>
+                        })()}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                   <View style={styles.ruleSwitch}>
                     <Switch
