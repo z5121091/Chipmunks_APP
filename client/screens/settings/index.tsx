@@ -56,6 +56,7 @@ import {
   testConnection, 
   useHeartbeat 
 } from '@/utils/heartbeat';
+import { extractDisplayUrl, parseAuthFromUrl, base64Encode } from '@/utils/update';
 import {
   UPDATE_CONFIG,
   NETWORK_CONFIG,
@@ -522,69 +523,6 @@ export default function SettingsScreen() {
       return DEFAULT_UPDATE_SERVER;
     }
     return updateServerUrl;
-  };
-  
-  // 从URL中提取不含认证信息的显示用URL
-  const extractDisplayUrl = (url: string): string => {
-    try {
-      // 匹配 http://user:pass@host/path 或 https://user:pass@host/path 格式
-      const match = url.match(/^https?:\/\/[^:]+:[^@]+@(.*)$/);
-      if (match) {
-        return `${url.startsWith('https') ? 'https' : 'http'}://${match[1]}`;
-      }
-      return url;
-    } catch {
-      return url;
-    }
-  };
-  
-  // 从URL中解析用户名和密码
-  const parseAuthFromUrl = (url: string): { baseUrl: string; username: string; password: string } | null => {
-    try {
-      // 匹配 http://user:pass@host/path 格式
-      const match = url.match(/^(https?:\/\/)([^:@]+):([^:@\/]+)@(.+)$/);
-      if (match) {
-        const [, protocol, username, password, rest] = match;
-        return {
-          baseUrl: `${protocol}${rest}`,
-          username,
-          password,
-        };
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  };
-  
-  // Base64编码（兼容Android 7.0）
-  const base64Encode = (str: string): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    let output = '';
-    let i = 0;
-    
-    const utf8Str = unescape(encodeURIComponent(str));
-    
-    while (i < utf8Str.length) {
-      const chr1 = utf8Str.charCodeAt(i++);
-      const chr2 = utf8Str.charCodeAt(i++);
-      const chr3 = utf8Str.charCodeAt(i++);
-      
-      const enc1 = chr1 >> 2;
-      const enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-      let enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-      let enc4 = chr3 & 63;
-      
-      if (isNaN(chr2)) {
-        enc3 = enc4 = 64;
-      } else if (isNaN(chr3)) {
-        enc4 = 64;
-      }
-      
-      output += chars.charAt(enc1) + chars.charAt(enc2) + chars.charAt(enc3) + chars.charAt(enc4);
-    }
-    
-    return output;
   };
   
   // 检查更新
