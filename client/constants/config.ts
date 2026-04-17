@@ -48,7 +48,7 @@ export const UPDATE_CONFIG = {
   DEFAULT_SERVER: 'http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate',
   DEFAULT_DOWNLOAD_URL: 'http://zx5121091:zx5121091Z..@zx5121091.pw:5005/AppUpdate/app-release.apk',
   APK_FILE_NAME: 'app-release.apk',
-} as const;
+};
 
 // ============== Excel 导出配置 ==============
 export const EXPORT_CONFIG = {

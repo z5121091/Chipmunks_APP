@@ -115,10 +115,18 @@ export const checkForUpdate = async (
       ? serverUrl.replace(/\/[^/]*$/, '/update.xml')
       : `${serverUrl}/update.xml`;
     
-    const response = await fetch(updateXmlUrl, {
-      method: 'GET',
-      timeout: 10000,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    let response: Response;
+    try {
+      response = await fetch(updateXmlUrl, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     
     if (!response.ok) {
       return null;
@@ -182,11 +190,7 @@ export const downloadAndInstallWithExpoUpdates = async (
       return false;
     }
     
-    await Updates.fetchUpdateAsync((event) => {
-      if (event.type === Updates.UpdateEventType.DOWNLOAD_PROGRESS && onProgress) {
-        onProgress(event.totalBytes ? event.bytesWritten / event.totalBytes : 0);
-      }
-    });
+    await Updates.fetchUpdateAsync();
     
     await Updates.reloadAsync();
     return true;
@@ -235,7 +239,7 @@ export const downloadAndInstallWithIntent = async (
     }
     
     // 启动安装
-    await IntentLauncher.startAndroidActivityAsync('android.intent.action.VIEW', {
+    await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
       data: result.uri,
       flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
     });
