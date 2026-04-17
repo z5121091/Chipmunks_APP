@@ -119,12 +119,16 @@ export default function RulesScreen() {
     if (presetSeparators.includes(rule.separator)) {
       setRuleSeparator(separatorToDisplay[rule.separator] || rule.separator);
       setCustomSeparator('');
-    } else if (rule.separator.length === 2) {
+    } else if (rule.separator.includes('{') || rule.separator.includes('}') ||
+               rule.separator.includes('(') || rule.separator.includes(')') ||
+               rule.separator.includes('[') || rule.separator.includes(']')) {
+      // 特殊格式：包含包裹字符 { } ( ) [ ]
       setRuleSeparator('special');
       setCustomLeftBracket(rule.separator[0]);
-      setCustomRightBracket(rule.separator[1]);
+      setCustomRightBracket(rule.separator[rule.separator.length - 1]);
       setCustomSeparator('');
     } else {
+      // 其他分隔符（如 ||、:: 等）→ 自定义
       setRuleSeparator('custom');
       setCustomSeparator(rule.separator);
     }
@@ -369,8 +373,11 @@ export default function RulesScreen() {
                             if (separatorDisplayMap[rule.separator]) {
                               return separatorDisplayMap[rule.separator];
                             }
-                            if (rule.separator.length === 2) {
-                              return `${rule.separator[0]} * ${rule.separator[1]}`;
+                            // 特殊包裹格式
+                            if (rule.separator.includes('{') || rule.separator.includes('}') ||
+                                rule.separator.includes('(') || rule.separator.includes(')') ||
+                                rule.separator.includes('[') || rule.separator.includes(']')) {
+                              return `${rule.separator[0]} * ${rule.separator[rule.separator.length - 1]}`;
                             }
                             return rule.separator;
                           })()}
