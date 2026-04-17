@@ -1,7 +1,16 @@
 // 二维码内容解析器
 
 // 支持的普通分隔符
-const SEPARATORS = ['||', '/', '|', ',', '*', '#', ';', '\t'];
+const SEPARATORS = ['||', '//', '/', '|', ',', '*', '#', ';', '\t'];
+
+// 检测是否是 URL（避免把 http:// ftp:// 等的 // 当成分隔符）
+const isURL = (content: string): boolean => {
+  const lower = content.toLowerCase();
+  return lower.startsWith('http://') || 
+         lower.startsWith('https://') || 
+         lower.startsWith('ftp://') ||
+         lower.startsWith('sftp://');
+};
 
 // 支持的括号分隔符格式（左括号 -> 右括号）
 const BRACKET_PAIRS: Record<string, string> = {
@@ -51,6 +60,9 @@ const splitBySeparator = (content: string, separator: string): string[] => {
 // 自动检测分隔符
 const detectSeparator = (content: string): string | null => {
   for (const sep of SEPARATORS) {
+    // 如果是 // 分隔符且内容是 URL，跳过
+    if (sep === '//' && isURL(content)) continue;
+    
     const parts = splitBySeparator(content, sep);
     if (parts.length >= 2) {
       return sep;

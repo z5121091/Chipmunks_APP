@@ -1389,7 +1389,16 @@ const checkAllMatchConditions = (parts: string[], conditions: MatchCondition[]):
 export const detectRule = async (content: string): Promise<QRCodeRule | null> => {
   try {
     const rules = await getActiveRules();
-    const commonSeparators = ['||', '|', '/', ',', '*', '#', ' ', ';', ':', '\t'];
+    const commonSeparators = ['||', '//', '|', '/', ',', '*', '#', ' ', ';', ':', '\t'];
+    
+    // 检测是否是 URL（避免把 http:// ftp:// 等的 // 当成分隔符）
+    const isURL = (str: string): boolean => {
+      const lower = str.toLowerCase();
+      return lower.startsWith('http://') || 
+             lower.startsWith('https://') || 
+             lower.startsWith('ftp://') ||
+             lower.startsWith('sftp://');
+    };
     
     // 支持的括号分隔符格式
     const BRACKET_PAIRS: Record<string, string> = {
@@ -1477,6 +1486,9 @@ export const detectRule = async (content: string): Promise<QRCodeRule | null> =>
     
     // 检测其他分隔符
     for (const sep of commonSeparators) {
+      // 如果是 // 分隔符且内容是 URL，跳过
+      if (sep === '//' && isURL(content)) continue;
+      
       // 分割后过滤空字符串并去除空白
       const parts = content.split(sep).map(s => s.trim()).filter(s => s.length > 0);
       if (parts.length >= 2) {
