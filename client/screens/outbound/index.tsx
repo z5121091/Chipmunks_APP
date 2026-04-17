@@ -557,7 +557,8 @@ export default function PDAScanScreen() {
       return;
     }
 
-    // B: 清空当前页面积累的物料数据（物料归属仓库不同）
+    // B: 清空当前页面数据（订单号与仓库绑定，不同仓库序号位数不同）
+    setOrderNo('');
     setMaterialCount(0);
     setMaterials([]);
     setExpandedGroups(new Set());
