@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Spacing, BorderRadius, Theme, BorderWidth } from '@/constants/theme';
+import { rf } from '@/utils/responsive';
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
@@ -97,7 +98,7 @@ export const createStyles = (theme: Theme) => {
       color: theme.textMuted,
     },
     ruleRow: {
-      height: 18,
+      height: rf(18),
       justifyContent: 'center',
     },
     ruleContent: {
