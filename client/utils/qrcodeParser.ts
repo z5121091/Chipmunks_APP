@@ -1,36 +1,60 @@
-// 二维码内容解析器
+/**
+ * @file 二维码内容解析器
+ * 
+ * 本模块负责：
+ * 1. 检测扫码内容是否为二维码（通过分隔符识别）
+ * 2. 使用用户配置的规则解析二维码内容
+ * 
+ * 核心逻辑委托给 database.ts 中的 detectRule 和 parseWithRule 方法，
+ * 确保分隔符识别规则全局统一。
+ * 
+ * @see database.ts - 包含 detectRule() 和 parseWithRule() 等公共解析方法
+ */
 
-// 支持的普通分隔符
-const SEPARATORS = ['||', '//', '/', '|', ',', '*', '#', ';', '\t'];
+import { 
+  detectRule, 
+  parseWithRule, 
+  QRCodeRule,
+  getActiveRules 
+} from './database';
+import { formatDate } from './time';
 
-// 检测是否是 URL（避免把 http:// ftp:// 等的 // 当成分隔符）
+/** 通用分隔符列表（用于 isQRCode 判断） */
+const COMMON_SEPARATORS = ['||', '//', '/', '|', ',', '*', '#', ';', '\t'];
+
+/** 预设括号对（用于检测括号格式） */
+const BRACKET_PAIRS: Record<string, string> = {
+  '{': '}',
+  '(': ')',
+  '[': ']',
+  '<': '>',
+};
+
+/**
+ * 检测是否为 URL（避免将 http://、ftp:// 等的 // 当成分隔符）
+ * @param content 扫码内容
+ * @returns true=是URL，false=不是URL
+ */
 const isURL = (content: string): boolean => {
   const lower = content.toLowerCase();
-  return lower.startsWith('http://') || 
-         lower.startsWith('https://') || 
-         lower.startsWith('ftp://') ||
-         lower.startsWith('sftp://');
+  return (
+    lower.startsWith('http://') ||
+    lower.startsWith('https://') ||
+    lower.startsWith('ftp://') ||
+    lower.startsWith('sftp://')
+  );
 };
 
-// 支持的括号分隔符格式（左括号 -> 右括号）
-const BRACKET_PAIRS: Record<string, string> = {
-  '{': '}',   // 花括号
-  '(': ')',   // 小括号
-  '[': ']',   // 中括号
-  '<': '>',   // 尖括号
-};
-
-// 获取括号格式的分隔符标识（如 {} () [] <>）
-const getBracketSeparator = (leftBracket: string): string => {
-  return leftBracket + BRACKET_PAIRS[leftBracket];
-};
-
-// 检测是否为括号格式（如 {字段}{字段} 或 (字段)(字段)）
+/**
+ * 检测括号格式并返回左括号
+ * 例如：{字段}{字段} → 返回 '{'
+ * @param content 扫码内容
+ * @returns 左括号字符，或 null（不是括号格式）
+ */
 const detectBracketFormat = (content: string): string | null => {
   for (const leftBracket of Object.keys(BRACKET_PAIRS)) {
     const rightBracket = BRACKET_PAIRS[leftBracket];
-    const separator = rightBracket + leftBracket; // 如 }{ 或 )( 
-    
+    const separator = rightBracket + leftBracket; // 如 }{ 或 )(
     if (content.startsWith(leftBracket) && content.includes(separator)) {
       return leftBracket;
     }
@@ -38,34 +62,19 @@ const detectBracketFormat = (content: string): string | null => {
   return null;
 };
 
-// 解析括号格式内容
-const splitByBracket = (content: string, leftBracket: string): string[] => {
-  const rightBracket = BRACKET_PAIRS[leftBracket];
-  const separator = rightBracket + leftBracket; // 如 }{ 或 )(
-  
-  // 移除首尾的括号
-  let str = content.trim();
-  if (str.startsWith(leftBracket)) str = str.slice(1);
-  if (str.endsWith(rightBracket)) str = str.slice(0, -1);
-  
-  // 用右括号+左括号分割
-  return str.split(separator).map(s => s.trim()).filter(s => s.length > 0);
-};
-
-// 尝试用指定分隔符拆分内容
-const splitBySeparator = (content: string, separator: string): string[] => {
-  return content.split(separator).map(s => s.trim()).filter(s => s.length > 0);
-};
-
-// 自动检测分隔符
-const detectSeparator = (content: string): string | null => {
-  for (const sep of SEPARATORS) {
-    // 如果是 // 分隔符且内容是 URL，跳过
-    if (sep === '//' && isURL(content)) continue;
-    
-    const parts = splitBySeparator(content, sep);
-    if (parts.length >= 2) {
-      return sep;
+/**
+ * 检测自定义两字符分隔符（排除单字符分隔符，避免误判）
+ * 例如：+-、+=、:- 等
+ * @param content 扫码内容
+ * @returns 分隔符字符串，或 null
+ */
+const detectCustomSeparator = (content: string): string | null => {
+  const customSymbols = ['+', '-', '=', ':', '@', '!', '%', '&', '~', '^'];
+  for (const left of customSymbols) {
+    for (const right of customSymbols) {
+      if (left !== right && content.includes(left + right)) {
+        return left + right;
+      }
     }
   }
   return null;
@@ -73,7 +82,14 @@ const detectSeparator = (content: string): string | null => {
 
 /**
  * 检测是否为二维码内容
- * 二维码包含分隔符，一维码不包含分隔符
+ * 
+ * 二维码特征：包含分隔符（一维码不包含分隔符）
+ * 
+ * 检测顺序：
+ * 1. 预设括号格式（{}、()、[]、<>）
+ * 2. 通用分隔符（||、//、/、|、,、*、#、;、\t）
+ * 3. 自定义两字符分隔符（+-、+= 等）
+ * 
  * @param content 扫码内容
  * @returns true=二维码（需要震动处理），false=一维码（静默忽略）
  */
@@ -84,151 +100,186 @@ export const isQRCode = (content: string): boolean => {
 
   const trimmed = content.trim();
 
-  // 1. 检测括号格式分隔符（如 {字段}{字段}）
+  // 1. 检测括号格式
   if (detectBracketFormat(trimmed)) {
     return true;
   }
 
-  // 2. 检测普通分隔符（/、|、,、*、#、;、制表符）
-  for (const sep of SEPARATORS) {
+  // 2. 检测通用分隔符
+  for (const sep of COMMON_SEPARATORS) {
+    // 跳过 URL 中的 //
+    if (sep === '//' && isURL(trimmed)) {
+      continue;
+    }
     if (trimmed.includes(sep)) {
       return true;
     }
   }
 
-  // 3. 检测自定义特殊分隔符（长度为2的非括号符号，如 +-、+= 等）
-  // 遍历可能的左右符号组合
-  const customSymbols = ['+', '-', '=', ':', '@', '!', '%', '&'];
-  for (const left of customSymbols) {
-    for (const right of customSymbols) {
-      if (left !== right && trimmed.includes(left + right)) {
-        return true;
-      }
-    }
+  // 3. 检测自定义两字符分隔符
+  if (detectCustomSeparator(trimmed)) {
+    return true;
   }
 
   // 不包含任何分隔符，判定为一维码
   return false;
 };
 
-// 检查是否为括号分隔符并返回左括号
-const isBracketSeparator = (separator: string): string | null => {
-  for (const leftBracket of Object.keys(BRACKET_PAIRS)) {
-    if (separator === getBracketSeparator(leftBracket)) {
-      return leftBracket;
-    }
+/**
+ * 二维码解析结果接口
+ */
+export interface ParsedQRCode {
+  model: string;           // 型号
+  batch: string;            // 批次
+  package: string;          // 封装
+  version: string;          // 版本号
+  quantity: string;         // 数量
+  productionDate: string;    // 生产日期年周
+  traceNo: string;           // 追踪码
+  sourceNo: string;          // 箱号
+  rawContent: string;        // 原始内容
+  fields: string[];          // 原始拆分出的所有字段
+  separator: string;         // 分隔符
+}
+
+/**
+ * 使用规则解析二维码内容
+ * 
+ * 本函数委托给 database.ts 的公共方法：
+ * 1. detectRule() - 自动检测匹配规则
+ * 2. parseWithRule() - 按规则解析字段
+ * 
+ * @param content 扫码原始内容
+ * @param customSeparator 可选，自定义分隔符（优先使用）
+ * @returns 解析结果，或 null（解析失败）
+ * 
+ * @see database.ts detectRule()
+ * @see database.ts parseWithRule()
+ */
+export const parseQRCode = async (
+  content: string,
+  customSeparator?: string
+): Promise<ParsedQRCode | null> => {
+  if (!content || content.trim().length === 0) {
+    return null;
   }
-  return null;
+
+  const trimmedContent = content.trim();
+
+  // 调用 database.ts 的 detectRule 自动检测规则
+  // 该方法会：
+  // 1. 尝试匹配用户配置的规则
+  // 2. 若无匹配，自动识别分隔符并创建"自动识别"规则
+  const rule = await detectRule(trimmedContent);
+
+  if (!rule) {
+    // 无法检测规则，整体作为一个字段
+    return {
+      model: trimmedContent,
+      batch: '',
+      package: '',
+      version: '',
+      quantity: '',
+      productionDate: '',
+      traceNo: '',
+      sourceNo: '',
+      rawContent: trimmedContent,
+      fields: [trimmedContent],
+      separator: '',
+    };
+  }
+
+  // 使用规则解析字段
+  const { standardFields } = parseWithRule(trimmedContent, rule);
+
+  return {
+    model: standardFields.model || '',
+    batch: standardFields.batch || '',
+    package: standardFields.package || '',
+    version: standardFields.version || '',
+    quantity: standardFields.quantity || '',
+    productionDate: standardFields.productionDate || '',
+    traceNo: standardFields.traceNo || '',
+    sourceNo: standardFields.sourceNo || '',
+    rawContent: trimmedContent,
+    fields: [], // parseWithRule 不返回原始字段，此处留空
+    separator: rule.separator,
+  };
 };
 
 /**
- * 极海半导体物料二维码格式解析
- * 格式: 型号/批次/封装/版本号/数量/生产日期年周/追踪码/箱号
- * 示例: LX32E103VET6/S2G1F/LQFP100/811206600014/5400/2541/T712511050007/OPCG0195B05007
+ * 同步版本的二维码解析（仅检测规则，不调用数据库）
+ * 
+ * 适用于需要同步执行的场景（如在 useEffect 中），
+ * 但无法使用用户自定义规则。
+ * 
+ * @param content 扫码原始内容
+ * @returns 解析结果，或 null
  */
-export interface ParsedQRCode {
-  model: string;        // 型号
-  batch: string;        // 批次
-  package: string;      // 封装
-  version: string;      // 版本号
-  quantity: string;     // 数量
-  productionDate: string; // 生产日期年周
-  traceNo: string;      // 追踪码
-  sourceNo: string;     // 箱号
-  rawContent: string;   // 原始内容
-  fields: string[];     // 原始拆分出的所有字段
-  separator: string;    // 分隔符
-}
-
-export const parseQRCode = (
+export const parseQRCodeSync = (
   content: string,
-  customSeparator?: string
 ): ParsedQRCode | null => {
   if (!content || content.trim().length === 0) {
     return null;
   }
 
   const trimmedContent = content.trim();
-  
-  let fields: string[] = [];
+
+  // 检测分隔符
   let separator = '';
-  
-  // 优先检测括号格式（如 {字段}{字段} 或 (字段)(字段)）
+  let fields: string[] = [];
+
+  // 1. 检测括号格式
   const bracketLeft = detectBracketFormat(trimmedContent);
   if (bracketLeft) {
-    fields = splitByBracket(trimmedContent, bracketLeft);
-    separator = getBracketSeparator(bracketLeft);
-  } else if (customSeparator) {
-    // 使用自定义分隔符
-    separator = customSeparator;
-    const customBracketLeft = isBracketSeparator(separator);
-    if (customBracketLeft) {
-      fields = splitByBracket(trimmedContent, customBracketLeft);
-    } else {
-      fields = splitBySeparator(trimmedContent, separator);
-    }
+    const rightBracket = BRACKET_PAIRS[bracketLeft];
+    separator = bracketLeft + rightBracket;
+    let str = trimmedContent;
+    if (str.startsWith(bracketLeft)) str = str.slice(1);
+    if (str.endsWith(rightBracket)) str = str.slice(0, -1);
+    fields = str.split(rightBracket + bracketLeft).map(s => s.trim()).filter(s => s.length > 0);
   } else {
-    // 自动检测分隔符
-    const detectedSep = detectSeparator(trimmedContent);
-    if (detectedSep) {
-      separator = detectedSep;
-      fields = splitBySeparator(trimmedContent, separator);
-    } else {
-      // 无法拆分，整体作为一个字段
-      fields = [trimmedContent];
+    // 2. 尝试通用分隔符
+    for (const sep of COMMON_SEPARATORS) {
+      if (sep === '//' && isURL(trimmedContent)) continue;
+      const parts = trimmedContent.split(sep).map(s => s.trim()).filter(s => s.length > 0);
+      if (parts.length >= 2) {
+        separator = sep;
+        fields = parts;
+        break;
+      }
+    }
+
+    // 3. 尝试自定义分隔符
+    if (fields.length === 0) {
+      const customSep = detectCustomSeparator(trimmedContent);
+      if (customSep) {
+        separator = customSep;
+        fields = trimmedContent.split(customSep).map(s => s.trim()).filter(s => s.length > 0);
+      }
     }
   }
 
-  // 初始化所有字段
-  let model = '';
-  let batch = '';
-  let packageType = '';
-  let version = '';
-  let quantity = '';
-  let productionDate = '';
-  let traceNo = '';
-  let sourceNo = '';
-
-  // 按位置解析（极海半导体格式：8个字段用/分隔）
-  if (fields.length >= 1) {
-    model = fields[0]; // 型号
-  }
-  if (fields.length >= 2) {
-    batch = fields[1]; // 批次
-  }
-  if (fields.length >= 3) {
-    packageType = fields[2]; // 封装
-  }
-  if (fields.length >= 4) {
-    version = fields[3]; // 版本号
-  }
-  if (fields.length >= 5) {
-    quantity = fields[4]; // 数量
-  }
-  if (fields.length >= 6) {
-    productionDate = fields[5]; // 生产日期年周
-  }
-  if (fields.length >= 7) {
-    traceNo = fields[6]; // 追踪码
-  }
-  if (fields.length >= 8) {
-    sourceNo = fields[7]; // 箱号
+  // 无法拆分
+  if (fields.length === 0) {
+    fields = [trimmedContent];
   }
 
+  // 按位置解析（标准格式：型号/批次/封装/版本号/数量/生产日期/追踪码/箱号）
   return {
-    model,
-    batch,
-    package: packageType,
-    version,
-    quantity,
-    productionDate,
-    traceNo,
-    sourceNo,
+    model: fields[0] || '',
+    batch: fields[1] || '',
+    package: fields[2] || '',
+    version: fields[3] || '',
+    quantity: fields[4] || '',
+    productionDate: fields[5] || '',
+    traceNo: fields[6] || '',
+    sourceNo: fields[7] || '',
     rawContent: trimmedContent,
     fields,
     separator,
   };
 };
 
-// 格式化日期（兼容旧代码）
+// 导出日期格式化方法（兼容旧代码）
 export { formatDate } from './time';

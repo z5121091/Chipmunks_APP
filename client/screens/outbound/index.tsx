@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
-import { parseQRCode, isQRCode } from '@/utils/qrcodeParser';
+import { parseQRCodeSync, isQRCode } from '@/utils/qrcodeParser';
 import {
   initDatabase,
   upsertOrder,
@@ -258,7 +258,20 @@ export default function PDAScanScreen() {
       } catch (e) {}
 
       if (!parsed) {
-        parsed = parseQRCode(code);
+        // 兜底：使用 qrcodeParser 的同步解析（不依赖数据库）
+        const fallback = parseQRCodeSync(code);
+        if (fallback) {
+          parsed = {
+            model: fallback.model,
+            batch: fallback.batch,
+            quantity: fallback.quantity,
+            traceNo: fallback.traceNo,
+            sourceNo: fallback.sourceNo,
+            package: fallback.package,
+            version: fallback.version,
+            productionDate: fallback.productionDate,
+          };
+        }
       }
 
       if (!parsed) {
