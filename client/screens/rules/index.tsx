@@ -363,24 +363,29 @@ export default function RulesScreen() {
                     activeOpacity={0.7}
                   >
                     <Text style={styles.ruleName} numberOfLines={1}>{rule.name}</Text>
-                    <Text style={styles.ruleDetail} numberOfLines={1}>
-                      {(() => {
-                        const separatorDisplayMap: Record<string, string> = {
-                          '{}': '{*}',
-                          '()': '(*)',
-                          '[]': '[*]',
-                          '<>': '<*>',
-                        };
-                        const sep = rule.separator === ' ' ? '空格' 
-                          : (separatorDisplayMap[rule.separator] || rule.separator);
-                        const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
-                        const fieldCount = hasCustomFieldsInOrder 
-                          ? (rule.fieldOrder?.length || 0)
-                          : ((rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0));
-                        
-                        return `分隔符:${sep}   ·   ${fieldCount}字段`;
-                      })()}
-                    </Text>
+                    <View style={styles.ruleInfoRow}>
+                      <Text style={styles.ruleSeparator} numberOfLines={1}>
+                        {(() => {
+                          const separatorDisplayMap: Record<string, string> = {
+                            '{}': '{*}',
+                            '()': '(*)',
+                            '[]': '[*]',
+                            '<>': '<*>',
+                          };
+                          return rule.separator === ' ' ? '空格' 
+                            : (separatorDisplayMap[rule.separator] || rule.separator);
+                        })()}
+                      </Text>
+                      <Text style={styles.ruleFieldCount}>
+                        {(() => {
+                          const hasCustomFieldsInOrder = rule.fieldOrder?.some(f => isCustomField(f));
+                          const fieldCount = hasCustomFieldsInOrder 
+                            ? (rule.fieldOrder?.length || 0)
+                            : ((rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0));
+                          return `${fieldCount}字段`;
+                        })()}
+                      </Text>
+                    </View>
                     {(rule.matchConditions || []).length > 0 && (
                       <Text style={styles.ruleCondition} numberOfLines={1}>
                         {(() => {

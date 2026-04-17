@@ -99,9 +99,19 @@ export const createStyles = (theme: Theme) => {
       color: theme.textPrimary,
       marginBottom: rf(2),
     },
-    ruleDetail: {
+    ruleInfoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    ruleSeparator: {
       fontSize: rf(12),
       color: theme.textPrimary,
+    },
+    ruleFieldCount: {
+      fontSize: rf(12),
+      color: theme.textPrimary,
+      marginLeft: rf(20),
     },
     ruleCondition: {
       fontSize: rf(11),
