@@ -28,8 +28,13 @@ export type UpdateStatus = 'idle' | 'checking' | 'downloading' | 'ready' | 'erro
  */
 export const extractDisplayUrl = (url: string): string => {
   try {
-    const match = url.match(/https?:\/\/([^:@]+:[^:@]+@)?([^/]+)/);
-    return match ? match[0] : url;
+    // 匹配 http://user:pass@host 或 https://user:pass@host 格式
+    const match = url.match(/^(https?:\/\/)([^:@]+:[^:@]+@)?([^/]+)/);
+    if (match) {
+      // 组1: 协议, 组3: 主机（不含认证信息）
+      return match[1] + match[3];
+    }
+    return url;
   } catch {
     return url;
   }
@@ -42,13 +47,19 @@ export const parseAuthFromUrl = (
   url: string
 ): { baseUrl: string; username: string; password: string } | null => {
   try {
-    const match = url.match(/https?:\/\/([^:@]+):([^:@]+)@([^/]+)/);
+    // 匹配 http://user:pass@host 或 https://user:pass@host 格式
+    // 用户名和密码都可能包含特殊字符，需要从后往前找 @
+    const match = url.match(/^(https?:\/\/)([^@]+)@([^/]+)/);
     if (match) {
-      return {
-        baseUrl: `http://${match[3]}`,
-        username: match[1],
-        password: match[2],
-      };
+      const authPart = match[2]; // user:pass
+      const colonIndex = authPart.indexOf(':');
+      if (colonIndex > 0) {
+        return {
+          baseUrl: `${match[1]}${match[3]}`,
+          username: authPart.substring(0, colonIndex),
+          password: authPart.substring(colonIndex + 1),
+        };
+      }
     }
     return null;
   } catch {
@@ -74,10 +85,16 @@ export const base64Encode = (str: string): string => {
     const enc3 = ((b & 15) << 2) | (c >> 6);
     const enc4 = c & 63;
     
-    if (i - 2 > str.length) {
-      output += chars.charAt(enc1) + chars.charAt(enc2) + '==';
-    } else if (i - 1 > str.length) {
-      output += chars.charAt(enc1) + chars.charAt(enc2) + chars.charAt(enc3) + '=';
+    // 计算剩余字符数
+    const remaining = str.length - i + 3;
+    if (remaining < 3) {
+      // 剩余不足3个字符，需要 padding
+      output += chars.charAt(enc1) + chars.charAt(enc2);
+      if (remaining === 2) {
+        output += chars.charAt(enc3) + '=';
+      } else {
+        output += '==';
+      }
     } else {
       output += chars.charAt(enc1) + chars.charAt(enc2) + chars.charAt(enc3) + chars.charAt(enc4);
     }
