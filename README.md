@@ -103,6 +103,3 @@ import { Screen } from '../../../components/Screen';
 | 物料管理 | 型号、供应商绑定 |
 | 系统设置 | 仓库、规则、备份等 |
 
-## License
-
-MIT
