@@ -378,6 +378,19 @@ export default function RulesScreen() {
                           : (separatorDisplayMap[rule.separator] || rule.separator);
                       })()}
                     </Text>
+                    {/* 第三行：字段顺序预览 */}
+                    <Text style={styles.ruleFields} numberOfLines={1}>
+                      字段：
+                      {(() => {
+                        if (!rule.fieldOrder || rule.fieldOrder.length === 0) {
+                          return '未配置';
+                        }
+                        return rule.fieldOrder.map((field, index) => {
+                          const label = FIELD_LABELS[field] || field;
+                          return index === 0 ? label : ` → ${label}`;
+                        }).join('');
+                      })()}
+                    </Text>
                   </TouchableOpacity>
                   <View style={styles.ruleSwitch}>
                     <Switch

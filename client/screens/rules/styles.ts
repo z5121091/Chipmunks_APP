@@ -103,6 +103,11 @@ export const createStyles = (theme: Theme) => {
       fontSize: rf(13),
       color: theme.textSecondary,
     },
+    ruleFields: {
+      fontSize: rf(12),
+      color: theme.accent,
+      marginTop: rf(2),
+    },
     // 弹窗样式
     modalOverlay: {
       flex: 1,
