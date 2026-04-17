@@ -373,17 +373,17 @@ export default function RulesScreen() {
                             '[]': '[*]',
                             '<>': '<*>',
                           };
-                          if (rule.separator === ' ') return '[空格]';
+                          if (rule.separator === ' ') return '空格';
                           if (separatorDisplayMap[rule.separator]) {
                             return separatorDisplayMap[rule.separator];
                           }
                           if (rule.separator.includes('{') || rule.separator.includes('}') ||
                               rule.separator.includes('(') || rule.separator.includes(')') ||
                               rule.separator.includes('[') || rule.separator.includes(']')) {
-                            return `[${rule.separator}]`;
+                            return rule.separator;
                           }
-                          // 其他分隔符：直接显示在方括号中
-                          return `[${rule.separator}]`;
+                          // 其他分隔符直接显示
+                          return rule.separator;
                         })()}
                       </Text>
                     </View>
