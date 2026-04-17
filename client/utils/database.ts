@@ -2692,7 +2692,7 @@ export const clearAllInventoryCheckRecords = async (): Promise<void> => {
 
 // ============== V3.0 数据清空功能 ==============
 
-// 清空所有业务数据（保留配置：规则、自定义字段、仓库、物料绑定）
+// 清空所有业务数据（包括配置：解析规则、自定义字段）
 export const clearAllBusinessData = async (): Promise<void> => {
   try {
     await Promise.all([
@@ -2702,6 +2702,8 @@ export const clearAllBusinessData = async (): Promise<void> => {
       AsyncStorage.setItem(STORAGE_KEYS.PRINT_HISTORY, JSON.stringify([])),
       AsyncStorage.setItem(STORAGE_KEYS.INBOUND_RECORDS, JSON.stringify([])),
       AsyncStorage.setItem(STORAGE_KEYS.INVENTORY_RECORDS, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify([])),
+      AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_FIELDS, JSON.stringify([])),
     ]);
     console.log('清空业务数据成功');
   } catch (error) {

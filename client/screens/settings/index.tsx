@@ -1284,7 +1284,7 @@ export default function SettingsScreen() {
             () => {
               alert.showConfirm(
                 '确认清空',
-                '确定要清空所有业务数据吗？\n\n将清空：订单、物料、标签、入库记录、盘点记录\n保留：仓库、物料绑定、解析规则、自定义字段',
+                '确定要清空所有业务数据吗？\n\n将清空：订单、物料、标签、入库记录、盘点记录、解析规则、自定义字段\n保留：仓库、物料绑定',
                 async () => {
                   try {
                     await clearAllBusinessData();
