@@ -386,7 +386,16 @@ export default function RulesScreen() {
                           return '未配置';
                         }
                         return rule.fieldOrder.map((field, index) => {
-                          const label = FIELD_LABELS[field] || field;
+                          let label: string;
+                          if (isCustomField(field)) {
+                            // 自定义字段
+                            const fieldId = getCustomFieldId(field);
+                            const customField = customFields.find(f => f.id === fieldId);
+                            label = customField?.name || field;
+                          } else {
+                            // 标准字段
+                            label = FIELD_LABELS[field] || field;
+                          }
                           return index === 0 ? label : ` → ${label}`;
                         }).join('');
                       })()}
