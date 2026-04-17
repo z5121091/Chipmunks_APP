@@ -436,10 +436,27 @@ export default function InboundScreen() {
   }, [inputValue, processScan]);
 
   // 选择仓库
-  const selectWarehouse = (wh: Warehouse) => {
+  const selectWarehouse = async (wh: Warehouse) => {
+    // 如果选择的是当前仓库，直接关闭弹窗
+    if (wh.id === currentWarehouse?.id) {
+      setShowWarehousePicker(false);
+      return;
+    }
+
+    // C: 切换前自动保存当前记录
+    if (scanRecords.length > 0) {
+      await saveScanRecords(scanRecords);
+    }
+
+    // B: 清空当前页面积累的扫描记录
+    setScanRecords([]);
+    setExpandedGroups(new Set());
+    setConfirmedGroups(new Set());
+
+    // 切换到新仓库
     handleWarehouseChange(wh);
     setShowWarehousePicker(false);
-    showToast(wh.name, 'success');
+    showToast(`已切换到 ${wh.name}`, 'success');
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 

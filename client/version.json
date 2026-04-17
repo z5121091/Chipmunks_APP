@@ -15,6 +15,7 @@
       "changes": [
         { "type": "fix", "text": "入库/PDA扫码：仓库切换后切回页面自动重置问题" },
         { "type": "fix", "text": "盘点：修复仓库切换后切回页面自动重置问题" },
+        { "type": "fix", "text": "三大扫码页面：切换仓库时自动保存记录并清空当前页面积累数据" },
         { "type": "fix", "text": "命名规范：pda-scan 改为 outbound，与 inbound/inventory 风格统一" },
         { "type": "improve", "text": "输入法：Modal内移除showSoftInputOnFocus属性" },
         { "type": "improve", "text": "Modal动画：从slide改为fade，更流畅" },

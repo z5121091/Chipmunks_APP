@@ -550,10 +550,23 @@ export default function PDAScanScreen() {
   }, [inputValue, processScan]);
 
   // 选择仓库
-  const selectWarehouse = (wh: Warehouse) => {
+  const selectWarehouse = async (wh: Warehouse) => {
+    // 如果选择的是当前仓库，直接关闭弹窗
+    if (wh.id === currentWarehouse?.id) {
+      setShowWarehousePicker(false);
+      return;
+    }
+
+    // B: 清空当前页面积累的订单和物料数据
+    setOrderNo('');
+    setMaterialCount(0);
+    setMaterials([]);
+    setExpandedGroups(new Set());
+
+    // 切换到新仓库
     handleWarehouseChange(wh);
     setShowWarehousePicker(false);
-    showToast(wh.name, 'success');
+    showToast(`已切换到 ${wh.name}`, 'success');
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
