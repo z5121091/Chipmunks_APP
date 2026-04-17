@@ -19,6 +19,7 @@
         { "type": "fix", "text": "订单管理：编辑物料弹窗宽度与拆包弹窗统一" },
         { "type": "fix", "text": "清除业务数据：增加清空解析规则和自定义字段" },
         { "type": "fix", "text": "解析规则：修复||等双字符分隔符被误判为特殊格式" },
+        { "type": "fix", "text": "自动识别：添加||分隔符支持" },
         { "type": "fix", "text": "命名规范：pda-scan 改为 outbound，与 inbound/inventory 风格统一" },
         { "type": "improve", "text": "输入法：Modal内移除showSoftInputOnFocus属性" },
         { "type": "improve", "text": "Modal动画：从slide改为fade，更流畅" },

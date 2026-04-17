@@ -1389,7 +1389,7 @@ const checkAllMatchConditions = (parts: string[], conditions: MatchCondition[]):
 export const detectRule = async (content: string): Promise<QRCodeRule | null> => {
   try {
     const rules = await getActiveRules();
-    const commonSeparators = ['/', '|', ',', '*', '#', ' ', ';', ':', '\t'];
+    const commonSeparators = ['||', '|', '/', ',', '*', '#', ' ', ';', ':', '\t'];
     
     // 支持的括号分隔符格式
     const BRACKET_PAIRS: Record<string, string> = {
