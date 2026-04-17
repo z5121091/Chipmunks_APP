@@ -13,9 +13,7 @@
 
 import { 
   detectRule, 
-  parseWithRule, 
-  QRCodeRule,
-  getActiveRules 
+  parseWithRule 
 } from './database';
 import { formatDate } from './time';
 

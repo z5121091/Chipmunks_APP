@@ -255,6 +255,7 @@ export default function PDAScanScreen() {
             productionDate: standardFields.productionDate,
           };
         }
+        // 静默失败，走兜底逻辑 parseQRCodeSync
       } catch (e) {}
 
       if (!parsed) {

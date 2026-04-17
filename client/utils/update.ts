@@ -222,6 +222,7 @@ export const downloadAndInstallWithIntent = async (
           const estimated = Math.min(0.9, (fileInfo as any).size / 50000000);
           onProgress?.(estimated);
         }
+        // 静默忽略：文件还没下载完成时 getInfoAsync 可能失败，不影响主流程
       } catch {}
     }, 500);
     
