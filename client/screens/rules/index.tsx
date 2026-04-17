@@ -228,27 +228,23 @@ export default function RulesScreen() {
     const fieldDisplay = selectedFields.map(f => getFieldDisplayName(f)).join(' → ');
     const autoDescription = `分隔符: ${separatorDisplay} | 字段: ${fieldDisplay}`;
     
+    // 保存的规则数据（避免 undefined 被 JSON.stringify 忽略）
+    const ruleData: Parameters<typeof addRule>[0] = {
+      name: ruleName.trim(),
+      description: autoDescription,
+      separator: finalSeparator,
+      fieldOrder: selectedFields,
+      isActive: true,
+      supplierName: supplierName.trim() || undefined,
+      matchConditions: matchConditions.length > 0 ? matchConditions : [],
+    };
+    
     try {
       if (editingRule) {
-        await updateRule(editingRule.id, {
-          name: ruleName.trim(),
-          description: autoDescription,
-          separator: finalSeparator,
-          fieldOrder: selectedFields,
-          supplierName: supplierName.trim() || undefined,
-          matchConditions: matchConditions.length > 0 ? matchConditions : undefined,
-        });
+        await updateRule(editingRule.id, ruleData);
         alert.showSuccess('规则已更新');
       } else {
-        await addRule({
-          name: ruleName.trim(),
-          description: autoDescription,
-          separator: finalSeparator,
-          fieldOrder: selectedFields,
-          isActive: true,
-          supplierName: supplierName.trim() || undefined,
-          matchConditions: matchConditions.length > 0 ? matchConditions : undefined,
-        });
+        await addRule(ruleData);
         alert.showSuccess('规则已添加');
       }
       setModalVisible(false);
@@ -382,13 +378,13 @@ export default function RulesScreen() {
                           ? (rule.fieldOrder?.length || 0)
                           : ((rule.fieldOrder?.length || 0) + (rule.customFieldIds?.length || 0));
                         
-                        return `分隔符:${sep}  •  ${fieldCount}字段`;
+                        return `分隔符:${sep}   ·   ${fieldCount}字段`;
                       })()}
                     </Text>
-                    {rule.matchConditions && rule.matchConditions.length > 0 && (
+                    {(rule.matchConditions || []).length > 0 && (
                       <Text style={styles.ruleCondition} numberOfLines={1}>
                         {(() => {
-                          return rule.matchConditions.map(c => {
+                          return rule.matchConditions!.map(c => {
                             const fieldKey = rule.fieldOrder?.[c.fieldIndex];
                             const displayName = fieldKey ? getFieldDisplayName(fieldKey) : `字段${c.fieldIndex + 1}`;
                             return `${displayName}:${c.keyword}`;
