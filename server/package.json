@@ -1,6 +1,6 @@
 {
-  "name": "server",
-  "version": "3.0.1",
+  "name": "chipmunks-warehouse-server",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {

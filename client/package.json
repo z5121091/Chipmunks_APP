@@ -1,7 +1,7 @@
 {
-  "name": "expo-app",
-  "version": "3.3.3",
-  "description": "my-expo-app",
+  "name": "chipmunks-warehouse",
+  "version": "1.0.0",
+  "description": "掌上仓库 APP - 移动端仓储管理系统",
   "main": "expo-router/entry",
   "private": true,
   "scripts": {
